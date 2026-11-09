@@ -235,7 +235,8 @@ label.check input{width:20px;height:20px;accent-color:var(--pri)}
 .who-grid button small{font-size:12px}
 .wa-list{display:flex;flex-direction:column;gap:8px}
 .wa-row{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:14px;padding:10px 12px;text-decoration:none;color:inherit}
-.wa-row b{flex:0 0 auto}.wa-row .muted{flex:1;font-size:13px}.wa-go{color:#128C7E;font-weight:900}
+.wa-row b{flex:0 0 auto}
+button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .muted{flex:1;font-size:13px}.wa-go{color:#128C7E;font-weight:900}
 /* Essen */
 .meal-head{display:flex;align-items:center;gap:12px}
 .meal-big{font-size:34px}.meal-h{flex:1;display:flex;flex-direction:column}.meal-h small{color:var(--muted);font-weight:600}
@@ -424,8 +425,8 @@ label.check input{width:20px;height:20px;accent-color:var(--pri)}
     <!-- GEBET -->
     <section id="view-gebet" class="view" hidden>
       <div class="card prayer-card">
-        <div class="pr-head"><div class="pr-hl"><b id="prLoc">📍 …</b><small id="prDate"></small></div><button class="btn soft sm" data-act="locate">📍 Standort</button></div>
-        <p class="hint" id="prLocHint" hidden>Standort nicht verfügbar – es gilt Regensburg. In der App den Standort erlauben und auf „📍 Standort“ tippen.</p>
+        <div class="pr-head"><div class="pr-hl"><b id="prLoc" data-act="locate" style="cursor:pointer">📍 …</b><small id="prDate"></small></div><button class="btn soft sm" data-act="locate">📍 Ort ändern</button></div>
+        <p class="hint" id="prLocHint" hidden>Standort nicht verfügbar – es gilt Regensburg. Tippe auf „📍 Ort ändern“, um GPS zu erlauben oder deinen Ort zu suchen.</p>
         <div id="prNext" class="pr-next"></div>
         <div id="prTimes" class="pr-times"></div>
         <p class="hint" style="margin-bottom:0">Berechnung: Muslim World League (Fajr 18°, Isha 17°), Asr nach Schafi'i.</p>
@@ -1454,9 +1455,25 @@ function locate(){
     navigator.geolocation.getCurrentPosition(async p=>{
       const loc={lat:p.coords.latitude,lng:p.coords.longitude,ts:Date.now(),name:''};
       try{const r=await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${loc.lat}&longitude=${loc.lng}&localityLanguage=de`);const j=await r.json();loc.name=j.city||j.locality||j.principalSubdivision||''}catch{}
-      lsSet('jiy-loc',JSON.stringify(loc));res(loc);
-    },()=>res(null),{enableHighAccuracy:false,timeout:15000,maximumAge:3600e3});
+      S.locErr='';lsSet('jiy-loc',JSON.stringify(loc));res(loc);
+    },err=>{S.locErr=err&&err.code===1?'Standort-Zugriff ist nicht erlaubt. In der App: neue APK installieren und beim Fragen „Erlauben“ tippen (oder in den Android-Einstellungen → Apps → JIY Family → Berechtigungen → Standort). Du kannst den Ort auch unten suchen.':'Kein Standort-Signal – bitte später erneut versuchen oder den Ort unten suchen.';res(null)},{enableHighAccuracy:false,timeout:15000,maximumAge:600e3});
   });
+}
+function openLocModal(){
+  const l=getLoc();
+  modal(`<h3>📍 Ort für Gebetszeiten &amp; Qibla</h3>
+    <p class="muted" style="margin-top:-6px">Aktuell: <b>${esc(l.def?'Regensburg (Standard)':(l.name||'Mein Standort'))}</b>${l.manual?' · von Hand gewählt':''}</p>
+    <button class="btn primary" id="locGps" style="width:100%">📡 Aktuellen Standort (GPS) verwenden</button>
+    <p class="login-err" id="locErr"></p>
+    <div class="lbl">… oder Ort suchen</div>
+    <form id="locForm" class="row" style="align-items:center" autocomplete="off"><input name="q" placeholder="z. B. Nürnberg, Tunis, Mekka"><button class="btn soft">Suchen</button></form>
+    <div id="locRes" class="wa-list"></div>`);
+  $('#locGps').onclick=async()=>{$('#locErr').textContent='Suche Standort …';const x=await locate();
+    if(x){$('#prLocHint').hidden=true;closeModal();renderPrayer();toast('📍 '+(x.name||'Standort')+' übernommen')}else $('#locErr').textContent=S.locErr||'Standort nicht verfügbar'};
+  $('#locForm').onsubmit=async e=>{e.preventDefault();const q=e.target.q.value.trim();if(!q) return;$('#locRes').innerHTML='<div class="muted">Suche …</div>';
+    try{const r=await fetch('https://geocoding-api.open-meteo.com/v1/search?count=6&language=de&name='+encodeURIComponent(q));const j=await r.json();S.locRes=j.results||[];
+      $('#locRes').innerHTML=S.locRes.length?S.locRes.map((p,i)=>`<button type="button" class="wa-row" data-act="loc-pick" data-id="${i}"><b>${esc(p.name)}</b><span class="muted">${esc([p.admin1,p.country].filter(Boolean).join(', '))}</span><span class="wa-go">Wählen →</span></button>`).join(''):'<div class="muted">Nichts gefunden.</div>'}
+    catch{$('#locRes').innerHTML='<div class="muted">Suche nicht möglich – Internet prüfen.</div>'}};
 }
 function nextPrayer(loc){
   const now=new Date(),h=now.getHours()+now.getMinutes()/60+now.getSeconds()/3600;
@@ -1469,7 +1486,7 @@ function durTxt(hh){const m=Math.max(0,Math.round(hh*60));const h=Math.floor(m/6
 function renderPrayer(){
   if(!$('#prTimes')) return;
   const loc=getLoc(),now=new Date(),t=prayerTimes(now,loc.lat,loc.lng),np=nextPrayer(loc);
-  $('#prLoc').textContent='📍 '+(loc.def?'Regensburg (Standard)':(loc.name||`Mein Standort (${loc.lat.toFixed(2)}, ${loc.lng.toFixed(2)})`));
+  $('#prLoc').textContent='📍 '+(loc.def?'Regensburg (Standard)':(loc.name||`Mein Standort (${loc.lat.toFixed(2)}, ${loc.lng.toFixed(2)})`))+' ✎';
   $('#prDate').textContent=fmtLong(today())+(hijriLong(today())?' · '+hijriLong(today()):'');
   $('#prNext').innerHTML=`<small>Nächstes Gebet${np.tomorrow?' (morgen)':''}</small><b>${np.de} · ${hm(np.at)}</b><span>in ${durTxt(np.inH)}</span>`;
   $('#prTimes').innerHTML=PRAYERS.map(([k,de,ar])=>`<div class="pr-row ${k===np.k&&!np.tomorrow?'next':''} ${k==='sunrise'?'sun':''}"><span class="pr-de">${de}</span><span class="pr-ar">${ar}</span><b>${hm(t[k])}</b></div>`).join('');
@@ -1505,7 +1522,7 @@ async function initPrayer(){
   renderPrayer();
   if(!S.prTimer) S.prTimer=setInterval(()=>{if(S.view==='gebet') renderPrayer()},30000);
   const l=getLoc();
-  if(l.def||!l.ts||Date.now()-l.ts>6*3600e3){const x=await locate();if(x) renderPrayer();else if(l.def) $('#prLocHint').hidden=false}
+  if(!l.manual&&(l.def||!l.ts||Date.now()-l.ts>6*3600e3)){const x=await locate();if(x) renderPrayer();else if(l.def) $('#prLocHint').hidden=false}
   loadQuranList();
 }
 
@@ -1628,7 +1645,8 @@ const ACT={
   'new-bill':()=>openBillEdit(null),
   'edit-bill':(t,id)=>openBillEdit(id),
   'bill-paid':(t,id)=>billPaid(id),
-  locate:async()=>{toast('Suche Standort …');const x=await locate();if(x){$('#prLocHint').hidden=true;renderPrayer();toast('📍 '+(x.name||'Standort')+' übernommen')}else{$('#prLocHint').hidden=false;toast('Standort nicht verfügbar')}},
+  locate:()=>openLocModal(),
+  'loc-pick':(t,id)=>{const p=(S.locRes||[])[+id];if(!p) return;lsSet('jiy-loc',JSON.stringify({lat:p.latitude,lng:p.longitude,name:p.name,manual:true,ts:Date.now()}));$('#prLocHint').hidden=true;closeModal();renderPrayer();toast('📍 '+p.name+' übernommen')},
   compass:()=>startCompass(),
   'qr-open':()=>openSurah($('#surahSel').value),
   'qr-toggle':()=>qrToggle(),
