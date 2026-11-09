@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.CookieManager;
 import android.webkit.GeolocationPermissions;
+import android.webkit.PermissionRequest;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -29,6 +30,8 @@ public class MainActivity extends Activity {
     private static final int FILE_REQUEST = 42;
     private static final int LOCATION_REQUEST = 43;
     private static final int NOTIF_REQUEST = 44;
+    private static final int CAMERA_REQUEST = 45;
+    private PermissionRequest camRequest;
     private GeolocationPermissions.Callback geoCallback;
     private String geoOrigin;
     private WebView web;
@@ -82,6 +85,25 @@ public class MainActivity extends Activity {
                     requestPermissions(new String[]{
                             Manifest.permission.ACCESS_FINE_LOCATION,
                             Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_REQUEST);
+                }
+            }
+
+            @Override
+            public void onPermissionRequest(final PermissionRequest request) {
+                // Kamera für den QR-Code-Login
+                boolean wantsCam = false;
+                for (String r : request.getResources()) {
+                    if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(r)) wantsCam = true;
+                }
+                if (!wantsCam) {
+                    request.deny();
+                    return;
+                }
+                if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                    request.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
+                } else {
+                    camRequest = request;
+                    requestPermissions(new String[]{Manifest.permission.CAMERA}, CAMERA_REQUEST);
                 }
             }
 
@@ -164,6 +186,12 @@ public class MainActivity extends Activity {
             }
             geoCallback.invoke(geoOrigin, granted, false);
             geoCallback = null;
+        }
+        if (requestCode == CAMERA_REQUEST && camRequest != null) {
+            boolean ok = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+            if (ok) camRequest.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
+            else camRequest.deny();
+            camRequest = null;
         }
     }
 
