@@ -240,6 +240,8 @@ label.check input{width:20px;height:20px;accent-color:var(--pri)}
 .sos-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .sos-btn{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:#FDECEC;color:#9B1C1C;font-weight:800;text-decoration:none;border:1px solid #F6C9C9}
 .sos-btn.p{background:#EAF6EE;color:#14532D;border-color:#C6E6D0}.sos-btn span{margin-left:auto;font-weight:600;font-size:13px;opacity:.8}
+.wipe-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.btn.wipe-all{background:#C2410C;color:#fff;border-color:#C2410C}
 .app-list{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:6px 10px;background:#fff}
 .app-row{display:flex!important;gap:8px;align-items:center;padding:6px 0;font-weight:600;border-bottom:1px solid var(--line)}.app-row:last-child{border-bottom:0}.app-row input{width:auto!important}
 .dev-kids{font-size:12px;color:var(--muted);font-weight:600}.dev-kids a{color:var(--accent,#2563eb)}
@@ -375,7 +377,7 @@ button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .m
         <div id="aiOut" class="tiles small"></div>
       </div>
 
-      <h2>🔁 Oft & zuletzt gekauft</h2>
+      <div style="display:flex;align-items:center;gap:8px"><h2 style="flex:1">🔁 Oft & zuletzt gekauft</h2><button class="btn ghost sm" id="shopStatReset" hidden>↺ Zurücksetzen</button></div>
       <div id="shopRecent" class="tiles small"></div>
 
       <h2>📦 Katalog</h2>
@@ -410,6 +412,20 @@ button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .m
         <h3>📲 Neue Apps warten auf Freigabe</h3>
         <p class="hint" style="margin-top:4px">Ein Kind hat eine App installiert. Sie bleibt gesperrt, bis ihr sie freigebt.</p>
         <div id="pendList"></div>
+      </div>
+      <div class="card" id="wipeCard" hidden>
+        <h3>🗑️ Daten löschen</h3>
+        <p class="hint" style="margin-top:4px">Löscht für alle in der Familie – kann nicht rückgängig gemacht werden. Zweimal tippen zum Bestätigen.</p>
+        <div class="wipe-grid">
+          <button class="btn ghost danger sm" data-wipe="chat">💬 Chat</button>
+          <button class="btn ghost danger sm" data-wipe="shop">🛒 Einkauf</button>
+          <button class="btn ghost danger sm" data-wipe="events">📅 Termine</button>
+          <button class="btn ghost danger sm" data-wipe="meals">🍽️ Essen</button>
+          <button class="btn ghost danger sm" data-wipe="bills">💸 Haushalt</button>
+          <button class="btn ghost danger sm" data-wipe="quran">📖 Quran-Fortschritt</button>
+          <button class="btn ghost danger sm" data-wipe="devices">📱 Geräteliste</button>
+        </div>
+        <button class="btn wipe-all" style="width:100%;margin-top:10px" data-wipe="all">🗑️ Alles löschen (Profile bleiben)</button>
       </div>
       <div class="card" id="accessCard" hidden>
         <h3>🔑 Zugang freischalten</h3>
@@ -558,6 +574,8 @@ async function emailHash(e){const b=await crypto.subtle.digest('SHA-256',new Tex
 function kidKey(short){return String(short||'').toLowerCase().normalize('NFD').replace(/[^a-z0-9]/g,'')}
 function kidEmail(short){return 'kid-'+kidKey(short)+'-'+OWNER_HASH.slice(0,8)+'@jiy-family.app'}
 function kidPw(short,pin){return 'JIY#'+String(pin).trim()+'#'+kidKey(short).toUpperCase()}
+function parseLoginCode(t){const m=String(t||'').match(/login=([^&#]+)/);if(!m) return null;
+  const v=decodeURIComponent(m[1]).split(':');if(v.length!==2||!/^\d{4,6}$/.test(v[1])) return null;return {short:v[0],pin:v[1]}}
 function isKidEmail(e){return /^kid-[a-z0-9]+-[a-f0-9]{8}@jiy-family\.app$/.test(String(e||'').toLowerCase())}
 const CONFIGURED = !String(FIREBASE_CONFIG.apiKey).includes("HIER_EINTRAGEN");
 let fbApp=null, auth=null, fs=null;
@@ -812,6 +830,8 @@ async function setMe(id){
 }
 
 /* ---------- Familie ---------- */
+function lastSeenOf(m){let best=null;for(const d of S.devices||[]){if(d.member===m.id||(m.uid&&d.uid===m.uid&&!d.member)){if(!best||(d.lastSeen||0)>(best.lastSeen||0)) best=d}}return best}
+function lastSeenTxt(m){if(!amAdmin()) return '';const d=lastSeenOf(m);return `<small>🕒 ${d?'zuletzt aktiv '+agoTxt(d.lastSeen)+' · '+esc(d.name||d.model||'Gerät'):'noch nie angemeldet'}</small>`}
 function renderFam(){
   const list=$('#famList');
   if(!S.members.length){
@@ -820,7 +840,7 @@ function renderFam(){
     list.innerHTML=S.members.map(m=>`<div class="fam-card">${av(m.id,'lg')}
       <div class="fam-main"><b>${esc(m.name)}${m.id===S.meId?'<span class="badge-me">Das bist du</span>':''}</b>
       <small>${ROLE_TXT[roleOf(m)]} · Kürzel ${esc(m.short||initials(m.name))}${m.birth?` · 🎂 ${parse(m.birth).toLocaleDateString('de-DE',{day:'numeric',month:'long'})} (${ageOf(m.birth)} J.)`:''}</small>
-      <small>${m.email?'✉️ '+esc(m.email):m.login?'🔑 Kürzel-Anmeldung':m.uid?'mit Konto verknüpft':'ohne Konto'}${m.pin?' · 🔒 PIN':''}${m.phone?' · 🟢 '+esc(m.phone):''}</small></div>
+      <small>${m.email?'✉️ '+esc(m.email):m.login?'🔑 Kürzel-Anmeldung':m.uid?'mit Konto verknüpft':'ohne Konto'}${m.pin?' · 🔒 PIN':''}${m.phone?' · 🟢 '+esc(m.phone):''}</small>${lastSeenTxt(m)}</div>
       ${m.id!==S.meId?`<button class="btn soft sm" data-act="set-me" data-id="${esc(m.id)}">Das bin ich</button>`:''}
       <button class="icon-btn" data-act="edit-member" data-id="${esc(m.id)}" aria-label="Bearbeiten">✎</button></div>`).join('');
   }
@@ -853,13 +873,14 @@ function openMemberEdit(id){
     <p class="hint" id="memRoleHint" hidden>Unter 18 Jahren: Kind oder Gast.</p>
     <label>E-Mail (Anmeldung in JIY)<input name="email" type="email" maxlength="80" value="${esc(m.email||'')}" placeholder="name@beispiel.de" autocomplete="off"></label>
     <label>Handynummer (WhatsApp)<input name="phone" type="tel" maxlength="25" value="${esc(m.phone||'')}" placeholder="+49 151 …"></label>
-    ${roleOf(m)!=='admin'&&!m.email?`<div class="row" style="align-items:center;margin-bottom:8px"><span class="muted" style="flex:1;font-weight:700">🔑 Kürzel-Anmeldung: ${m.login?'an ('+esc(m.short||'')+')':'aus'}</span>
-      <button type="button" class="btn ghost sm" id="memKid">${m.login?'PIN ändern':'Einrichten'}</button>${m.login?'<button type="button" class="btn ghost danger sm" id="memKidOff">Aus</button>':''}</div>`:''}
+    <div class="row" style="align-items:center;margin-bottom:8px;flex-wrap:wrap"><span class="muted" style="flex:1;font-weight:700">🔑 Kürzel-Anmeldung: ${m.login?'an ('+esc(m.short||'')+')':'aus'}</span>
+      ${m.login?'<button type="button" class="btn soft sm" id="memQr">📱 QR-Code</button>':''}<button type="button" class="btn ghost sm" id="memKid">${m.login?'PIN ändern':'Einrichten'}</button>${m.login?'<button type="button" class="btn ghost danger sm" id="memKidOff">Aus</button>':''}</div>
     <div class="row" style="align-items:center;margin-bottom:12px"><span class="muted" style="flex:1;font-weight:700">🔒 PIN: ${m.pin?'gesetzt':'keine'}</span>${m.pin?'<button type="button" class="btn ghost sm" id="memPinReset">PIN zurücksetzen</button>':''}</div>
     <div class="lbl">Farbe</div><div class="colors" id="memColors">${COLORS.map(c=>`<button type="button" class="color ${c===color?'on':''}" style="background:${c}" data-c="${c}"></button>`).join('')}</div>
     <div class="actions"><button type="button" class="btn ghost danger" id="memDel">Löschen</button><span class="sp"></span><button class="btn primary">Speichern</button></div></form>`);
   const mf=$('#memForm');syncRole(mf,$('#memRoleHint'));mf.birth.onchange=()=>syncRole(mf,$('#memRoleHint'));
   const mk=$('#memKid');if(mk) mk.onclick=()=>kidLoginSetup(id);
+  const mq=$('#memQr');if(mq) mq.onclick=()=>loginQr(id);
   const mko=$('#memKidOff');if(mko) mko.onclick=e=>confirmBtn(e.currentTarget,'Wirklich?',()=>kidLoginOff(id));
   const pr=$('#memPinReset');if(pr) pr.onclick=e=>confirmBtn(e.currentTarget,'Wirklich?',async()=>{if(await w(()=>S.db.doc('members/'+id).update({pin:null}))){closeModal();toast('PIN zurückgesetzt')}});
   $('#memColors').onclick=e=>{const b=e.target.closest('[data-c]');if(!b) return;color=b.dataset.c;$('#memColors').querySelectorAll('.color').forEach(x=>x.classList.toggle('on',x===b))};
@@ -872,7 +893,8 @@ function openMemberEdit(id){
     if(email&&S.members.some(x=>x.id!==id&&normEmail(x.email)===email)){toast('Diese E-Mail gehört schon zu einem anderen Profil');return}
     const ch={name,short,color,birth,role,phone:f.phone.value.trim(),email};
     if(normEmail(m.email)!==email&&m.uid&&m.uid!==S.uid) ch.uid=null; // E-Mail geändert -> alte Verknüpfung lösen
-    if(await w(()=>S.db.doc('members/'+id).update(ch))){closeModal();if(email) allowEmail(email)}};
+    if(await w(()=>S.db.doc('members/'+id).update(ch))){closeModal();if(email) allowEmail(email);
+      if(m.login) S.db.doc('allowed/'+m.login).update({admin:role==='admin'}).catch(()=>{})}};
 }
 
 /* ---------- Kalender ---------- */
@@ -1101,6 +1123,8 @@ function renderShop(){
         <span class="pic">${itemPic(i)}</span><span class="nm">${esc(i.name)}</span>${i.qty?`<span class="qty">${esc(i.qty)}</span>`:''}${i.due?`<span class="due ${i.due<today()?'late':i.due===today()?'now':''}">📅 ${i.due===today()?'heute':parse(i.due).toLocaleDateString('de-DE',{day:'numeric',month:'numeric'})}</span>`:''}</button>
       <button class="tile-edit" data-act="edit-item" data-id="${esc(i.id)}" aria-label="Details">✎</button></div>`).join('')
     :`<div class="empty" style="grid-column:1/-1">Alles erledigt! 🎉 Tippe unten auf Sachen, die ihr braucht.</div>`;
+  {const rb=$('#shopStatReset');if(rb){rb.hidden=!amAdmin()||!S.shop.some(i=>!i.open);rb.onclick=e=>confirmBtn(e.currentTarget,'Wirklich zurücksetzen?',async()=>{
+    const old=S.shop.filter(i=>!i.open);for(const i of old){try{await S.db.doc('shop/'+i.id).delete()}catch{}}toast('Statistik zurückgesetzt ('+old.length+')')})}}
   const recent=S.shop.filter(i=>!i.open).sort((a,b)=>(b.times||0)-(a.times||0)||(b.boughtAt||0)-(a.boughtAt||0)).slice(0,18);
   $('#shopRecent').innerHTML=recent.length?recent.map(i=>`<div class="tile done">
       <button class="tile-main" data-act="readd" data-id="${esc(i.id)}"><span class="pic">${itemPic(i)}</span><span class="nm">${esc(i.name)}</span>${i.boughtAt?`<span class="qty muted">${new Date(i.boughtAt).toLocaleDateString('de-DE',{day:'numeric',month:'numeric'})}${i.times>1?' · '+i.times+'×':''}</span>`:''}</button>
@@ -1404,13 +1428,29 @@ function kidLoginSetup(id){
         catch(x){if(String(x&&x.code).includes('email-already-in-use')){const c=await signInWithEmailAndPassword(ka,em,pw);uid=c.user.uid}else throw x}}
       try{await signOut(ka)}catch{}
       if(old&&old.email&&old.email!==em){try{await S.db.doc('allowed/'+old.email).delete()}catch{}}
-      await S.db.doc('allowed/'+em).set({email:em,kid:true,member:id,by:S.uid,ts:Date.now()});
+      await S.db.doc('allowed/'+em).set({email:em,kid:true,member:id,admin:roleOf(m)==='admin',by:S.uid,ts:Date.now()});
       await S.db.doc('kidlogin/'+id).set({email:em,pw,ts:Date.now()});
       await S.db.doc('members/'+id).update({login:em,uid,pin:await pinHash(id,pin)});
-      closeModal();toast('✅ '+m.name+' kann sich jetzt mit Kürzel '+(m.short||'').toUpperCase()+' anmelden');
+      toast('✅ '+m.name+' kann sich jetzt mit Kürzel '+(m.short||'').toUpperCase()+' anmelden');loginQr(id,pin);
     }catch(x){console.warn('kid',x);b.disabled=false;b.textContent='Speichern';
       err(String(x&&x.code||'').includes('invalid-credential')?'Für dieses Kürzel gibt es schon eine andere Anmeldung – bitte ein anderes Kürzel wählen.':'Hat nicht geklappt ('+(x&&x.code||x)+'). Sind die Firebase-Regeln veröffentlicht?')}
   };
+}
+function loginLink(short,pin){return location.origin+location.pathname+'#login='+encodeURIComponent(String(short).toUpperCase()+':'+pin)}
+async function loginQr(id,pin){
+  const m=member(id);if(!m||!amAdmin()) return;
+  if(!pin){try{const d=await S.db.doc('kidlogin/'+id).get();const pw=d.exists?d.data().pw:'';pin=(String(pw).match(/^JIY#(\d+)#/)||[])[1]}catch{}}
+  if(!pin){toast('Bitte zuerst die Kürzel-Anmeldung einrichten');return}
+  const url=loginLink(m.short,pin);
+  modal(`<h3>📱 Anmelden: ${esc(m.name)}</h3>
+    <p class="muted" style="margin-top:-6px">Auf dem Handy von ${esc(m.name)}: JIY öffnen → <b>„📷 QR-Code scannen“</b> – oder einfach mit der Handy-Kamera scannen.</p>
+    <div id="loginQrBox" style="display:flex;justify-content:center;margin:12px 0;min-height:120px;align-items:center" class="muted">QR-Code wird erstellt …</div>
+    <div class="dev"><span class="dev-ic">🔑</span><div class="dev-main"><small>Oder von Hand</small><b>Kürzel ${esc((m.short||'').toUpperCase())} · PIN ${esc(pin)}</b></div></div>
+    <p class="hint">⚠️ Der QR-Code enthält die PIN – nur der Person selbst zeigen. Danach am besten schließen.</p>`);
+  const ok=await loadQr();const box=$('#loginQrBox');if(!box) return;
+  if(!ok){box.textContent='QR-Code braucht Internet – Kürzel und PIN unten nutzen.';return}
+  const q=window.qrcode(0,'M');q.addData(url);q.make();
+  box.innerHTML=q.createSvgTag({cellSize:6,margin:2,scalable:true});const sv=box.querySelector('svg');if(sv){sv.style.width='230px';sv.style.height='230px';sv.style.background='#fff';sv.style.borderRadius='12px'}
 }
 async function kidLoginOff(id){
   const m=member(id);if(!m||!m.login) return;
@@ -1993,7 +2033,21 @@ async function appDecide(key,ok){
   if(ok){al.add(pkg);dn.delete(pkg)}else{dn.add(pkg);al.delete(pkg)}
   if(await w(()=>S.db.doc('devices/'+id).update({appsAllowed:[...al],appsDenied:[...dn]}))) toast(ok?'✅ App freigegeben':'🚫 App bleibt gesperrt');
 }
+const WIPE={chat:'Chat',shop:'Einkauf',events:'Termine',meals:'Essen',bills:'Haushalt',quran:'Quran-Fortschritt',devices:'Geräteliste'};
+async function wipeColl(name){
+  let n=0;const snap=await S.db.collection(name).get();
+  for(const d of snap.docs){if(name==='devices'&&d.id===S.devId) continue;try{await S.db.doc(name+'/'+d.id).delete();n++}catch{}}
+  return n;
+}
+function bindWipe(){
+  const card=$('#wipeCard');if(!card) return;card.hidden=!amAdmin();if(card.hidden||card.dataset.bound) return;card.dataset.bound='1';
+  card.querySelectorAll('[data-wipe]').forEach(b=>b.onclick=e=>confirmBtn(e.currentTarget,'Sicher? Nochmal tippen',async()=>{
+    const k=b.dataset.wipe,list=k==='all'?Object.keys(WIPE):[k];b.disabled=true;let n=0;
+    for(const c of list){try{n+=await wipeColl(c)}catch(x){console.warn('wipe',c,x)}}
+    b.disabled=false;toast(`🗑️ ${k==='all'?'Alles':WIPE[k]} gelöscht (${n} Einträge)`)}));
+}
 function renderAccess(){
+  bindWipe();
   const card=$('#accessCard');if(!card) return;card.hidden=!amAdmin();if(card.hidden) return;
   const fixed=['(Eltern – fest eingetragen)'];
   $('#allowList').innerHTML=(S.allowed||[]).sort((a,b)=>(a.ts||0)-(b.ts||0)).map(a=>`<div class="dev"><span class="dev-ic">✉️</span><div class="dev-main"><b>${a.kid?'🔑 Kürzel '+esc((member(a.member)||{}).short||'')+' · '+esc((member(a.member)||{}).name||''):esc(a.email||a.id)}</b><small>freigeschaltet ${a.ts?new Date(a.ts).toLocaleDateString('de-DE'):''}</small></div><button class="btn ghost danger sm" data-act="allow-del" data-id="${esc(a.id)}">Entfernen</button></div>`).join('')||'<div class="muted">Noch keine weiteren E-Mails – die Eltern-Konten sind fest freigeschaltet.</div>';
@@ -2127,7 +2181,7 @@ function subscribe(){
   const errX=k=>e=>console.warn(k,e);
   S.db.collection('meals').where('date','>=',addDays(today(),-60)).onSnapshot(s=>{const o={};for(const d of s.docs){const x=d.data();o[x.date||d.id]=x}S.meals=o;renderMeals()},errX('meals'));
   S.db.collection('bills').onSnapshot(s=>{S.bills=rows(s);renderBills();renderCal();renderBadges();scheduleAlarms();if(S.loaded) billReminderOnce()},errX('bills'));
-  S.db.collection('devices').onSnapshot(s=>{S.devices=rows(s);renderDevices();renderPending();renderBadges()},errX('devices'));
+  S.db.collection('devices').onSnapshot(s=>{S.devices=rows(s);renderDevices();renderPending();renderBadges();if(S.view==='familie') renderFam()},errX('devices'));
   S.db.collection('blocked').onSnapshot(s=>{S.blockedAcc=rows(s);renderDevices()},errX('blocked'));
   S.db.doc('config/wifi').onSnapshot(s=>{S.wifi=s.exists?s.data():null},()=>{});
   S.db.collection('allowed').onSnapshot(s=>{S.allowed=rows(s);renderAccess()},()=>{});
@@ -2158,19 +2212,45 @@ function showLogin(mode,user,msg){
     $('#dOut').onclick=()=>signOut(auth);return;
   }
   if(mode==='kid'){
-    box.innerHTML=head+`<p class="login-msg">Für Kinder &amp; Gäste – ohne E-Mail.<br>Kürzel und PIN bekommst du von Mama oder Papa.</p>
+    box.innerHTML=head+`<p class="login-msg">Ohne E-Mail – für alle mit Kürzel-Anmeldung.<br>Kürzel und PIN (oder einen QR-Code) bekommst du von Mama oder Papa.</p>
       <form id="kidForm" autocomplete="off">
         <label>Kürzel<input name="short" required maxlength="3" autocapitalize="characters" style="text-transform:uppercase;font-weight:800;letter-spacing:2px"></label>
         <label>PIN<input name="pin" required type="password" inputmode="numeric" maxlength="6" class="pin-input" placeholder="••••"></label>
         <p class="login-err" id="loginErr">${esc(msg||'')}</p>
         <button class="btn primary" style="width:100%">Anmelden</button>
       </form>
-      <div class="login-links"><button class="linkbtn" id="kBack">← Mit E-Mail anmelden</button></div>`;
-    $('#kBack').onclick=()=>showLogin('login');
+      <div class="login-links"><button class="linkbtn" id="kBack">← Mit E-Mail anmelden</button><button class="linkbtn" id="kQr">📷 QR-Code scannen</button></div>`;
+    $('#kBack').onclick=()=>showLogin('login');$('#kQr').onclick=()=>showLogin('scan');
     const kf=$('#kidForm');
+    if(msg&&msg.short){kf.short.value=msg.short;kf.pin.value=msg.pin;$('#loginErr').textContent=''}
     kf.onsubmit=async e=>{e.preventDefault();const b=kf.querySelector('button');b.disabled=true;
       try{await signInWithEmailAndPassword(auth,kidEmail(kf.short.value),kidPw(kf.short.value,kf.pin.value))}
       catch(err){$('#loginErr').textContent=String(err&&err.code||'').includes('too-many')?'Zu viele Versuche – bitte kurz warten.':'Kürzel oder PIN stimmt nicht.';b.disabled=false}};
+    if(msg&&msg.short) kf.requestSubmit();
+    return;
+  }
+  if(mode==='scan'){
+    box.innerHTML=head+`<p class="login-msg">QR-Code von Mama oder Papa vor die Kamera halten.</p>
+      <div style="position:relative;border-radius:16px;overflow:hidden;background:#000;aspect-ratio:1/1"><video id="qrVid" playsinline muted style="width:100%;height:100%;object-fit:cover"></video></div>
+      <p class="login-err" id="loginErr"></p>
+      <div class="login-links"><button class="linkbtn" id="sBack">← Zurück</button></div>`;
+    let stream=null,stop=false;const end=()=>{stop=true;try{stream&&stream.getTracks().forEach(t=>t.stop())}catch{}};
+    $('#sBack').onclick=()=>{end();showLogin('kid')};
+    (async()=>{
+      try{
+        if(!window.jsQR) await new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';sc.onload=res;sc.onerror=rej;document.head.appendChild(sc)});
+        stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+        const v=$('#qrVid');v.srcObject=stream;await v.play();
+        const c=document.createElement('canvas'),ctx=c.getContext('2d',{willReadFrequently:true});
+        const tick=()=>{if(stop) return;
+          if(v.videoWidth){c.width=v.videoWidth;c.height=v.videoHeight;ctx.drawImage(v,0,0);
+            const r=window.jsQR(ctx.getImageData(0,0,c.width,c.height).data,c.width,c.height);
+            const cred=r&&parseLoginCode(r.data);
+            if(cred){end();showLogin('kid',null,cred);return}}
+          requestAnimationFrame(tick)};
+        tick();
+      }catch(e){$('#loginErr').textContent='Kamera nicht verfügbar – bitte Kürzel und PIN von Hand eingeben.'}
+    })();
     return;
   }
   const reg=mode==='register';
@@ -2182,9 +2262,10 @@ function showLogin(mode,user,msg){
       <button class="btn primary" style="width:100%">${reg?'Konto erstellen':'Anmelden'}</button>
     </form>
     <div class="login-links"><button class="linkbtn" id="lSwitch">${reg?'Ich habe schon ein Konto':'Neues Konto erstellen'}</button>${reg?'':'<button class="linkbtn" id="lReset">Passwort vergessen</button>'}</div>
-    ${reg?'':'<button class="btn ghost" style="width:100%;margin-top:12px" id="lKid">🧒 Kind / 👋 Gast: mit Kürzel anmelden</button>'}`;
+    ${reg?'':'<button class="btn ghost" style="width:100%;margin-top:12px" id="lKid">🔑 Mit Kürzel &amp; PIN anmelden</button><button class="btn ghost" style="width:100%;margin-top:8px" id="lQr">📷 QR-Code scannen</button>'}`;
   $('#lSwitch').onclick=()=>showLogin(reg?'login':'register');
   const lk=$('#lKid');if(lk) lk.onclick=()=>showLogin('kid');
+  const lq=$('#lQr');if(lq) lq.onclick=()=>showLogin('scan');
   const f=$('#loginForm');
   if(!reg) $('#lReset').onclick=async()=>{const em=f.email.value.trim();if(!em){$('#loginErr').textContent='Bitte zuerst die E-Mail eintragen.';return}
     try{await sendPasswordResetEmail(auth,em);$('#loginErr').textContent='E-Mail zum Zurücksetzen wurde gesendet ✓'}catch(e){$('#loginErr').textContent=authMsg(e)}};
@@ -2219,12 +2300,14 @@ function startApp(user,hash){
 }
 (function init(){
   S.mealWeek=weekStart(today());
-  show(location.hash.slice(1)||'kalender');
+  const qrLogin=parseLoginCode(location.hash);
+  if(qrLogin) try{history.replaceState(null,'',location.pathname+location.search+'#kalender')}catch{}
+  show(qrLogin?'kalender':(location.hash.slice(1)||'kalender'));
   $('#aiCard').hidden=true;
   renderAll();
   if(!CONFIGURED){showLogin('setup');return}
   onAuthStateChanged(auth,async user=>{
-    if(!user){if(started){location.reload();return}showLogin('login');return}
+    if(!user){if(started){location.reload();return}if(qrLogin) return showLogin('kid',null,qrLogin);showLogin('login');return}
     if(!user.emailVerified&&!isKidEmail(user.email)){showLogin('verify',user);return}
     const hash=await emailHash(user.email);
     if(!ALLOWED_HASHES.includes(hash)){
