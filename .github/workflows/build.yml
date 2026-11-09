@@ -50,30 +50,48 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
-      - uses: actions/setup-java@v4
+      # Neue APK nur, wenn sich am Android-Teil etwas geändert hat (oder manuell gestartet)
+      - name: Android geändert?
+        id: chk
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || ! git diff --quiet HEAD~1 HEAD -- android .github/workflows; then
+            echo "build=true" >> $GITHUB_OUTPUT
+          else
+            echo "build=false" >> $GITHUB_OUTPUT
+          fi
+
+      - if: steps.chk.outputs.build == 'true'
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - uses: gradle/actions/setup-gradle@v4
+      - if: steps.chk.outputs.build == 'true'
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
 
-      - name: APK bauen
+      - if: steps.chk.outputs.build == 'true'
+        name: APK bauen
         env:
           JIY_APP_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
         run: gradle -p android assembleRelease --no-daemon --stacktrace
 
-      - name: APK umbenennen
+      - if: steps.chk.outputs.build == 'true'
+        name: APK umbenennen
         run: cp android/app/build/outputs/apk/release/app-release.apk JIY-Family.apk
 
-      - uses: actions/upload-artifact@v4
+      - if: steps.chk.outputs.build == 'true'
+        uses: actions/upload-artifact@v4
         with:
           name: JIY-Family-APK
           path: JIY-Family.apk
 
-      - name: Release "apk" aktualisieren
+      - if: steps.chk.outputs.build == 'true'
+        name: Release "apk" aktualisieren
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
