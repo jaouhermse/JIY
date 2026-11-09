@@ -653,9 +653,13 @@ function ageOf(birth,at){if(!birth) return null;const b=parse(birth),d=at?parse(
 function isMinor(m){const a=ageOf(m&&m.birth);return a!==null&&a<18}
 function roleOf(m){return m&&m.role==='admin'&&!isMinor(m)?'admin':'user'}
 function amAdmin(){
-  if(S.isOwner===true||S.isOwner===null) return true;
-  const me=member(S.meId);return !!(me&&roleOf(me)==='admin'&&S.uid&&me.uid===S.uid);
+  // Rechte hängen am gewählten Profil: Benutzer-Profile (z. B. Kinder) sehen „Familie“ nie – auch nicht auf dem Handy des Administrators
+  const me=member(S.meId);
+  if(!me) return S.isOwner!==false;
+  return roleOf(me)==='admin'&&(S.isOwner===true||(!!S.uid&&me.uid===S.uid));
 }
+// Profile, die auf diesem Konto gewählt werden dürfen: das eigene + Profile ohne eigenes Konto (z. B. Kinder)
+function myProfiles(){return S.members.filter(m=>(S.uid&&m.uid===S.uid)||!m.uid)}
 function applyAdmin(){const ok=amAdmin();$('#famTab').hidden=!ok;if(!ok&&S.view==='familie') show('kalender')}
 function syncRole(form,hintEl){
   const minor=form.birth.value&&ageOf(form.birth.value)<18;
@@ -727,8 +731,8 @@ window.addEventListener('hashchange',()=>show(location.hash.slice(1)));
 
 /* ---------- Ich / Profile ---------- */
 function resolveMe(){
-  let m=S.uid?S.members.find(x=>x.uid===S.uid):null;
-  if(!m){const l=ls('jiy-me');m=S.members.find(x=>x.id===l)}
+  const l=ls('jiy-me');let m=myProfiles().find(x=>x.id===l);
+  if(!m&&S.uid) m=S.members.find(x=>x.uid===S.uid);
   S.meId=m?m.id:null;
   if(!S.meId&&S.members.length&&!S.askedMe&&S.loaded){S.askedMe=true;openWhoAmI()}
 }
@@ -739,22 +743,22 @@ function renderMe(){
 function openWhoAmI(){
   if(!S.members.length){if(!amAdmin()){toast('Es sind noch keine Profile angelegt – bitte den Administrator fragen');return}show('familie');toast('Lege zuerst die Familienmitglieder an');return}
   modal(`<h3>Wer bist du?</h3><p class="muted" style="margin-top:-6px">Dann sehen alle, wer was geschrieben oder eingetragen hat.</p>
-    <div class="who-grid">${S.members.map(m=>`<button data-act="set-me" data-id="${esc(m.id)}">${av(m.id,'lg')}${esc(m.name)}${m.pin&&m.id!==S.meId?'<small>🔒</small>':''}</button>`).join('')}</div>
+    <div class="who-grid">${myProfiles().map(m=>`<button data-act="set-me" data-id="${esc(m.id)}">${av(m.id,'lg')}${esc(m.name)}${m.pin&&m.id!==S.meId?'<small>🔒</small>':''}</button>`).join('')}</div>
     <p class="hint" style="text-align:center">Angemeldet als ${esc(S.email||'')}</p>
     <div style="text-align:center"><button class="btn ghost sm" data-act="logout">Abmelden</button></div>`);
 }
 async function setMe(id){
   const t=member(id);if(!t) return;
   if(id===S.meId){closeModal();return}
-  const own=S.uid&&t.uid===S.uid;
-  if(t.pin&&!own){const ok=await askPin(t);if(!ok) return}
+  if(!myProfiles().some(m=>m.id===id)){toast('Dieses Profil gehört zu einem anderen Konto');return}
+  const own=S.uid&&t.uid===S.uid,cur=member(S.meId);
+  if(t.pin&&!(own&&cur&&roleOf(cur)==='admin')){const ok=await askPin(t);if(!ok) return}
   lsSet('jiy-me',id);S.meId=id;closeModal();renderAll();
   if(S.devId&&S.db) S.db.doc('devices/'+S.devId).update({member:id}).catch(()=>{});
   if(!t.pin) setTimeout(()=>openSetPin(id,true),900);
-  if(S.uid&&S.db&&S.canWrite){
-    for(const m of S.members){ if(m.uid===S.uid&&m.id!==id) await w(()=>S.db.doc('members/'+m.id).update({uid:null})); }
-    const me=member(id); if(me&&me.uid!==S.uid) await w(()=>S.db.doc('members/'+id).update({uid:S.uid}));
-  }
+  // Konto nur mit dem ersten Erwachsenen-Profil verknüpfen – Kinder-Profile bleiben ohne Konto
+  if(S.uid&&S.db&&S.canWrite&&!t.uid&&!isMinor(t)&&!S.members.some(m=>m.uid===S.uid))
+    await w(()=>S.db.doc('members/'+id).update({uid:S.uid}));
   const m=member(id); if(m) toast(`Hallo ${m.name}! 👋`);
 }
 
@@ -1725,7 +1729,7 @@ function quietUntil(d){
   const e=new Date(n);e.setHours(Math.floor(t/60),t%60,0,0);if(e<=n) e.setDate(e.getDate()+1);return e.getTime();
 }
 function guardState(){
-  const d=S.myDev;if(!d||S.isOwner||roleOf(member(S.meId))==='admin') return null; // Kinderschutz gilt nur für Benutzer (Kinder), nie für Administratoren
+  const d=S.myDev,me=member(S.meId);if(!d||(me?roleOf(me)==='admin':S.isOwner===true)) return null; // Kinderschutz gilt nur für Benutzer (Kinder), nie für Administratoren
   const q=quietUntil(d);if(q) return {kind:'quiet',until:q};
   if(d.limitMin>0&&usedMin()>=d.limitMin){const e=new Date();e.setHours(24,0,0,0);return {kind:'limit',until:e.getTime()}}
   return null;
@@ -1788,7 +1792,7 @@ function showBlocked(kind,until){
 function agoTxt(ts){if(!ts) return '–';const m=Math.round((Date.now()-ts)/60000);if(m<2) return 'gerade eben';if(m<60) return `vor ${m} Min`;const h=Math.round(m/60);if(h<24) return `vor ${h} Std`;const d=Math.round(h/24);return d===1?'gestern':`vor ${d} Tagen`}
 function renderDevices(){
   const card=$('#devCard');if(!card) return;
-  card.hidden=S.isOwner!==true;if(card.hidden) return;
+  card.hidden=!(S.isOwner===true&&amAdmin());if(card.hidden) return;
   const devs=[...(S.devices||[])].sort((a,b)=>(b.lastSeen||0)-(a.lastSeen||0));
   const blocked=new Map((S.blockedAcc||[]).filter(b=>!b.until||b.until>Date.now()).map(b=>[b.id,b]));
   $('#devList').innerHTML=devs.length?devs.map(d=>{const mm=member(d.member);const mine=d.id===S.devId;
