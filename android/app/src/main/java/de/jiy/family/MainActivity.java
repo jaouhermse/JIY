@@ -28,6 +28,7 @@ public class MainActivity extends Activity {
 
     private static final int FILE_REQUEST = 42;
     private static final int LOCATION_REQUEST = 43;
+    private static final int NOTIF_REQUEST = 44;
     private GeolocationPermissions.Callback geoCallback;
     private String geoOrigin;
     private WebView web;
@@ -44,6 +45,12 @@ public class MainActivity extends Activity {
 
         web = new WebView(this);
         setContentView(web);
+        web.addJavascriptInterface(new NativeBridge(this), "JIYNative");
+        Notifier.ensureChannel(this);
+        if (android.os.Build.VERSION.SDK_INT >= 33
+                && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIF_REQUEST);
+        }
 
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
