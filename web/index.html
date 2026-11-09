@@ -236,6 +236,13 @@ label.check input{width:20px;height:20px;accent-color:var(--pri)}
 .wa-list{display:flex;flex-direction:column;gap:8px}
 .wa-row{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:14px;padding:10px 12px;text-decoration:none;color:inherit}
 .wa-btn{background:#25D366!important;color:#fff!important}
+.dev{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px;background:#fff}
+.sos-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.sos-btn{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:#FDECEC;color:#9B1C1C;font-weight:800;text-decoration:none;border:1px solid #F6C9C9}
+.sos-btn.p{background:#EAF6EE;color:#14532D;border-color:#C6E6D0}.sos-btn span{margin-left:auto;font-weight:600;font-size:13px;opacity:.8}
+.dev-kids{font-size:12px;color:var(--muted);font-weight:600}.dev-kids a{color:var(--accent,#2563eb)}
+.dev.blk{background:#FFF6F2;border-color:#F3D3C4}.dev-ic{font-size:24px}.dev-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.dev-main small{color:var(--muted);font-weight:600;font-size:12px}.dev-act{display:flex;gap:6px;align-items:center}
 .wa-row b{flex:0 0 auto}
 button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .muted{flex:1;font-size:13px}.wa-go{color:#128C7E;font-weight:900}
 /* Essen */
@@ -394,6 +401,14 @@ button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .m
         <div class="colors" id="famColors"></div>
         <button class="btn primary">Hinzufügen</button>
       </form>
+      <div class="card" id="devCard" hidden>
+        <h3>📱 Geräte &amp; Zugriff</h3>
+        <p class="hint" style="margin-top:4px">Hier siehst du, wo JIY benutzt wird. Ein gesperrtes Gerät oder Konto kommt nicht mehr in die App.</p>
+        <div class="lbl">Geräte</div><div id="devList"></div>
+        <div class="lbl" style="margin-top:12px">Konten</div><div id="accList"></div>
+        <p class="hint">„Konto sperren“ wirkt auf allen Geräten dieser Person – auch wenn sie ein neues Handy nimmt.</p>
+        <p class="hint">👶 Kinderschutz: Tippe bei einem Gerät auf ✎ für Tageslimit, Ruhezeit und Standort. Notrufe (112/110/Eltern) gehen auch im gesperrten Zustand. Für <b>andere Apps</b> (App-Freigaben, Inhaltsfilter, YouTube usw.) nutze zusätzlich die kostenlose <a href="https://families.google/familylink/" target="_blank" rel="noopener">Google Family Link</a> – das kann nur Android selbst.</p>
+      </div>
       <div class="card" id="aboCard" hidden>
         <h3>📅 Kalender-Abo für Gmail &amp; Outlook</h3>
         <p class="hint" style="margin-top:4px">Alle JIY-Termine und Geburtstage erscheinen automatisch als eigener Kalender „JIY Familie“. Google und Outlook holen Änderungen selbst alle paar Stunden ab.</p>
@@ -465,6 +480,8 @@ button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .m
       <div class="more-grid">
         <button class="more-btn" data-act="tab" data-id="haushalt"><span class="mi">💸</span><b>Haushalt</b><small id="moreBillHint">Rechnungen &amp; Fixkosten</small></button>
         <button class="more-btn" data-act="whatsapp"><span class="mi">🟢</span><b>WhatsApp</b><small>Chat &amp; Anruf</small></button>
+        <button class="more-btn" data-act="sos"><span class="mi">🆘</span><b>Notruf</b><small>112 · 110 · Eltern</small></button>
+        <button class="more-btn" data-act="app-update"><span class="mi">⬇️</span><b>App &amp; Update</b><small id="updHint">neu laden · APK</small></button>
         <button class="more-btn" data-act="notif"><span class="mi">🔔</span><b>Benachrichtigungen</b><small>Gebet, Chat, Termine</small></button>
         <button class="more-btn" data-act="my-pin"><span class="mi">🔒</span><b>Meine PIN</b><small>festlegen / ändern</small></button>
         <button class="more-btn" data-act="who-am-i"><span class="mi">👤</span><b>Profil wechseln</b><small>mit PIN</small></button>
@@ -732,6 +749,7 @@ async function setMe(id){
   const own=S.uid&&t.uid===S.uid;
   if(t.pin&&!own){const ok=await askPin(t);if(!ok) return}
   lsSet('jiy-me',id);S.meId=id;closeModal();renderAll();
+  if(S.devId&&S.db) S.db.doc('devices/'+S.devId).update({member:id}).catch(()=>{});
   if(!t.pin) setTimeout(()=>openSetPin(id,true),900);
   if(S.uid&&S.db&&S.canWrite){
     for(const m of S.members){ if(m.uid===S.uid&&m.id!==id) await w(()=>S.db.doc('members/'+m.id).update({uid:null})); }
@@ -757,6 +775,7 @@ function renderFam(){
   if(!S.colorTouched){S.newColor=COLORS.find(c=>!used.has(c))||COLORS[S.members.length%COLORS.length]}
   $('#famColors').innerHTML=COLORS.map(c=>`<button type="button" class="color ${c===S.newColor?'on':''}" style="background:${c}" data-act="pick-color" data-id="${c}" aria-label="Farbe"></button>`).join('');
   renderAbo();
+  renderDevices();
 }
 $('#famForm').name.addEventListener('input',e=>{const f=$('#famForm');if(!f.short.dataset.touched) f.short.value=initials(e.target.value)});
 $('#famForm').short.addEventListener('input',e=>{e.target.dataset.touched=e.target.value?'1':''});
@@ -1662,6 +1681,164 @@ function openNotifSettings(){
     lsSet('jiy-notif',JSON.stringify(v));scheduleAlarms();closeModal();toast('Gespeichert 🔔')};
 }
 
+/* ---------- Geräte & Sperren ---------- */
+function isBlk(d){return !!d&&!!d.blocked&&(!d.until||d.until>Date.now())}
+function untilTxt(u){if(!u) return 'dauerhaft';const d=new Date(u);const tm=pad(d.getHours())+':'+pad(d.getMinutes());return iso(d)===today()?'bis '+tm+' Uhr':'bis '+d.toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'numeric'})+' '+tm+' Uhr'}
+function askDuration(title){
+  return new Promise(res=>{
+    modal(`<h3>${esc(title)}</h3><p class="muted" style="margin-top:-6px">Wie lange?</p><div class="wa-list">${[[30,'⏱️ 30 Minuten'],[60,'⏱️ 1 Stunde'],[120,'⏱️ 2 Stunden'],[180,'⏱️ 3 Stunden'],['morning','🌙 Bis morgen früh (7 Uhr)'],[0,'🔒 Dauerhaft (bis ich entsperre)']].map(([v,t])=>`<button type="button" class="wa-row" data-dur="${v}"><b>${t}</b></button>`).join('')}</div>`);
+    S.onModalClose=()=>res(null);
+    $('#sheet').querySelectorAll('[data-dur]').forEach(b=>b.onclick=()=>{const v=b.dataset.dur;let until=0;
+      if(v==='morning'){const d=new Date();if(d.getHours()>=7) d.setDate(d.getDate()+1);d.setHours(7,0,0,0);until=d.getTime()}
+      else if(+v>0) until=Date.now()+(+v)*60000;
+      S.onModalClose=null;closeModal();res(until)});
+  });
+}
+function devId(){let d=ls('jiy-dev');if(!d){d='d'+Array.from(crypto.getRandomValues(new Uint8Array(8)),b=>b.toString(16).padStart(2,'0')).join('');lsSet('jiy-dev',d)}return d}
+function devModel(){
+  try{if(NATIVE&&window.JIYNative.deviceName) return String(window.JIYNative.deviceName())}catch{}
+  const ua=navigator.userAgent;let m=(ua.match(/Android [\d.]+; ([^;)]+)/)||[])[1];
+  if(m) m=m.split(' Build')[0].trim();
+  if(!m||m==='K'){m=/Android/.test(ua)?'Android-Handy':/iPhone/.test(ua)?'iPhone':/iPad/.test(ua)?'iPad':/Windows/.test(ua)?'Windows-PC':/Mac OS/.test(ua)?'Mac':/Linux/.test(ua)?'Linux-PC':'Gerät'}
+  return m;
+}
+async function registerDevice(){
+  const id=devId(),ref=S.db.doc('devices/'+id);S.devId=id;let ex=null;
+  try{const d=await ref.get();ex=d.exists?d.data():null}catch{}
+  const base={uid:S.uid,email:S.email||'',member:S.meId||ex?.member||null,model:devModel(),app:NATIVE?'App':'Browser',lastSeen:Date.now()};
+  try{if(ex) await ref.update(base);else await ref.set({...base,first:Date.now(),blocked:false,until:0,name:'',limitMin:0,quietFrom:'',quietTo:'',trackLoc:false})}catch(e){console.warn('device',e)}
+  ref.onSnapshot(s=>{const d=s.exists?s.data():null;S.myDev=d;
+    if(isBlk(d)) return showBlocked('device',d.until);
+    if(S.blockedShown==='device') return location.reload();
+    guardCheck()},()=>{});
+  S.db.doc('blocked/'+S.uid).onSnapshot(s=>{const d=s.exists?s.data():null;if(d&&(!d.until||d.until>Date.now())) showBlocked('account',d.until);else if(S.blockedShown==='account') location.reload()},()=>{});
+  startGuard();
+}
+/* ---- Kinderschutz: Bildschirmzeit, Ruhezeit, Standort ---- */
+function hm2min(t){const m=/^(\d{1,2}):(\d{2})$/.exec(t||'');return m?(+m[1])*60+(+m[2]):null}
+function useKey(){return 'jiy-use-'+today()}
+function usedMin(){return Math.floor((+ls(useKey())||0)/60)}
+function quietUntil(d){
+  const f=hm2min(d?.quietFrom),t=hm2min(d?.quietTo);if(f===null||t===null||f===t) return 0;
+  const n=new Date(),now=n.getHours()*60+n.getMinutes();
+  const inQ=f<t?(now>=f&&now<t):(now>=f||now<t);if(!inQ) return 0;
+  const e=new Date(n);e.setHours(Math.floor(t/60),t%60,0,0);if(e<=n) e.setDate(e.getDate()+1);return e.getTime();
+}
+function guardState(){
+  const d=S.myDev;if(!d||S.isOwner||roleOf(member(S.meId))==='admin') return null; // Kinderschutz gilt nur für Benutzer (Kinder), nie für Administratoren
+  const q=quietUntil(d);if(q) return {kind:'quiet',until:q};
+  if(d.limitMin>0&&usedMin()>=d.limitMin){const e=new Date();e.setHours(24,0,0,0);return {kind:'limit',until:e.getTime()}}
+  return null;
+}
+function guardCheck(){
+  const g=guardState();
+  if(g) return showBlocked(g.kind,g.until);
+  if(S.blockedShown==='quiet'||S.blockedShown==='limit') location.reload();
+}
+function startGuard(){
+  if(S.guardOn) return;S.guardOn=true;let last=Date.now(),lastPush=0,lastLoc=0;
+  setInterval(()=>{
+    const now=Date.now(),dt=Math.min(60,Math.round((now-last)/1000));last=now;
+    if(document.visibilityState==='visible'&&!S.blockedShown) lsSet(useKey(),String((+ls(useKey())||0)+dt));
+    guardCheck();
+    const ref=S.db.doc('devices/'+S.devId);
+    if(now-lastPush>180000){lastPush=now;ref.update({lastSeen:now,used:usedMin(),usedDay:today()}).catch(()=>{})}
+    if(S.myDev?.trackLoc&&now-lastLoc>600000&&navigator.geolocation&&document.visibilityState==='visible'){lastLoc=now;
+      navigator.geolocation.getCurrentPosition(p=>ref.update({loc:{lat:+p.coords.latitude.toFixed(5),lng:+p.coords.longitude.toFixed(5),acc:Math.round(p.coords.accuracy),ts:Date.now()}}).catch(()=>{}),()=>{},{enableHighAccuracy:true,timeout:20000,maximumAge:120000})}
+  },20000);
+}
+function cacheSos(){try{lsSet('jiy-sos',JSON.stringify(S.members.filter(m=>roleOf(m)==='admin'&&m.phone).map(m=>({name:m.name,phone:m.phone}))))}catch{}}
+function sosHtml(){
+  let par=[];try{par=JSON.parse(ls('jiy-sos')||'[]')}catch{}
+  const tel=p=>String(p).replace(/[^\d+]/g,'');
+  return `<div class="sos-list"><a class="sos-btn" href="tel:112">🚑 Notruf 112<span>Feuerwehr / Rettung</span></a><a class="sos-btn" href="tel:110">🚓 Polizei 110<span>Notruf</span></a>
+    ${par.map(p=>`<a class="sos-btn p" href="tel:${esc(tel(p.phone))}">📞 ${esc(p.name)} anrufen<span>${esc(p.phone)}</span></a>`).join('')}</div>`;
+}
+function sosModal(){modal(`<h3>🆘 Notruf</h3><p class="muted" style="margin-top:-6px">Tippen = sofort anrufen. Funktioniert auch, wenn JIY gesperrt ist.</p>${sosHtml()}`)}
+const APK_URL='https://github.com/jaouhermse/JIY/releases/download/apk/JIY-Family.apk';
+function apkBuild(){try{return NATIVE&&window.JIYNative.appVersion?+window.JIYNative.appVersion():0}catch{return 0}}
+async function latestBuild(){try{const r=await fetch('https://api.github.com/repos/jaouhermse/JIY/releases/tags/apk',{cache:'no-store'});if(!r.ok) return 0;const j=await r.json();return +(((j.body||'').match(/Build (\d+)/)||[])[1]||0)}catch{return 0}}
+async function updateModal(){
+  const mine=apkBuild();
+  modal(`<h3>⬇️ App &amp; Update</h3>
+    <p class="hint" style="margin-top:-4px">Neue Funktionen der App (Kalender, Chat, Gebet …) kommen <b>automatisch</b> – einfach neu laden. Eine neue APK brauchst du nur, wenn sich am Handy-Teil etwas ändert.</p>
+    <div class="dev"><span class="dev-ic">📱</span><div class="dev-main"><b>Installiert</b><small>${NATIVE?(mine?'APK Build '+mine:'APK (ältere Version)'):'Browser – keine APK'}</small></div></div>
+    <div class="dev"><span class="dev-ic">☁️</span><div class="dev-main"><b>Neueste APK</b><small id="updLatest">wird geprüft …</small></div></div>
+    <div class="actions" style="flex-wrap:wrap"><button type="button" class="btn ghost" id="updReload">🔄 Neu laden</button><span class="sp"></span><a class="btn primary" href="${APK_URL}" target="_blank" rel="noopener">⬇️ APK herunterladen</a></div>
+    <p class="hint">Nach dem Download: Datei öffnen → „Aktualisieren“. Deine Daten bleiben erhalten.</p>`);
+  $('#updReload').onclick=async()=>{try{const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}catch{}location.reload()};
+  const lb=await latestBuild();const el=$('#updLatest');if(!el) return;
+  el.innerHTML=!lb?'nicht erreichbar':(NATIVE&&mine&&lb>mine?`<b class="late-txt">Build ${lb} – Update verfügbar!</b>`:`Build ${lb}${NATIVE&&mine?' – du bist aktuell ✅':''}`);
+}
+async function checkUpdateHint(){if(!NATIVE) return;const mine=apkBuild(),lb=await latestBuild();const h=$('#updHint');if(h&&lb&&(!mine||lb>mine)){h.innerHTML='<b class="late-txt">Update verfügbar</b>';const b=$('#moreBadge');if(b){b.hidden=false;b.textContent=b.textContent||'1'}}}
+async function checkAccountBlock(){
+  try{const d=await S.db.doc('blocked/'+S.uid).get();if(d.exists){const x=d.data();if(!x.until||x.until>Date.now()){showBlocked('account',x.until);return true}}}catch{}
+  return false;
+}
+function showBlocked(kind,until){
+  if(S.blockedShown) return;S.blockedShown=kind;
+  if(until){const ms=until-Date.now()+3000;if(ms>0&&ms<2e9) setTimeout(()=>location.reload(),ms)}
+  $('#login').hidden=false;
+  $('#loginCard').innerHTML=`<div class="logo">JIY</div><h2>${kind==='quiet'?'🌙 Ruhezeit':kind==='limit'?'⏳ Zeit um':'🔒 Gesperrt'}</h2>
+    <p class="login-msg">${({account:'Dein Zugang zu JIY wurde vom Administrator gesperrt.',device:'Dieses Gerät wurde vom Administrator gesperrt.',quiet:'🌙 Ruhezeit – jetzt ist Pause.',limit:'⏳ Deine Bildschirmzeit für heute ist aufgebraucht.'})[kind]}<br><b>${until?'Wieder frei '+esc(untilTxt(until)):'Bitte wende dich an den Administrator.'}</b></p>
+    <div class="lbl" style="margin-top:12px">🆘 Notruf</div>${sosHtml()}
+    <button class="btn ghost" style="width:100%;margin-top:14px" id="blkOut">Abmelden</button>`;
+  $('#blkOut').onclick=async()=>{try{await signOut(auth)}catch{}location.reload()};
+}
+function agoTxt(ts){if(!ts) return '–';const m=Math.round((Date.now()-ts)/60000);if(m<2) return 'gerade eben';if(m<60) return `vor ${m} Min`;const h=Math.round(m/60);if(h<24) return `vor ${h} Std`;const d=Math.round(h/24);return d===1?'gestern':`vor ${d} Tagen`}
+function renderDevices(){
+  const card=$('#devCard');if(!card) return;
+  card.hidden=S.isOwner!==true;if(card.hidden) return;
+  const devs=[...(S.devices||[])].sort((a,b)=>(b.lastSeen||0)-(a.lastSeen||0));
+  const blocked=new Map((S.blockedAcc||[]).filter(b=>!b.until||b.until>Date.now()).map(b=>[b.id,b]));
+  $('#devList').innerHTML=devs.length?devs.map(d=>{const mm=member(d.member);const mine=d.id===S.devId;
+    const blk=isBlk(d);
+    return `<div class="dev ${blk?'blk':''}"><span class="dev-ic">${d.app==='App'?'📱':'💻'}</span>
+      <div class="dev-main"><b>${esc(d.name||d.model||'Gerät')}${mine?'<span class="badge-me">Dieses Gerät</span>':''}</b>
+      <small>${mm?esc(mm.name)+' · ':''}${esc(d.email||'')}</small>
+      <small>${d.app==='App'?'App':'Browser'} · zuletzt aktiv ${agoTxt(d.lastSeen)}${blk?' · <b class="late-txt">🔒 gesperrt '+esc(untilTxt(d.until))+'</b>':''}</small>${kidsLine(d)}</div>
+      <div class="dev-act">${mine?'':`<button class="btn ${blk?'soft':'ghost danger'} sm" data-act="dev-block" data-id="${esc(d.id)}">${blk?'Entsperren':'Sperren'}</button>`}
+      <button class="icon-btn" data-act="dev-edit" data-id="${esc(d.id)}" aria-label="Umbenennen">✎</button></div></div>`}).join('')
+    :'<div class="empty">Noch keine Geräte.</div>';
+  const accs=new Map();for(const d of devs) if(d.uid&&!accs.has(d.uid)) accs.set(d.uid,d.email||d.uid);
+  for(const b of S.blockedAcc||[]) if(!accs.has(b.id)) accs.set(b.id,b.email||b.id);
+  $('#accList').innerHTML=[...accs].map(([uid,email])=>{const me=uid===S.uid,bl=blocked.has(uid);
+    return `<div class="dev ${bl?'blk':''}"><span class="dev-ic">👤</span><div class="dev-main"><b>${esc(email)}</b><small>${bl?'<b class="late-txt">🔒 Konto gesperrt '+esc(untilTxt(blocked.get(uid).until))+'</b>':'aktiv'}${me?' · du':''}</small></div>
+      ${me?'':`<button class="btn ${bl?'soft':'ghost danger'} sm" data-act="acc-block" data-id="${esc(uid)}">${bl?'Entsperren':'Konto sperren'}</button>`}</div>`}).join('')||'<div class="muted">–</div>';
+}
+function kidsLine(d){const p=[];
+  if(d.limitMin>0) p.push(`⏳ heute ${d.usedDay===today()?(d.used||0):0}/${d.limitMin} Min`);
+  if(d.quietFrom&&d.quietTo) p.push(`🌙 ${esc(d.quietFrom)}–${esc(d.quietTo)}`);
+  if(d.trackLoc) p.push(d.loc?`<a href="https://www.google.com/maps?q=${d.loc.lat},${d.loc.lng}" target="_blank" rel="noopener">📍 Standort (${agoTxt(d.loc.ts)})</a>`:'📍 wartet auf Standort');
+  return p.length?`<span class="dev-kids">${p.join(' · ')}</span>`:''}
+async function devBlock(id){
+  const d=(S.devices||[]).find(x=>x.id===id);if(!d) return;
+  if(isBlk(d)){if(await w(()=>S.db.doc('devices/'+id).update({blocked:false,until:0}))) toast('Gerät entsperrt');return}
+  const until=await askDuration('🔒 '+(d.name||d.model||'Gerät')+' sperren');if(until===null) return;
+  if(await w(()=>S.db.doc('devices/'+id).update({blocked:true,until}))) toast('🔒 Gerät gesperrt '+untilTxt(until));
+}
+function devEdit(id){
+  const d=(S.devices||[]).find(x=>x.id===id);if(!d) return;
+  modal(`<h3>📱 Gerät</h3><form id="devForm" autocomplete="off">
+    <label>Name<input name="name" maxlength="40" value="${esc(d.name||'')}" placeholder="${esc(d.model||'z. B. Handy von Iness')}"></label>
+    <div class="lbl" style="margin-top:6px">👶 Kinderschutz</div>
+    <label>Bildschirmzeit pro Tag<select name="limit">${[[0,'kein Limit'],[30,'30 Minuten'],[60,'1 Stunde'],[90,'1,5 Stunden'],[120,'2 Stunden'],[180,'3 Stunden']].map(([v,t])=>`<option value="${v}" ${(+d.limitMin||0)===v?'selected':''}>${t}</option>`).join('')}</select></label>
+    <div style="display:flex;gap:8px"><label style="flex:1">Ruhezeit von<input name="qf" type="time" value="${esc(d.quietFrom||'')}"></label><label style="flex:1">bis<input name="qt" type="time" value="${esc(d.quietTo||'')}"></label></div>
+    <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="loc" ${d.trackLoc?'checked':''} style="width:auto"> 📍 Standort dieses Geräts anzeigen</label>
+    <p class="hint">Standort wird gesendet, solange JIY auf dem Gerät offen ist (alle 10 Min). Ruhezeit leer lassen = aus.</p>
+    <p class="hint">${esc(d.model||'')} · ${d.app==='App'?'App':'Browser'} · zuerst gesehen ${d.first?new Date(d.first).toLocaleDateString('de-DE'):'–'}</p>
+    <div class="actions">${d.id===S.devId?'':'<button type="button" class="btn ghost danger" id="devDel">Entfernen</button>'}<span class="sp"></span><button class="btn primary">Speichern</button></div></form>`);
+  $('#devForm').onsubmit=async e=>{e.preventDefault();if(await w(()=>S.db.doc('devices/'+id).update({name:e.target.name.value.trim(),limitMin:+e.target.limit.value||0,quietFrom:e.target.qf.value||'',quietTo:e.target.qt.value||'',trackLoc:e.target.loc.checked}))) closeModal()};
+  const del=$('#devDel');if(del) del.onclick=e=>confirmBtn(e.currentTarget,'Wirklich entfernen?',async()=>{if(await w(()=>S.db.doc('devices/'+id).delete())){closeModal();toast('Gerät entfernt – meldet es sich wieder an, erscheint es neu')}});
+}
+async function accBlock(uid){
+  const bl=(S.blockedAcc||[]).some(b=>b.id===uid&&(!b.until||b.until>Date.now()));
+  const email=((S.devices||[]).find(d=>d.uid===uid)||{}).email||'';
+  if(bl){if(await w(()=>S.db.doc('blocked/'+uid).delete())) toast('Konto entsperrt')}
+  else{const until=await askDuration('🔒 Konto '+email+' sperren');if(until===null) return;
+    if(await w(()=>S.db.doc('blocked/'+uid).set({email,until,ts:Date.now(),by:S.uid}))) toast('🔒 Konto gesperrt '+untilTxt(until))}
+}
+
 /* ---------- Badges & Gesamt-Render ---------- */
 function renderBadges(){
   const seen=chatSeen();
@@ -1696,6 +1873,11 @@ const ACT={
   'edit-item':(t,id)=>openItemEdit(id),
   'cat-tab':(t,id)=>{S.catTab=id;renderShop()},
   'ai-ideas':()=>aiIdeas(),
+  'dev-block':(t,id)=>devBlock(id),
+  'dev-edit':(t,id)=>devEdit(id),
+  'sos':()=>sosModal(),
+  'app-update':()=>updateModal(),
+  'acc-block':(t,id)=>accBlock(id),
   'copy-abo':async()=>{const u=icsUrl();try{await navigator.clipboard.writeText(u);toast('Link kopiert ✓')}catch{const i=$('#aboUrl');i.focus();i.select();toast('Link markiert – jetzt kopieren')}},
   call:(t,id)=>startCall(id),
   finish:()=>finishShopping(),
@@ -1728,12 +1910,17 @@ function subscribe(){
   const done=(k,snap)=>{if(!snap.metadata.fromCache&&!got[k]){got[k]=true;if(Object.values(got).every(Boolean)){clearTimeout(timer);banner('');S.loaded=true;resolveMe();renderAll();initIcs();billReminderOnce();scheduleAlarms()}}};
   const err=k=>e=>{got[k]=true;console.error(k,e);if(e&&e.code==='permission-denied') banner('Kein Zugriff auf die Daten – stimmen die E-Mails in firestore.rules?');else banner('Daten konnten nicht geladen werden. Bitte Seite später neu öffnen.')};
   const rows=s=>s.docs.map(d=>({id:d.id,...d.data()}));
-  S.db.collection('members').onSnapshot(s=>{S.members=rows(s).sort((a,b)=>(a.order||0)-(b.order||0)||(a.ts||0)-(b.ts||0));resolveMe();renderAll();scheduleIcsSync();scheduleAlarms();done('members',s)},err('members'));
+  S.db.collection('members').onSnapshot(s=>{S.members=rows(s).sort((a,b)=>(a.order||0)-(b.order||0)||(a.ts||0)-(b.ts||0));resolveMe();cacheSos();renderAll();scheduleIcsSync();scheduleAlarms();done('members',s)},err('members'));
   S.db.collection('events').onSnapshot(s=>{S.events=rows(s).filter(e=>e.start);if(!s.metadata.fromCache) liveNotifyEvents(S.events);renderCal();scheduleIcsSync();scheduleAlarms();done('events',s)},err('events'));
   S.db.collection('chat').orderBy('ts','desc').limit(200).onSnapshot(s=>{S.messages=rows(s).reverse();if(!s.metadata.fromCache) liveNotifyChat(S.messages);renderChat();if(S.view==='chat') markChatSeen();renderBadges();done('chat',s)},err('chat'));
   const errX=k=>e=>console.warn(k,e);
   S.db.collection('meals').where('date','>=',addDays(today(),-60)).onSnapshot(s=>{const o={};for(const d of s.docs){const x=d.data();o[x.date||d.id]=x}S.meals=o;renderMeals()},errX('meals'));
   S.db.collection('bills').onSnapshot(s=>{S.bills=rows(s);renderBills();renderCal();renderBadges();scheduleAlarms();if(S.loaded) billReminderOnce()},errX('bills'));
+  if(S.isOwner){
+    S.db.collection('devices').onSnapshot(s=>{S.devices=rows(s);renderDevices()},errX('devices'));
+    S.db.collection('blocked').onSnapshot(s=>{S.blockedAcc=rows(s);renderDevices()},errX('blocked'));
+    setInterval(()=>{if(S.view==='familie') renderDevices()},60000);
+  }
   S.db.collection('quran').onSnapshot(s=>{const o={};for(const d of s.docs) o[d.id]=d.data();S.quran=o;renderQuranProgress()},errX('quran'));
   S.db.collection('shop').onSnapshot(s=>{S.shop=rows(s);renderShop();renderBadges();done('shop',s)},err('shop'));
 }
@@ -1798,7 +1985,8 @@ function startApp(user,hash){
   $('#chatPhotoLbl').hidden=false;$('#aiCard').hidden=true;
   $('#chatPhoto').accept=USE_STORAGE?'image/*,video/*':'image/*';
   applyAdmin();
-  S.db=DB;subscribe();
+  S.db=DB;
+  checkAccountBlock().then(b=>{if(b) return;subscribe();registerDevice();setTimeout(checkUpdateHint,5000)});
 }
 (function init(){
   S.mealWeek=weekStart(today());
