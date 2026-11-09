@@ -404,6 +404,11 @@ button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .m
         <div class="colors" id="famColors"></div>
         <button class="btn primary">Hinzufügen</button>
       </form>
+      <div class="card" id="pendCard" hidden>
+        <h3>📲 Neue Apps warten auf Freigabe</h3>
+        <p class="hint" style="margin-top:4px">Ein Kind hat eine App installiert. Sie bleibt gesperrt, bis ihr sie freigebt.</p>
+        <div id="pendList"></div>
+      </div>
       <div class="card" id="accessCard" hidden>
         <h3>🔑 Zugang freischalten</h3>
         <p class="hint" style="margin-top:4px">Neue Person (z. B. Kind mit eigenem Handy): E-Mail hier eintragen. Danach in JIY „Neues Konto erstellen“ mit genau dieser E-Mail, Bestätigungs-Mail anklicken – fertig. Danach unter Profile ein Profil für die Person anlegen.</p>
@@ -495,7 +500,7 @@ button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .m
         <button class="more-btn" data-act="notif"><span class="mi">🔔</span><b>Benachrichtigungen</b><small>Gebet, Chat, Termine</small></button>
         <button class="more-btn" data-act="my-pin"><span class="mi">🔒</span><b>Meine PIN</b><small>festlegen / ändern</small></button>
         <button class="more-btn" data-act="who-am-i"><span class="mi">👤</span><b>Profil wechseln</b><small>mit PIN</small></button>
-        <button class="more-btn" data-act="tab" data-id="familie" id="famTab"><span class="mi">👨‍👩‍👦</span><b>Familie</b><small>Profile &amp; Kalender-Abo</small></button>
+        <button class="more-btn" data-act="tab" data-id="familie" id="famTab"><span class="mi">👨‍👩‍👦</span><b>Familie</b><small id="famHint">Profile &amp; Kalender-Abo</small></button>
       </div>
     </section>
   </main>
@@ -718,7 +723,7 @@ function modal(html){
 }
 function closeModal(){$('#modal').hidden=true;$('#sheet').innerHTML='';if(S.onModalClose){const f=S.onModalClose;S.onModalClose=null;f()}}
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal') closeModal()});
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.myDev){S.guardAsked=false;applyAppGuard()}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.myDev){S.guardAsked=false;applyAppGuard();uploadApps()}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#modal').hidden) closeModal()});
 function confirmBtn(btn,label,fn){
   if(btn.dataset.armed){fn();return}
@@ -1806,7 +1811,7 @@ function wifiEdit(){
     if(await w(()=>S.db.doc('config/wifi').set(d))){S.wifi=d;wifiModal()}};
 }
 function uploadApps(ref){
-  try{if(!NATIVE||!window.JIYNative.listApps) return;const js=window.JIYNative.listApps();const k=today()+':'+js.length;
+  try{if(!NATIVE||!window.JIYNative.listApps) return;ref=ref||S.db.doc('devices/'+S.devId);const js=window.JIYNative.listApps();const k=today()+':'+js.length+':'+js.slice(-40);
     if(ls('jiy-apps-k')===k) return;const apps=JSON.parse(js);ref.update({apps}).then(()=>lsSet('jiy-apps-k',k)).catch(()=>{})}catch(e){console.warn('apps',e)}
 }
 function applyAppGuard(){
@@ -1881,6 +1886,29 @@ function renderDevices(){
     return `<div class="dev ${bl?'blk':''}"><span class="dev-ic">👤</span><div class="dev-main"><b>${esc(email)}</b><small>${bl?'<b class="late-txt">🔒 Konto gesperrt '+esc(untilTxt(blocked.get(uid).until))+'</b>':'aktiv'}${me?' · du':''}</small></div>
       ${me?'':`<button class="btn ${bl?'soft':'ghost danger'} sm" data-act="acc-block" data-id="${esc(uid)}">${bl?'Entsperren':'Konto sperren'}</button>`}</div>`}).join('')||'<div class="muted">–</div>';
 }
+/* ---- neue Apps: Freigabe durch Eltern ---- */
+function pendingApps(){
+  if(!amAdmin()) return [];const out=[];
+  for(const d of S.devices||[]){if(!d.appGuard) continue;const ok=new Set([...(d.appsAllowed||[]),...(d.appsDenied||[])]);
+    for(const a of d.apps||[]) if(!ok.has(a.p)) out.push({d,a,key:d.id+'|'+a.p})}
+  return out;
+}
+function renderPending(){
+  const card=$('#pendCard');if(!card) return;const list=pendingApps();card.hidden=!list.length;
+  const keys=new Set(list.map(x=>x.key));
+  if(S.knownPend&&NATIVE) for(const x of list) if(!S.knownPend.has(x.key)){const mm=member(x.d.member);nativeNotify('📲 Neue App wartet auf Freigabe',(mm?mm.name+': ':'')+x.a.l,'app-'+x.key)}
+  S.knownPend=keys;
+  const h=$('#famHint');if(h) h.innerHTML=list.length?`<b class="late-txt">📲 ${list.length} App${list.length>1?'s':''} freigeben</b>`:'Profile &amp; Kalender-Abo';
+  if(!list.length){$('#pendList').innerHTML='';return}
+  $('#pendList').innerHTML=list.map(x=>{const mm=member(x.d.member);return `<div class="dev"><span class="dev-ic">📲</span><div class="dev-main"><b>${esc(x.a.l)}</b><small>${mm?esc(mm.name)+' · ':''}${esc(x.d.name||x.d.model||'Gerät')}</small></div>
+    <button class="btn primary sm" data-act="app-ok" data-id="${esc(x.key)}">Erlauben</button><button class="btn ghost danger sm" data-act="app-no" data-id="${esc(x.key)}">Nein</button></div>`}).join('');
+}
+async function appDecide(key,ok){
+  const i=key.indexOf('|'),id=key.slice(0,i),pkg=key.slice(i+1);const d=(S.devices||[]).find(x=>x.id===id);if(!d) return;
+  const al=new Set(d.appsAllowed||[]),dn=new Set(d.appsDenied||[]);
+  if(ok){al.add(pkg);dn.delete(pkg)}else{dn.add(pkg);al.delete(pkg)}
+  if(await w(()=>S.db.doc('devices/'+id).update({appsAllowed:[...al],appsDenied:[...dn]}))) toast(ok?'✅ App freigegeben':'🚫 App bleibt gesperrt');
+}
 function renderAccess(){
   const card=$('#accessCard');if(!card) return;card.hidden=!amAdmin();if(card.hidden) return;
   const fixed=['(Eltern – fest eingetragen)'];
@@ -1915,11 +1943,11 @@ function devEdit(id){
     ${(d.apps||[]).length?`<div style="display:flex;gap:6px;margin:6px 0"><button type="button" class="btn ghost sm" id="appAll">Alle</button><button type="button" class="btn ghost sm" id="appNone">Keine</button></div>
     <div class="app-list">${(d.apps||[]).map(a=>`<label class="app-row"><input type="checkbox" name="app" value="${esc(a.p)}" ${(d.appsAllowed||[]).includes(a.p)?'checked':''}> ${esc(a.l)}</label>`).join('')}</div>`
     :'<p class="hint">Die App-Liste erscheint, sobald auf dem Gerät die neue APK installiert ist und JIY einmal geöffnet wurde.</p>'}
-    <p class="hint">Telefon, Notruf und JIY sind immer erlaubt. In der Ruhezeit sind alle anderen Apps gesperrt. Gilt nur für Kinder – nie für Eltern oder Gäste.</p>`:''}
+    <p class="hint">Telefon, Notruf und JIY sind immer erlaubt. In der Ruhezeit sind alle anderen Apps gesperrt. Neu installierte Apps bleiben gesperrt, bis ihr sie bestätigt – ihr bekommt eine Meldung. Gilt nur für Kinder – nie für Eltern oder Gäste.</p>`:''}
     <p class="hint">${esc(d.model||'')} · ${d.app==='App'?'App':'Browser'} · zuerst gesehen ${d.first?new Date(d.first).toLocaleDateString('de-DE'):'–'}</p>
     <div class="actions">${d.id===S.devId?'':'<button type="button" class="btn ghost danger" id="devDel">Entfernen</button>'}<span class="sp"></span><button class="btn primary">Speichern</button></div></form>`);
   $('#devForm').onsubmit=async e=>{e.preventDefault();if(await w(()=>S.db.doc('devices/'+id).update({name:e.target.name.value.trim(),limitMin:+e.target.limit.value||0,quietFrom:e.target.qf.value||'',quietTo:e.target.qt.value||'',trackLoc:e.target.loc.checked,
-    ...(e.target.guard?{appGuard:e.target.guard.checked,appsAllowed:[...e.target.querySelectorAll('[name=app]:checked')].map(x=>x.value)}:{})}))) closeModal()};
+    ...(e.target.guard?{appGuard:e.target.guard.checked,appsAllowed:[...e.target.querySelectorAll('[name=app]:checked')].map(x=>x.value),appsDenied:[...e.target.querySelectorAll('[name=app]:not(:checked)')].map(x=>x.value)}:{})}))) closeModal()};
   const al=$('#appAll'),an=$('#appNone');if(al){al.onclick=()=>$('#devForm').querySelectorAll('[name=app]').forEach(x=>x.checked=true);an.onclick=()=>$('#devForm').querySelectorAll('[name=app]').forEach(x=>x.checked=false)}
   const del=$('#devDel');if(del) del.onclick=e=>confirmBtn(e.currentTarget,'Wirklich entfernen?',async()=>{if(await w(()=>S.db.doc('devices/'+id).delete())){closeModal();toast('Gerät entfernt – meldet es sich wieder an, erscheint es neu')}});
 }
@@ -1937,7 +1965,7 @@ function renderBadges(){
   const unread=S.view==='chat'?0:S.messages.filter(m=>(m.ts||0)>seen&&m.by!==S.meId).length;
   const cb=$('#chatBadge');cb.textContent=unread>9?'9+':unread;cb.hidden=!unread;
   const open=S.shop.filter(i=>i.open&&!i.checked).length;const sb=$('#shopBadge');sb.textContent=open;sb.hidden=!open;
-  const bd=billsDue();const mb=$('#moreBadge');mb.textContent=bd;mb.hidden=!bd;
+  const bd=billsDue(),pa=pendingApps().length;const mb=$('#moreBadge');mb.textContent=bd+pa;mb.hidden=!(bd+pa);
   const mh=$('#moreBillHint');if(mh) mh.textContent=bd?`${bd} bald fällig`:'Rechnungen & Fixkosten';
 }
 function renderAll(){applyAdmin();renderMe();renderCal();renderChat();renderShop();renderFam();renderMeals();renderBills();renderQuranProgress();renderBadges()}
@@ -1969,6 +1997,8 @@ const ACT={
   'dev-edit':(t,id)=>devEdit(id),
   'sos':()=>sosModal(),
   'allow-del':(t,id)=>allowDel(id),
+  'app-ok':(t,id)=>appDecide(id,true),
+  'app-no':(t,id)=>appDecide(id,false),
   'wifi':()=>wifiModal(),
   'wifi-edit':()=>wifiEdit(),
   'guard-usage':()=>{try{window.JIYNative.openUsageSettings()}catch{}},
@@ -2013,7 +2043,7 @@ function subscribe(){
   const errX=k=>e=>console.warn(k,e);
   S.db.collection('meals').where('date','>=',addDays(today(),-60)).onSnapshot(s=>{const o={};for(const d of s.docs){const x=d.data();o[x.date||d.id]=x}S.meals=o;renderMeals()},errX('meals'));
   S.db.collection('bills').onSnapshot(s=>{S.bills=rows(s);renderBills();renderCal();renderBadges();scheduleAlarms();if(S.loaded) billReminderOnce()},errX('bills'));
-  S.db.collection('devices').onSnapshot(s=>{S.devices=rows(s);renderDevices()},errX('devices'));
+  S.db.collection('devices').onSnapshot(s=>{S.devices=rows(s);renderDevices();renderPending();renderBadges()},errX('devices'));
   S.db.collection('blocked').onSnapshot(s=>{S.blockedAcc=rows(s);renderDevices()},errX('blocked'));
   S.db.doc('config/wifi').onSnapshot(s=>{S.wifi=s.exists?s.data():null},()=>{});
   S.db.collection('allowed').onSnapshot(s=>{S.allowed=rows(s);renderAccess()},()=>{});
