@@ -1844,8 +1844,13 @@ async function updateModal(){
     <p class="hint" style="margin-top:-4px">Neue Funktionen der App (Kalender, Chat, Gebet …) kommen <b>automatisch</b> – einfach neu laden. Eine neue APK brauchst du nur, wenn sich am Handy-Teil etwas ändert.</p>
     <div class="dev"><span class="dev-ic">📱</span><div class="dev-main"><b>Installiert</b><small>${NATIVE?(mine?'APK Build '+mine:'APK (ältere Version)'):'Browser – keine APK'}</small></div></div>
     <div class="dev"><span class="dev-ic">☁️</span><div class="dev-main"><b>Neueste APK</b><small id="updLatest">wird geprüft …</small></div></div>
-    <div class="actions" style="flex-wrap:wrap"><button type="button" class="btn ghost" id="updReload">🔄 Neu laden</button><span class="sp"></span><a class="btn primary" href="${APK_URL}" target="_blank" rel="noopener">⬇️ APK herunterladen</a></div>
-    <p class="hint">Nach dem Download: Datei öffnen → „Aktualisieren“. Deine Daten bleiben erhalten.</p>`);
+    <div class="actions" style="flex-wrap:wrap"><button type="button" class="btn ghost" id="updReload">🔄 Neu laden</button><span class="sp"></span>${NATIVE&&window.JIYNative.installUpdate?'<button type="button" class="btn primary" id="updNow">⬇️ Jetzt aktualisieren</button>':`<a class="btn primary" href="${APK_URL}" target="_blank" rel="noopener">⬇️ APK herunterladen</a>`}</div>
+    <p class="hint" id="updMsg">${NATIVE&&window.JIYNative.installUpdate?'Lädt die neueste Version und startet die Installation – einfach „Installieren“ bzw. „Aktualisieren“ bestätigen. Deine Daten bleiben erhalten.':'Nach dem Download: Datei öffnen → „Aktualisieren“. Deine Daten bleiben erhalten.'}</p>`);
+  const un=$('#updNow');if(un) un.onclick=()=>{let r='error';try{r=String(window.JIYNative.installUpdate(APK_URL))}catch{}
+    const m=$('#updMsg');
+    if(r==='ok'){un.disabled=true;un.textContent='⏳ Wird geladen …';m.innerHTML='Download läuft (siehe Benachrichtigung). Danach erscheint „Installieren“ – bitte bestätigen.'}
+    else if(r==='perm'){m.innerHTML='<b>Einmalig nötig:</b> In den Einstellungen bei „JIY Family“ <b>„Aus dieser Quelle zulassen“</b> einschalten, zurückkommen und nochmal auf „Jetzt aktualisieren“ tippen.'}
+    else{m.innerHTML=`Hat nicht geklappt – <a href="${APK_URL}" target="_blank" rel="noopener">APK hier herunterladen</a>.`}};
   $('#updReload').onclick=async()=>{try{const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}catch{}location.reload()};
   const lb=await latestBuild();const el=$('#updLatest');if(!el) return;
   el.innerHTML=!lb?'nicht erreichbar':(NATIVE&&mine&&lb>mine?`<b class="late-txt">Build ${lb} – Update verfügbar!</b>`:`Build ${lb}${NATIVE&&mine?' – du bist aktuell ✅':''}`);
