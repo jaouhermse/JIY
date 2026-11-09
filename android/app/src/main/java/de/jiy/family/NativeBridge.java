@@ -40,6 +40,45 @@ public class NativeBridge {
     }
 
     @JavascriptInterface
+    public String listApps() {
+        return AppGuard.listApps(ctx);
+    }
+
+    @JavascriptInterface
+    public void setAppGuard(String json) {
+        AppGuard.apply(ctx, json);
+    }
+
+    @JavascriptInterface
+    public String guardPerms() {
+        return "{\"usage\":" + AppGuard.hasUsage(ctx) + ",\"overlay\":" + AppGuard.hasOverlay(ctx) + ",\"on\":" + AppGuard.isOn(ctx) + "}";
+    }
+
+    @JavascriptInterface
+    public void openUsageSettings() {
+        open(new android.content.Intent(android.provider.Settings.ACTION_USAGE_ACCESS_SETTINGS));
+    }
+
+    @JavascriptInterface
+    public void openOverlaySettings() {
+        open(new android.content.Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                android.net.Uri.parse("package:" + ctx.getPackageName())));
+    }
+
+    private void open(android.content.Intent i) {
+        try {
+            i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+            ctx.startActivity(i);
+        } catch (Exception e) {
+            try {
+                ctx.startActivity(new android.content.Intent(android.provider.Settings.ACTION_SETTINGS)
+                        .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK));
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    @JavascriptInterface
     public void schedule(String json) {
         Scheduler.replaceAll(ctx, json);
     }
