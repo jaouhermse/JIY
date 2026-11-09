@@ -79,6 +79,11 @@ public class NativeBridge {
     }
 
     @JavascriptInterface
+    public String installUpdate(String url) {
+        return Updater.start(ctx, url);
+    }
+
+    @JavascriptInterface
     public void schedule(String json) {
         Scheduler.replaceAll(ctx, json);
     }
