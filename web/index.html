@@ -7,7 +7,7 @@
 <title>JIY Family</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#FAF6F0;--card:#fff;--ink:#2B2A33;--muted:#7A7685;--line:#ECE5DA;
@@ -16,6 +16,7 @@
   color-scheme:light;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0}
 body{font-family:Nunito,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);-webkit-tap-highlight-color:transparent}
 button,input,textarea,select{font:inherit;color:inherit}
@@ -218,6 +219,72 @@ label.check input{width:20px;height:20px;accent-color:var(--pri)}
 .abo-steps{padding-left:20px;margin:0 0 8px;font-weight:600;line-height:1.5;font-size:14px}
 .abo-steps li{margin-bottom:6px}
 #aboUrl{font-size:13px}
+
+/* ---- Paket 1 ---- */
+.tab{font-size:11px;padding:8px 2px 10px}
+.hijri{display:block;font-size:12px;font-weight:700;color:#1B7F5C;margin-top:2px}
+.due{font-size:11px;font-weight:800;background:rgba(255,255,255,.25);border-radius:6px;padding:1px 5px}
+.tile.done .due,.tile.checked .due{background:#F3EEE6}
+.due.late{background:#C2410C;color:#fff}.due.now{background:#fff;color:#C2410C}
+.more-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.more-btn{border:1px solid var(--line);background:#fff;border-radius:16px;padding:16px 12px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;box-shadow:var(--shadow)}
+.more-btn[hidden]{display:none}
+.more-btn .mi{font-size:28px}.more-btn b{font-size:15px}.more-btn small{color:var(--muted);font-weight:600;font-size:12px}
+.pin-av{display:flex;justify-content:center;margin:4px 0 12px}
+.pin-input{text-align:center;font-size:26px!important;letter-spacing:10px;font-weight:900!important}
+.who-grid button small{font-size:12px}
+.wa-list{display:flex;flex-direction:column;gap:8px}
+.wa-row{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:14px;padding:10px 12px;text-decoration:none;color:inherit}
+.wa-row b{flex:0 0 auto}.wa-row .muted{flex:1;font-size:13px}.wa-go{color:#128C7E;font-weight:900}
+/* Essen */
+.meal-head{display:flex;align-items:center;gap:12px}
+.meal-big{font-size:34px}.meal-h{flex:1;display:flex;flex-direction:column}.meal-h small{color:var(--muted);font-weight:600}
+.meal-line{margin-top:8px;font-weight:600}
+.meal-row{width:100%;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px;text-align:left}
+.meal-row.today{border-color:var(--pri);box-shadow:inset 0 0 0 1.5px var(--pri)}
+.meal-day{display:flex;flex-direction:column;align-items:center;min-width:42px}.meal-day small{color:var(--muted);font-weight:700;font-size:12px}
+.meal-main{flex:1;display:flex;flex-direction:column;gap:2px;font-weight:600;min-width:0}
+.meal-main span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Gebet */
+.prayer-card{background:linear-gradient(160deg,#1B7F5C,#2F6F6A);color:#fff;border:0}
+.prayer-card .hint{color:rgba(255,255,255,.75)}
+.pr-head{display:flex;align-items:flex-start;gap:10px}.pr-hl{flex:1;display:flex;flex-direction:column}.pr-hl small{opacity:.85;font-weight:600}
+.prayer-card .btn.soft{background:rgba(255,255,255,.18);color:#fff}
+.pr-next{margin:14px 0 10px;display:flex;flex-direction:column;align-items:center;gap:2px;background:rgba(255,255,255,.12);border-radius:16px;padding:12px}
+.pr-next small{opacity:.85;font-weight:700}.pr-next b{font-size:24px;font-weight:900}.pr-next span{font-weight:700}
+.pr-times{display:flex;flex-direction:column;gap:4px}
+.pr-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px}
+.pr-row.next{background:#fff;color:var(--ink)}.pr-row.sun{opacity:.7}
+.pr-de{flex:1;font-weight:800}.pr-ar{font-family:Amiri,serif;font-size:18px;opacity:.9}.pr-row b{font-size:17px;min-width:52px;text-align:right}
+.compass{position:relative;width:220px;height:220px;margin:12px auto}
+.dial{position:absolute;inset:0;border-radius:50%;border:3px solid var(--line);background:radial-gradient(circle,#fff 60%,#F6F1EA);transition:transform .15s linear}
+.dial span{position:absolute;font-weight:900;color:var(--muted)}
+.dial .cn{top:6px;left:50%;transform:translateX(-50%);color:#C2410C}.dial .cs{bottom:6px;left:50%;transform:translateX(-50%)}
+.dial .ce{right:10px;top:50%;transform:translateY(-50%)}.dial .cw{left:10px;top:50%;transform:translateY(-50%)}
+.needle{position:absolute;left:50%;top:50%;width:6px;height:96px;margin-left:-3px;margin-top:-96px;background:linear-gradient(#1B7F5C,#2F6F6A);border-radius:3px;transform-origin:50% 100%;transition:transform .15s linear}
+.needle span{position:absolute;top:-26px;left:50%;transform:translateX(-50%);font-size:26px}
+.hub{position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px;border-radius:50%;background:var(--ink)}
+.compass.aligned .dial{border-color:#1B7F5C;box-shadow:0 0 0 6px rgba(27,127,92,.18)}
+.q-info{text-align:center;font-weight:600}
+.qr-progress{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.qr-prog{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.qr-name{font-weight:800;min-width:60px}.qr-where{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qr-bar{width:60px;height:6px;border-radius:3px;background:#EFE9E0;overflow:hidden}.qr-bar i{display:block;height:100%;background:#1B7F5C}
+.qr-pc{width:42px;text-align:right;color:var(--muted)}
+.qr-text{font-family:Amiri,serif;margin-top:8px}
+.qr-title{text-align:center;font-size:28px;font-weight:700;margin:8px 0 12px}.qr-title small{display:block;font-family:Nunito,sans-serif;font-size:13px;color:var(--muted);direction:ltr}
+.ayah{font-size:24px;line-height:2.1;padding:6px 8px;border-radius:12px;border-bottom:1px solid #F3EEE6}
+.ayah.mark{background:#FFF7E0}.ayah.playing{background:#E2EFEC}
+.ay-no{color:#1B7F5C;font-size:20px}
+.ay-tools{display:inline-flex;gap:4px;vertical-align:middle;margin-right:6px}
+.ay-btn{border:1px solid var(--line);background:#fff;border-radius:8px;font-size:13px;width:30px;height:28px;padding:0}
+/* Haushalt */
+.bill-sum-row{display:flex;gap:16px}.bill-sum-row>div{flex:1;display:flex;flex-direction:column}.bill-sum-row b{font-size:22px;font-weight:900}
+.late-txt{color:#C2410C}
+.bill{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-left:5px solid #6A994E;border-radius:14px;padding:10px 12px;margin-bottom:8px}
+.bill.soon{border-left-color:#E9A23B}.bill.late{border-left-color:#C2410C;background:#FFF6F2}
+.bill-ic{font-size:26px}.bill-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.bill-main small{color:var(--muted);font-weight:600}.bill.late .bill-st{color:#C2410C;font-weight:800}.bill.soon .bill-st{color:#B7791F;font-weight:800}
 /* login */
 .login{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px}
 .login[hidden]{display:none}
@@ -264,6 +331,7 @@ label.check input{width:20px;height:20px;accent-color:var(--pri)}
       <div class="chat-wrap">
         <div class="call-bar">
           <span class="muted" style="font-weight:800;flex:1">Familien-Chat</span>
+          <button class="btn soft sm" data-act="whatsapp" title="WhatsApp">🟢</button>
           <button class="btn soft sm" data-act="call" data-id="audio">📞 Anruf</button>
           <button class="btn primary sm" data-act="call" data-id="video">🎥 Videoanruf</button>
         </div>
@@ -321,6 +389,7 @@ label.check input{width:20px;height:20px;accent-color:var(--pri)}
           <label>Rolle<select name="role"><option value="user">Benutzer</option><option value="admin">Administrator</option></select></label>
         </div>
         <p class="hint role-hint" id="famRoleHint" hidden>Unter 18 Jahren immer Benutzer.</p>
+        <label>Handynummer (für WhatsApp, optional)<input name="phone" type="tel" maxlength="25" placeholder="+49 151 …"></label>
         <div class="lbl">Farbe</div>
         <div class="colors" id="famColors"></div>
         <button class="btn primary">Hinzufügen</button>
@@ -338,13 +407,78 @@ label.check input{width:20px;height:20px;accent-color:var(--pri)}
         </details>
       </div>
     </section>
+
+    <!-- ESSEN -->
+    <section id="view-essen" class="view" hidden>
+      <div class="cal-head">
+        <button class="icon-btn" data-act="meal-prev" aria-label="Vorherige Woche">‹</button>
+        <h2 id="mealTitle"></h2>
+        <button class="icon-btn" data-act="meal-next" aria-label="Nächste Woche">›</button>
+        <button class="btn soft sm" data-act="meal-today">Heute</button>
+      </div>
+      <div class="card" id="mealToday"></div>
+      <h2>📅 Diese Woche</h2>
+      <div id="mealWeek"></div>
+    </section>
+
+    <!-- GEBET -->
+    <section id="view-gebet" class="view" hidden>
+      <div class="card prayer-card">
+        <div class="pr-head"><div class="pr-hl"><b id="prLoc">📍 …</b><small id="prDate"></small></div><button class="btn soft sm" data-act="locate">📍 Standort</button></div>
+        <p class="hint" id="prLocHint" hidden>Standort nicht verfügbar – es gilt Regensburg. In der App den Standort erlauben und auf „📍 Standort“ tippen.</p>
+        <div id="prNext" class="pr-next"></div>
+        <div id="prTimes" class="pr-times"></div>
+        <p class="hint" style="margin-bottom:0">Berechnung: Muslim World League (Fajr 18°, Isha 17°), Asr nach Schafi'i.</p>
+      </div>
+      <div class="card qibla-card">
+        <h3>🧭 Qibla</h3>
+        <div class="compass" id="compass">
+          <div class="dial" id="qDial"><span class="cn">N</span><span class="ce">O</span><span class="cs">S</span><span class="cw">W</span></div>
+          <div class="needle" id="qNeedle"><span>🕋</span></div>
+          <div class="hub"></div>
+        </div>
+        <p id="qInfo" class="q-info"></p>
+        <button class="btn soft" data-act="compass" style="width:100%">🧭 Kompass starten</button>
+      </div>
+      <div class="card quran-card">
+        <h3>📖 Quran</h3>
+        <div id="qrProgress" class="qr-progress"></div>
+        <button class="btn primary" id="qrContinue" data-act="qr-continue" hidden style="width:100%;margin:10px 0 4px"></button>
+        <div class="row" style="align-items:center;margin-top:10px"><select id="surahSel" aria-label="Sure"></select><button class="btn soft" data-act="qr-open">Öffnen</button></div>
+        <div class="row" style="margin:0 0 6px"><button class="btn soft" id="qrPlayBtn" data-act="qr-toggle" style="flex:1">▶ Anhören</button></div>
+        <p class="hint" style="margin-top:0">Rezitation: Mishary Alafasy. Tippe 🔖 bei einem Vers, um deinen Fortschritt zu speichern.</p>
+        <div id="qrText" class="qr-text" dir="rtl" lang="ar"></div>
+      </div>
+    </section>
+
+    <!-- HAUSHALT -->
+    <section id="view-haushalt" class="view" hidden>
+      <h2>💸 Haushalt <span class="sp"></span><button class="btn primary sm" data-act="new-bill">+ Neu</button></h2>
+      <div class="card" id="billSum"></div>
+      <div id="billList" style="margin-top:12px"></div>
+      <p class="hint">Fällige Rechnungen stehen auch im Kalender (💸) und es gibt beim Öffnen der App einen Hinweis.</p>
+    </section>
+
+    <!-- MEHR -->
+    <section id="view-mehr" class="view" hidden>
+      <h2>☰ Mehr</h2>
+      <div class="more-grid">
+        <button class="more-btn" data-act="tab" data-id="haushalt"><span class="mi">💸</span><b>Haushalt</b><small id="moreBillHint">Rechnungen &amp; Fixkosten</small></button>
+        <button class="more-btn" data-act="whatsapp"><span class="mi">🟢</span><b>WhatsApp</b><small>Chat &amp; Anruf</small></button>
+        <button class="more-btn" data-act="my-pin"><span class="mi">🔒</span><b>Meine PIN</b><small>festlegen / ändern</small></button>
+        <button class="more-btn" data-act="who-am-i"><span class="mi">👤</span><b>Profil wechseln</b><small>mit PIN</small></button>
+        <button class="more-btn" data-act="tab" data-id="familie" id="famTab"><span class="mi">👨‍👩‍👦</span><b>Familie</b><small>Profile &amp; Kalender-Abo</small></button>
+      </div>
+    </section>
   </main>
 
   <nav class="tabs"><div class="in">
     <button class="tab" data-act="tab" data-id="kalender"><span class="ic">📅</span>Kalender</button>
     <button class="tab" data-act="tab" data-id="chat"><span class="ic">💬</span>Chat<span class="badge" id="chatBadge" hidden></span></button>
     <button class="tab" data-act="tab" data-id="einkauf"><span class="ic">🛒</span>Einkauf<span class="badge" id="shopBadge" hidden></span></button>
-    <button class="tab" data-act="tab" data-id="familie" id="famTab"><span class="ic">👨‍👩‍👦</span>Familie</button>
+    <button class="tab" data-act="tab" data-id="essen"><span class="ic">🍽️</span>Essen</button>
+    <button class="tab" data-act="tab" data-id="gebet"><span class="ic">🕌</span>Gebet</button>
+    <button class="tab" data-act="tab" data-id="mehr"><span class="ic">☰</span>Mehr<span class="badge" id="moreBadge" hidden></span></button>
   </div></nav>
 
   <div id="modal" class="modal" hidden><div class="sheet" id="sheet"></div></div>
@@ -446,6 +580,8 @@ const CATS={
   termin:{label:'Termin',icon:'📌',color:'#457B9D'},
   geburtstag:{label:'Geburtstag',icon:'🎂',color:'#D96C9A'},
   sport:{label:'Sport',icon:'⚽',color:'#E76F51'},
+  islam:{label:'Islamisch',icon:'🌙',color:'#1B7F5C'},
+  rechnung:{label:'Rechnung',icon:'💸',color:'#B5651D'},
 };
 const CATALOG={
   'Obst & Gemüse':[['Äpfel','🍎'],['Bananen','🍌'],['Orangen','🍊'],['Zitronen','🍋'],['Trauben','🍇'],['Erdbeeren','🍓'],['Wassermelone','🍉'],['Tomaten','🍅'],['Gurke','🥒'],['Paprika','🫑'],['Karotten','🥕'],['Kartoffeln','🥔'],['Zwiebeln','🧅'],['Knoblauch','🧄'],['Salat','🥬'],['Brokkoli','🥦'],['Avocado','🥑'],['Pilze','🍄'],['Mais','🌽'],['Petersilie','🌿']],
@@ -462,7 +598,7 @@ const CAT_INDEX=new Map();
 for(const [cat,items] of Object.entries(CATALOG)) for(const [name,emoji] of items) CAT_INDEX.set(norm(name),{name,emoji,cat});
 
 /* ---------- Zustand ---------- */
-const S={isOwner:null,db:null,user:null,assets:null,sample:null,uid:null,canWrite:true,
+const S={isOwner:null,meals:{},bills:[],quran:{},mealWeek:null,qrIdx:-1,heading:null,db:null,user:null,assets:null,sample:null,uid:null,canWrite:true,
   members:[],events:[],messages:[],shop:[],meId:null,askedMe:false,
   view:'kalender',cal:null,catTab:Object.keys(CATALOG)[0],aiItems:[],newColor:COLORS[0],
   chatPhoto:null,loaded:false};
@@ -543,7 +679,7 @@ function modal(html){
   $('#sheet').innerHTML=`<button class="icon-btn x" data-act="close" aria-label="Schließen">✕</button>`+html;
   $('#modal').hidden=false;
 }
-function closeModal(){$('#modal').hidden=true;$('#sheet').innerHTML=''}
+function closeModal(){$('#modal').hidden=true;$('#sheet').innerHTML='';if(S.onModalClose){const f=S.onModalClose;S.onModalClose=null;f()}}
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal') closeModal()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#modal').hidden) closeModal()});
 function confirmBtn(btn,label,fn){
@@ -553,16 +689,20 @@ function confirmBtn(btn,label,fn){
 }
 
 /* ---------- Navigation ---------- */
-const VIEWS=['kalender','chat','einkauf','familie'];
+const VIEWS=['kalender','chat','einkauf','essen','gebet','mehr','haushalt','familie'];
 function show(v){
   if(!VIEWS.includes(v)) v='kalender';
   if(v==='familie'&&!amAdmin()) v='kalender';
   S.view=v;
   for(const x of VIEWS) $('#view-'+x).hidden=x!==v;
-  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.id===v));
+  const tabOf=(v==='haushalt'||v==='familie')?'mehr':v;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.id===tabOf));
   document.body.classList.toggle('chat-mode',v==='chat');
   if(location.hash!=='#'+v) history.replaceState(null,'','#'+v);
   if(v==='chat'){markChatSeen();renderChat(true)}
+  if(v==='gebet') initPrayer();
+  if(v==='essen') renderMeals();
+  if(v==='haushalt') renderBills();
   window.scrollTo(0,0);
 }
 window.addEventListener('hashchange',()=>show(location.hash.slice(1)));
@@ -581,12 +721,17 @@ function renderMe(){
 function openWhoAmI(){
   if(!S.members.length){if(!amAdmin()){toast('Es sind noch keine Profile angelegt – bitte den Administrator fragen');return}show('familie');toast('Lege zuerst die Familienmitglieder an');return}
   modal(`<h3>Wer bist du?</h3><p class="muted" style="margin-top:-6px">Dann sehen alle, wer was geschrieben oder eingetragen hat.</p>
-    <div class="who-grid">${S.members.map(m=>`<button data-act="set-me" data-id="${esc(m.id)}">${av(m.id,'lg')}${esc(m.name)}</button>`).join('')}</div>
+    <div class="who-grid">${S.members.map(m=>`<button data-act="set-me" data-id="${esc(m.id)}">${av(m.id,'lg')}${esc(m.name)}${m.pin&&m.id!==S.meId?'<small>🔒</small>':''}</button>`).join('')}</div>
     <p class="hint" style="text-align:center">Angemeldet als ${esc(S.email||'')}</p>
     <div style="text-align:center"><button class="btn ghost sm" data-act="logout">Abmelden</button></div>`);
 }
 async function setMe(id){
+  const t=member(id);if(!t) return;
+  if(id===S.meId){closeModal();return}
+  const own=S.uid&&t.uid===S.uid;
+  if(t.pin&&!own){const ok=await askPin(t);if(!ok) return}
   lsSet('jiy-me',id);S.meId=id;closeModal();renderAll();
+  if(!t.pin) setTimeout(()=>openSetPin(id,true),900);
   if(S.uid&&S.db&&S.canWrite){
     for(const m of S.members){ if(m.uid===S.uid&&m.id!==id) await w(()=>S.db.doc('members/'+m.id).update({uid:null})); }
     const me=member(id); if(me&&me.uid!==S.uid) await w(()=>S.db.doc('members/'+id).update({uid:S.uid}));
@@ -603,7 +748,7 @@ function renderFam(){
     list.innerHTML=S.members.map(m=>`<div class="fam-card">${av(m.id,'lg')}
       <div class="fam-main"><b>${esc(m.name)}${m.id===S.meId?'<span class="badge-me">Das bist du</span>':''}</b>
       <small>${roleOf(m)==='admin'?'👑 Administrator':'Benutzer'} · Kürzel ${esc(m.short||initials(m.name))}${m.birth?` · 🎂 ${parse(m.birth).toLocaleDateString('de-DE',{day:'numeric',month:'long'})} (${ageOf(m.birth)} J.)`:''}</small>
-      <small>${m.uid?'mit Konto verknüpft':'ohne Konto'}</small></div>
+      <small>${m.uid?'mit Konto verknüpft':'ohne Konto'}${m.pin?' · 🔒 PIN':''}${m.phone?' · 🟢 '+esc(m.phone):''}</small></div>
       ${m.id!==S.meId?`<button class="btn soft sm" data-act="set-me" data-id="${esc(m.id)}">Das bin ich</button>`:''}
       <button class="icon-btn" data-act="edit-member" data-id="${esc(m.id)}" aria-label="Bearbeiten">✎</button></div>`).join('');
   }
@@ -619,7 +764,8 @@ $('#famForm').addEventListener('submit',async e=>{
   e.preventDefault();const f=e.target;const name=f.name.value.trim();if(!name) return;
   const short=(f.short.value.trim()||initials(name)).toUpperCase().slice(0,3);
   const birth=f.birth.value||'';const role=birth&&ageOf(birth)<18?'user':f.role.value;
-  const ok=await w(()=>S.db.collection('members').add({name,short,birth,role,color:S.newColor,uid:null,ts:Date.now(),order:S.members.length}));
+  const phone=f.phone.value.trim();
+  const ok=await w(()=>S.db.collection('members').add({name,short,birth,role,phone,color:S.newColor,uid:null,pin:null,ts:Date.now(),order:S.members.length}));
   if(ok){f.reset();delete f.short.dataset.touched;syncRole(f,$('#famRoleHint'));S.colorTouched=false;toast(`${name} ist dabei 🎉`)}
 });
 function openMemberEdit(id){
@@ -630,16 +776,19 @@ function openMemberEdit(id){
     <div class="row"><label>Geburtsdatum<input type="date" name="birth" value="${esc(m.birth||'')}"></label>
     <label>Rolle<select name="role"><option value="user" ${roleOf(m)==='user'?'selected':''}>Benutzer</option><option value="admin" ${roleOf(m)==='admin'?'selected':''}>Administrator</option></select></label></div>
     <p class="hint" id="memRoleHint" hidden>Unter 18 Jahren immer Benutzer.</p>
+    <label>Handynummer (WhatsApp)<input name="phone" type="tel" maxlength="25" value="${esc(m.phone||'')}" placeholder="+49 151 …"></label>
+    <div class="row" style="align-items:center;margin-bottom:12px"><span class="muted" style="flex:1;font-weight:700">🔒 PIN: ${m.pin?'gesetzt':'keine'}</span>${m.pin?'<button type="button" class="btn ghost sm" id="memPinReset">PIN zurücksetzen</button>':''}</div>
     <div class="lbl">Farbe</div><div class="colors" id="memColors">${COLORS.map(c=>`<button type="button" class="color ${c===color?'on':''}" style="background:${c}" data-c="${c}"></button>`).join('')}</div>
     <div class="actions"><button type="button" class="btn ghost danger" id="memDel">Löschen</button><span class="sp"></span><button class="btn primary">Speichern</button></div></form>`);
   const mf=$('#memForm');syncRole(mf,$('#memRoleHint'));mf.birth.onchange=()=>syncRole(mf,$('#memRoleHint'));
+  const pr=$('#memPinReset');if(pr) pr.onclick=e=>confirmBtn(e.currentTarget,'Wirklich?',async()=>{if(await w(()=>S.db.doc('members/'+id).update({pin:null}))){closeModal();toast('PIN zurückgesetzt')}});
   $('#memColors').onclick=e=>{const b=e.target.closest('[data-c]');if(!b) return;color=b.dataset.c;$('#memColors').querySelectorAll('.color').forEach(x=>x.classList.toggle('on',x===b))};
   $('#memDel').onclick=e=>confirmBtn(e.currentTarget,'Wirklich löschen?',async()=>{if(await w(()=>S.db.doc('members/'+id).delete())){closeModal();toast('Profil gelöscht')}});
   $('#memForm').onsubmit=async e=>{e.preventDefault();const f=e.target;const name=f.name.value.trim();if(!name) return;
     const short=(f.short.value.trim()||initials(name)).toUpperCase().slice(0,3);
     const birth=f.birth.value||'';const role=birth&&ageOf(birth)<18?'user':f.role.value;
     if(m.uid&&m.uid===S.uid&&role!=='admin'&&S.isOwner!==true&&!f.dataset.armed){f.dataset.armed='1';toast('Achtung: Du nimmst dir selbst die Admin-Rechte. Nochmal Speichern zum Bestätigen.');return}
-    if(await w(()=>S.db.doc('members/'+id).update({name,short,color,birth,role}))) closeModal()};
+    if(await w(()=>S.db.doc('members/'+id).update({name,short,color,birth,role,phone:f.phone.value.trim()}))) closeModal()};
 }
 
 /* ---------- Kalender ---------- */
@@ -651,7 +800,7 @@ function bdayEvents(){
       out.push({id:'bday-'+m.id+'-'+y,virtual:true,title:age===0?`${m.name} wird geboren`:`${m.name} wird ${age}`,cat:'geburtstag',start:ds,end:ds,allDay:true,who:[m.id],note:'Automatisch aus dem Profil'});}}
   return out;
 }
-function allEvents(){return S.events.concat(bdayEvents())}
+function allEvents(){return S.events.concat(bdayEvents(),islamEvents(),billEvents())}
 function eventsOn(day){
   return allEvents().filter(e=>e.start<=day&&(e.end||e.start)>=day)
     .sort((a,b)=>(b.allDay?1:0)-(a.allDay?1:0)||String(a.from||'').localeCompare(String(b.from||'')));
@@ -662,7 +811,7 @@ function evRow(e,withDate){
   const c=CATS[e.cat]||CATS.termin;
   return `<button class="ev-row" data-act="open-event" data-id="${esc(e.id)}" style="--c:${c.color}">
     <span class="ev-ic">${c.icon}</span>
-    <span class="ev-main"><b>${esc(e.title)}</b><small>${withDate?rangeText(e)+' · ':''}${timeText(e)}</small></span>
+    <span class="ev-main"><b>${esc(e.title)}</b><small>${withDate?rangeText(e)+' · ':''}${timeText(e)}${e.loc?' · 📍 '+esc(e.loc):''}</small></span>
     <span class="avs">${(e.who||[]).filter(member).map(id=>av(id,'sm')).join('')}</span></button>`;
 }
 function renderCal(){
@@ -679,7 +828,7 @@ function renderCal(){
       ${evs.length>3?`<span class="more">+${evs.length-3}</span>`:''}</button>`;
   }
   $('#calGrid').innerHTML=html;
-  $('#dayTitle').textContent=sel===t?'Heute, '+fmtLong(sel).split(', ')[1]:fmtLong(sel);
+  $('#dayTitle').innerHTML=esc(sel===t?'Heute, '+fmtLong(sel).split(', ')[1]:fmtLong(sel))+(hijriLong(sel)?`<small class="hijri">${esc(hijriLong(sel))}</small>`:'');
   const dl=eventsOn(sel);
   $('#dayList').innerHTML=dl.length?dl.map(e=>evRow(e)).join(''):`<div class="empty">Noch nichts geplant – wie wär's mit einem Ausflug? 🌳</div>`;
   const up=allEvents().filter(e=>(e.end||e.start)>=t).sort((a,b)=>a.start.localeCompare(b.start)||String(a.from||'').localeCompare(String(b.from||''))).slice(0,8);
@@ -691,12 +840,14 @@ function gcalLink(e){
   let dates;
   if(e.allDay) dates=e.start.replace(/-/g,'')+'/'+addDays(end,1).replace(/-/g,'');
   else { const to=e.to||plusHour(e.from); dates=e.start.replace(/-/g,'')+'T'+e.from.replace(':','')+'00/'+end.replace(/-/g,'')+'T'+to.replace(':','')+'00'; }
-  if(e.virtual) p.set('recur','RRULE:FREQ=YEARLY');
+  if(e.loc) p.set('location',e.loc);
+  if(e.virtual&&e.cat==='geburtstag') p.set('recur','RRULE:FREQ=YEARLY');
   return 'https://calendar.google.com/calendar/render?'+p.toString()+'&dates='+dates;
 }
 function outlookLink(e,host){
   const c=CATS[e.cat]||CATS.termin,end=e.end||e.start;
   const p=new URLSearchParams({path:'/calendar/action/compose',rru:'addevent',subject:`${c.icon} ${e.title}`,body:(e.note||'')+'\n\n– aus JIY Family'});
+  if(e.loc) p.set('location',e.loc);
   if(e.allDay){p.set('allday','true');p.set('startdt',e.start);p.set('enddt',addDays(end,1))}
   else{p.set('allday','false');p.set('startdt',e.start+'T'+e.from+':00');p.set('enddt',end+'T'+(e.to||plusHour(e.from))+':00')}
   return `https://${host}/calendar/0/deeplink/compose?`+p.toString();
@@ -704,10 +855,12 @@ function outlookLink(e,host){
 function plusHour(hm){const [h,m]=(hm||'18:00').split(':').map(Number);return pad(Math.min(23,h+1))+':'+pad(m)}
 function openEvent(id){
   const e=allEvents().find(x=>x.id===id);if(!e) return;const c=CATS[e.cat]||CATS.termin;
+  if(e.kind==='bill'){show('haushalt');openBillEdit(e.billId);return}
   modal(`<div class="ev-detail-head" style="--c:${c.color}"><div class="ev-big">${c.icon}</div>
       <div><h3 style="margin:0 0 4px;padding-right:40px">${esc(e.title)}</h3><span class="chip on" style="--c:${c.color}">${c.label}</span></div></div>
     <div class="kv"><span>📅 ${rangeText(e)}</span><span>🕒 ${timeText(e)}</span>
       ${(e.who||[]).filter(member).length?`<span style="display:flex;align-items:center;gap:8px">👥 <span class="avs">${e.who.filter(member).map(id=>av(id,'sm')).join('')}</span> ${e.who.filter(member).map(id=>esc(member(id).name)).join(', ')}</span>`:''}
+      ${e.loc?`<span>📍 ${esc(e.loc)} · <a href="${esc(mapsUrl(e.loc))}" target="_blank" rel="noopener">In Google Maps öffnen</a></span>`:''}
       ${e.note?`<span>📝 ${esc(e.note)}</span>`:''}
       ${e.by&&member(e.by)?`<span class="muted" style="font-size:13px">Eingetragen von ${esc(member(e.by).name)}</span>`:''}</div>
     <div class="lbl">In meinen Kalender übernehmen</div>
@@ -716,7 +869,7 @@ function openEvent(id){
       <a href="${esc(outlookLink(e,'outlook.live.com'))}" target="_blank" rel="noopener"><span class="o-dot"></span>Outlook</a>
       <a class="full" href="${esc(outlookLink(e,'outlook.office.com'))}" target="_blank" rel="noopener">Outlook über Arbeit / Microsoft 365 →</a>
     </div>
-    ${e.virtual?`<p class="hint">Geburtstage kommen automatisch aus dem Profil. In Google wird er jährlich wiederholt.</p>`:`<div class="actions"><button class="btn ghost danger" id="evDel">Löschen</button><span class="sp"></span><button class="btn soft" data-act="edit-event" data-id="${esc(e.id)}">Bearbeiten</button></div>`}`);
+    ${e.virtual?`<p class="hint">${e.kind==='islam'?'Islamische Feiertage werden automatisch berechnet und jedes Jahr aktualisiert.':'Geburtstage kommen automatisch aus dem Profil. In Google wird er jährlich wiederholt.'}</p>`:`<div class="actions"><button class="btn ghost danger" id="evDel">Löschen</button><span class="sp"></span><button class="btn soft" data-act="edit-event" data-id="${esc(e.id)}">Bearbeiten</button></div>`}`);
   if(e.virtual) return;
   $('#evDel').onclick=ev=>confirmBtn(ev.currentTarget,'Wirklich löschen?',async()=>{if(await w(()=>S.db.doc('events/'+id).delete())){closeModal();toast('Termin gelöscht')}});
 }
@@ -735,6 +888,7 @@ function openEventForm(id,day){
     <div class="row" id="timeRow" ${e.allDay?'hidden':''}><label>Beginn<input type="time" name="from" value="${esc(e.from||'18:00')}"></label><label>Ende<input type="time" name="to" value="${esc(e.to||'')}"></label></div>
     <div class="lbl">Wer ist dabei?</div>
     <div class="chips" id="whoChips">${S.members.length?S.members.map(m=>`<button type="button" class="chip ${who.has(m.id)?'on':''}" data-who="${esc(m.id)}" style="--c:${esc(m.color)}">${av(m.id,'sm')} ${esc(m.name)}</button>`).join('')+`<button type="button" class="chip" data-who="*">Alle</button>`:'<span class="muted">Noch keine Profile angelegt.</span>'}</div>
+    <label>📍 Ort<input name="loc" maxlength="120" value="${esc(e.loc||'')}" placeholder="z. B. Cineplex Regensburg"></label>
     <label>Notiz<textarea name="note" rows="2" maxlength="500" placeholder="Treffpunkt, Tickets, …">${esc(e.note||'')}</textarea></label>
     <div class="actions"><button type="button" class="btn ghost" data-act="close">Abbrechen</button><span class="sp"></span><button class="btn primary">Speichern</button></div>
   </form>`);
@@ -753,7 +907,7 @@ function openEventForm(id,day){
     const start=f.start.value;let end=f.end.value||start;if(end<start) end=start;
     const allDay=f.allDay.checked;const from=allDay?'':(f.from.value||'18:00');let to=allDay?'':f.to.value;
     if(!allDay&&to&&start===end&&to<=from) to='';
-    const data={title:f.title.value.trim(),cat,start,end,allDay,from,to,who:[...who],note:f.note.value.trim(),
+    const data={title:f.title.value.trim(),cat,start,end,allDay,from,to,who:[...who],loc:f.loc.value.trim(),note:f.note.value.trim(),
       by:ex?.by??S.meId??null,ts:ex?.ts??Date.now(),updated:Date.now()};
     if(!data.title) return;
     const ok=await w(()=>ex?S.db.doc('events/'+ex.id).set(data):S.db.collection('events').add(data));
@@ -854,18 +1008,18 @@ async function pruneChat(){
 function lookup(name){return CAT_INDEX.get(norm(name))}
 function itemPic(i){return i.img?`<img src="${blobUrl(i.img)}" alt="">`:esc(i.emoji||'🛒')}
 function renderShop(){
-  const open=S.shop.filter(i=>i.open).sort((a,b)=>(a.checked?1:0)-(b.checked?1:0)||String(a.cat).localeCompare(String(b.cat))||(a.addedAt||0)-(b.addedAt||0));
+  const open=S.shop.filter(i=>i.open).sort((a,b)=>(a.checked?1:0)-(b.checked?1:0)||String(a.due||'9999').localeCompare(String(b.due||'9999'))||String(a.cat).localeCompare(String(b.cat))||(a.addedAt||0)-(b.addedAt||0));
   const nChecked=open.filter(i=>i.checked).length;const fb=$('#finishBtn');fb.hidden=!nChecked;fb.textContent=`✓ Einkauf fertig (${nChecked})`;
   {const left=open.filter(i=>!i.checked).length;$('#shopCount').textContent=open.length?`(${left} offen)`:''}
   $('#shopOpen').innerHTML=open.length?open.map(i=>`<div class="tile open ${i.checked?'checked':''}">
       ${i.by&&member(i.by)?`<span class="by">${av(i.by,'sm')}</span>`:''}
       <button class="tile-main" data-act="buy" data-id="${esc(i.id)}" title="Antippen = durchstreichen">
-        <span class="pic">${itemPic(i)}</span><span class="nm">${esc(i.name)}</span>${i.qty?`<span class="qty">${esc(i.qty)}</span>`:''}</button>
+        <span class="pic">${itemPic(i)}</span><span class="nm">${esc(i.name)}</span>${i.qty?`<span class="qty">${esc(i.qty)}</span>`:''}${i.due?`<span class="due ${i.due<today()?'late':i.due===today()?'now':''}">📅 ${i.due===today()?'heute':parse(i.due).toLocaleDateString('de-DE',{day:'numeric',month:'numeric'})}</span>`:''}</button>
       <button class="tile-edit" data-act="edit-item" data-id="${esc(i.id)}" aria-label="Details">✎</button></div>`).join('')
     :`<div class="empty" style="grid-column:1/-1">Alles erledigt! 🎉 Tippe unten auf Sachen, die ihr braucht.</div>`;
   const recent=S.shop.filter(i=>!i.open).sort((a,b)=>(b.times||0)-(a.times||0)||(b.boughtAt||0)-(a.boughtAt||0)).slice(0,18);
   $('#shopRecent').innerHTML=recent.length?recent.map(i=>`<div class="tile done">
-      <button class="tile-main" data-act="readd" data-id="${esc(i.id)}"><span class="pic">${itemPic(i)}</span><span class="nm">${esc(i.name)}</span>${i.times>1?`<span class="qty muted">${i.times}× gekauft</span>`:''}</button>
+      <button class="tile-main" data-act="readd" data-id="${esc(i.id)}"><span class="pic">${itemPic(i)}</span><span class="nm">${esc(i.name)}</span>${i.boughtAt?`<span class="qty muted">${new Date(i.boughtAt).toLocaleDateString('de-DE',{day:'numeric',month:'numeric'})}${i.times>1?' · '+i.times+'×':''}</span>`:''}</button>
       <button class="tile-edit" data-act="edit-item" data-id="${esc(i.id)}" aria-label="Details">✎</button></div>`).join('')
     :`<div class="empty" style="grid-column:1/-1">Hier erscheinen Sachen, die ihr schon gekauft habt – ein Tipp, und sie sind wieder auf der Liste.</div>`;
   $('#catTabs').innerHTML=Object.keys(CATALOG).map(k=>`<button class="chip ${k===S.catTab?'on':''}" data-act="cat-tab" data-id="${esc(k)}">${CATALOG[k][0][1]} ${esc(k)}</button>`).join('');
@@ -875,15 +1029,17 @@ function renderShop(){
   renderAi();
 }
 async function addItem(name,emoji,extra={}){
-  name=String(name||'').trim().slice(0,60);if(!name) return;
-  if(!S.meId&&S.members.length){openWhoAmI();return}
+  name=String(name||'').trim().slice(0,60);if(!name) return false;
+  if(!S.meId&&S.members.length){openWhoAmI();return false}
   const id=slug(name),ex=S.shop.find(i=>i.id===id);
-  if(ex&&ex.open){toast(`${ex.name} steht schon auf der Liste`);return}
+  if(ex&&ex.open){if(!extra.silent) toast(`${ex.name} steht schon auf der Liste`);return false}
   const c=lookup(name);
   const data={name:ex?.name||capFirst(c?.name||name),emoji:emoji||ex?.emoji||c?.emoji||'🛒',cat:ex?.cat||c?.cat||'Sonstiges',
     qty:extra.qty??'',note:ex?.note||'',img:ex?.img||null,times:ex?.times||0,boughtAt:ex?.boughtAt||null,
-    open:true,checked:false,by:S.meId||null,addedAt:Date.now()};
-  if(await w(()=>S.db.doc('shop/'+id).set(data))) toast(`${data.emoji} ${data.name} ist auf der Liste`);
+    open:true,checked:false,due:extra.due||'',by:S.meId||null,addedAt:Date.now()};
+  const ok=await w(()=>S.db.doc('shop/'+id).set(data));
+  if(ok&&!extra.silent) toast(`${data.emoji} ${data.name} ist auf der Liste`);
+  return ok;
 }
 async function buy(id){
   const ex=S.shop.find(i=>i.id===id);if(!ex||!ex.open) return;
@@ -894,7 +1050,7 @@ async function finishShopping(){
   const btn=$('#finishBtn');btn.disabled=true;let n=0;
   for(const ex of done){
     const {id,...rest}=ex;
-    if(await w(()=>S.db.doc('shop/'+id).set({...rest,open:false,checked:false,boughtAt:Date.now(),times:(ex.times||0)+1,qty:''}))) n++;
+    if(await w(()=>S.db.doc('shop/'+id).set({...rest,open:false,checked:false,boughtAt:Date.now(),times:(ex.times||0)+1,qty:'',due:''}))) n++;
   }
   btn.disabled=false;
   if(n) toast(`🎉 Einkauf erledigt – ${n} ${n===1?'Artikel':'Artikel'} abgehakt`);
@@ -908,7 +1064,9 @@ function openItemEdit(id){
         ${img?`<button type="button" class="btn ghost sm" id="itemImgX">Foto entfernen</button>`:''}
       </div></div>
     <div class="row"><label style="flex:0 0 90px">Bild<input name="emoji" maxlength="4" value="${esc(i.emoji||'🛒')}"></label><label>Menge<input name="qty" maxlength="30" value="${esc(i.qty||'')}" placeholder="z. B. 2 Packungen"></label></div>
+    <label>📅 Bis wann?<input name="due" type="date" value="${esc(i.due||'')}"></label>
     <label>Notiz<input name="note" maxlength="120" value="${esc(i.note||'')}" placeholder="z. B. die Marke mit dem blauen Deckel"></label>
+    ${i.boughtAt?`<p class="hint">Zuletzt gekauft am ${new Date(i.boughtAt).toLocaleDateString('de-DE')}${i.times?` · insgesamt ${i.times}×`:''}</p>`:''}
     <div class="actions"><button type="button" class="btn ghost danger" id="itemDel">Löschen</button><span class="sp"></span><button class="btn primary">Speichern</button></div></form>`);
   const file=$('#itemFile');
   if(file) file.onchange=async()=>{const f=file.files[0];if(!f) return;$('#itemPic').textContent='⏳';
@@ -917,7 +1075,7 @@ function openItemEdit(id){
   const x=$('#itemImgX');if(x) x.onclick=()=>{img=null;$('#itemPic').textContent=i.emoji||'🛒';x.remove()};
   $('#itemDel').onclick=e=>confirmBtn(e.currentTarget,'Wirklich löschen?',async()=>{if(await w(()=>S.db.doc('shop/'+id).delete())){closeModal();toast('Gelöscht')}});
   $('#itemForm').onsubmit=async e=>{e.preventDefault();const f=e.target;
-    if(await w(()=>S.db.doc('shop/'+id).update({emoji:f.emoji.value.trim()||'🛒',qty:f.qty.value.trim(),note:f.note.value.trim(),img}))) closeModal()};
+    if(await w(()=>S.db.doc('shop/'+id).update({emoji:f.emoji.value.trim()||'🛒',qty:f.qty.value.trim(),note:f.note.value.trim(),due:f.due.value||'',img}))) closeModal()};
 }
 /* Autovervollständigung */
 let sugIdx=-1,sugItems=[];
@@ -1011,6 +1169,7 @@ function buildIcs(){
     else{const to=e.to||plusHour(e.from);L.push('DTSTART;TZID=Europe/Berlin:'+ymd(e.start)+'T'+e.from.replace(':','')+'00','DTEND;TZID=Europe/Berlin:'+ymd(end)+'T'+to.replace(':','')+'00')}
     L.push('SUMMARY:'+icsEsc(c.icon+' '+e.title));
     const desc=[who?'Dabei: '+who:'',e.note||''].filter(Boolean).join('\n');
+    if(e.loc) L.push('LOCATION:'+icsEsc(e.loc));
     if(desc) L.push('DESCRIPTION:'+icsEsc(desc));
     L.push('CATEGORIES:'+icsEsc(c.label),'END:VEVENT');
   }
@@ -1047,14 +1206,391 @@ function renderAbo(){
   if(S.icsToken){$('#aboUrl').value=icsUrl();$('#aboToken').textContent=S.icsToken}
 }
 
+/* =====================================================================
+   PAKET 1 – Islamische Feiertage, Essen, Gebet, Quran, Haushalt, PIN, WhatsApp
+   ===================================================================== */
+
+/* ---------- Islamischer Kalender ---------- */
+const HIJRI_NUM=(()=>{try{return new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{day:'numeric',month:'numeric',year:'numeric'})}catch{return null}})();
+const HIJRI_DE=(()=>{try{return new Intl.DateTimeFormat('de-u-ca-islamic-umalqura',{day:'numeric',month:'long',year:'numeric'})}catch{return null}})();
+function hijriParts(ds){
+  if(!HIJRI_NUM) return null;
+  const [y,m,d]=ds.split('-').map(Number);
+  const o={};for(const p of HIJRI_NUM.formatToParts(new Date(y,m-1,d,12))) if(p.type!=='literal') o[p.type]=parseInt(p.value,10);
+  return o.month?{m:o.month,d:o.day,y:o.year}:null;
+}
+function hijriLong(ds){
+  if(!HIJRI_DE) return '';
+  const [y,m,d]=ds.split('-').map(Number);
+  return HIJRI_DE.format(new Date(y,m-1,d,12)).replace(/\s*AH$/,' n. H.');
+}
+const ISLAM_DAYS={
+  '1-1':'Islamisches Neujahr','1-10':'Aschura','3-12':'Mawlid an-Nabi',
+  '7-27':'Isra und Miradsch','8-15':'Laylat al-Baraa','9-1':'Ramadan-Beginn',
+  '9-27':'Laylat al-Qadr','10-1':'Eid al-Fitr','10-2':'Eid al-Fitr (2. Tag)',
+  '12-9':'Tag von Arafat','12-10':'Eid al-Adha','12-11':'Eid al-Adha (2. Tag)'
+};
+const islamCache={};
+function islamEventsForYear(y){
+  if(islamCache[y]) return islamCache[y];
+  const out=[];
+  if(HIJRI_NUM){
+    let ds=y+'-01-01';
+    while(ds.startsWith(String(y))){
+      const h=hijriParts(ds);
+      if(h){const name=ISLAM_DAYS[h.m+'-'+h.d];
+        if(name) out.push({id:'isl-'+ds,virtual:true,kind:'islam',title:name+(h.m===9&&h.d===1||h.m===1&&h.d===1?' '+h.y:''),cat:'islam',start:ds,end:ds,allDay:true,who:[],note:'Islamischer Feiertag nach dem Umm-al-Qura-Kalender. Je nach Mondsichtung kann es ±1 Tag abweichen.'});}
+      ds=addDays(ds,1);
+    }
+  }
+  return islamCache[y]=out;
+}
+function islamEvents(){
+  const ys=new Set([S.cal.y,new Date().getFullYear(),new Date().getFullYear()+1]);
+  return [...ys].flatMap(islamEventsForYear);
+}
+
+/* ---------- Ort / Maps ---------- */
+function mapsUrl(q){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q)}
+
+/* ---------- PIN pro Profil ---------- */
+async function pinHash(mid,pin){return emailHash('jiy-pin:'+mid+':'+String(pin).trim())}
+function askPin(m,title){
+  return new Promise(res=>{
+    modal(`<h3>${esc(title||'PIN für '+m.name)}</h3><form id="pinForm" autocomplete="off">
+      <div class="pin-av">${av(m.id,'lg')}</div>
+      <input name="pin" type="password" inputmode="numeric" maxlength="6" class="pin-input" placeholder="••••" autocomplete="off">
+      <p class="login-err" id="pinErr"></p>
+      <div class="actions"><button type="button" class="btn ghost" data-act="close">Abbrechen</button><span class="sp"></span><button class="btn primary">OK</button></div></form>`);
+    S.onModalClose=()=>res(false);
+    const f=$('#pinForm');setTimeout(()=>f.pin.focus(),60);
+    f.onsubmit=async e=>{e.preventDefault();
+      const h=await pinHash(m.id,f.pin.value);
+      if(h===m.pin){S.onModalClose=null;closeModal();res(true)}
+      else{$('#pinErr').textContent='Falsche PIN – bitte nochmal.';f.pin.value='';f.pin.focus()}};
+  });
+}
+function openSetPin(mid,first){
+  const m=member(mid);if(!m) return;
+  const needOld=!!m.pin&&!first;
+  modal(`<h3>${first?'Lege deine PIN fest':'PIN ändern'}</h3>
+    <p class="muted" style="margin-top:-6px">${first?'Mit der PIN kann niemand einfach in dein Profil wechseln.':'4 bis 6 Ziffern.'}</p>
+    <form id="setPinForm" autocomplete="off">
+      ${needOld?`<label>Alte PIN<input name="old" type="password" inputmode="numeric" maxlength="6" class="pin-input"></label>`:''}
+      <label>Neue PIN (4–6 Ziffern)<input name="pin" type="password" inputmode="numeric" maxlength="6" class="pin-input"></label>
+      <label>PIN wiederholen<input name="pin2" type="password" inputmode="numeric" maxlength="6" class="pin-input"></label>
+      <p class="login-err" id="setPinErr"></p>
+      <div class="actions"><button type="button" class="btn ghost" data-act="close">${first?'Später':'Abbrechen'}</button><span class="sp"></span><button class="btn primary">Speichern</button></div>
+    </form>`);
+  const f=$('#setPinForm');
+  f.onsubmit=async e=>{e.preventDefault();
+    const err=t=>{$('#setPinErr').textContent=t};
+    if(needOld&&(await pinHash(m.id,f.old.value))!==m.pin) return err('Alte PIN stimmt nicht.');
+    const p=f.pin.value.trim();
+    if(!/^\d{4,6}$/.test(p)) return err('Bitte 4 bis 6 Ziffern eingeben.');
+    if(p!==f.pin2.value.trim()) return err('Die beiden PINs sind nicht gleich.');
+    if(await w(async()=>S.db.doc('members/'+m.id).update({pin:await pinHash(m.id,p)}))){closeModal();toast('PIN gespeichert 🔒')}
+  };
+}
+
+/* ---------- WhatsApp ---------- */
+function waNumber(p){let d=String(p||'').replace(/[^\d+]/g,'');if(d.startsWith('+')) d=d.slice(1);else if(d.startsWith('00')) d=d.slice(2);else if(d.startsWith('0')) d='49'+d.slice(1);return d}
+function openWhatsApp(){
+  const list=S.members.filter(m=>m.phone&&m.id!==S.meId);
+  modal(`<h3>🟢 WhatsApp</h3>
+    ${list.length?`<p class="muted" style="margin-top:-6px">Öffnet den WhatsApp-Chat. Für einen Anruf dort oben auf 📞 oder 🎥 tippen.</p>
+    <div class="wa-list">${list.map(m=>`<a class="wa-row" href="https://wa.me/${esc(waNumber(m.phone))}" target="_blank" rel="noopener">${av(m.id)}<b>${esc(m.name)}</b><span class="muted">${esc(m.phone)}</span><span class="wa-go">Chat →</span></a>`).join('')}</div>`
+    :`<p class="muted">Noch keine Handynummern hinterlegt. Ein Administrator kann sie unter <b>Familie</b> beim Profil eintragen.</p>`}`);
+}
+
+/* ---------- Essen ---------- */
+function weekStart(ds){const d=parse(ds);d.setDate(d.getDate()-((d.getDay()+6)%7));return iso(d)}
+function mealLines(m){
+  return `${m.lunch?`<div class="meal-line">☀️ <b>Mittag:</b> ${esc(m.lunch)}</div>`:''}${m.dinner?`<div class="meal-line">🌙 <b>Abend:</b> ${esc(m.dinner)}</div>`:''}${m.ingr?`<div class="meal-line muted">🧺 ${esc(m.ingr)}</div>`:''}`;
+}
+function renderMeals(){
+  if(!$('#mealWeek')) return;
+  const ws=S.mealWeek,t=today(),tm=S.meals[t];
+  $('#mealTitle').textContent='Woche ab '+fmtDay(ws);
+  $('#mealToday').innerHTML=`<div class="meal-head"><span class="meal-big">🍽️</span><div class="meal-h"><b>Heute</b><small>${esc(fmtLong(t))}</small></div><button class="btn soft sm" data-act="edit-meal" data-id="${t}">${tm?'Ändern':'Planen'}</button></div>
+    ${tm?mealLines(tm):'<div class="empty" style="margin-top:10px">Was gibt es heute? Tippe auf „Planen“.</div>'}
+    ${tm&&tm.ingr?`<button class="btn primary" style="width:100%;margin-top:12px" data-act="meal-shop" data-id="${t}">🛒 Zutaten auf die Einkaufsliste</button>`:''}`;
+  let html='';
+  for(let i=0;i<7;i++){
+    const ds=addDays(ws,i),m=S.meals[ds];
+    html+=`<button class="meal-row ${ds===t?'today':''}" data-act="edit-meal" data-id="${ds}">
+      <span class="meal-day"><b>${parse(ds).toLocaleDateString('de-DE',{weekday:'short'})}</b><small>${parse(ds).getDate()}.${parse(ds).getMonth()+1}.</small></span>
+      <span class="meal-main">${m&&(m.lunch||m.dinner)?`${m.lunch?`<span>☀️ ${esc(m.lunch)}</span>`:''}${m.dinner?`<span>🌙 ${esc(m.dinner)}</span>`:''}`:'<span class="muted">– noch nichts –</span>'}</span>
+      <span class="muted">✎</span></button>`;
+  }
+  $('#mealWeek').innerHTML=html;
+}
+function openMealEdit(ds){
+  const m=S.meals[ds]||{};
+  modal(`<h3>🍽️ ${esc(fmtLong(ds))}</h3><form id="mealForm" autocomplete="off">
+    <label>☀️ Mittagessen<input name="lunch" maxlength="80" value="${esc(m.lunch||'')}" placeholder="z. B. Couscous mit Gemüse"></label>
+    <label>🌙 Abendessen<input name="dinner" maxlength="80" value="${esc(m.dinner||'')}" placeholder="z. B. Linsensuppe"></label>
+    <label>🧺 Zutaten (mit Komma trennen)<textarea name="ingr" rows="3" maxlength="600" placeholder="Couscous, Karotten, Zucchini, Kichererbsen">${esc(m.ingr||'')}</textarea></label>
+    <div class="actions">${m.date?'<button type="button" class="btn ghost danger" id="mealDel">Löschen</button>':''}<span class="sp"></span><button type="button" class="btn soft" id="mealShopBtn">🛒 Zutaten einkaufen</button><button class="btn primary">Speichern</button></div>
+  </form>`);
+  const f=$('#mealForm');
+  const save=async()=>{const data={date:ds,lunch:f.lunch.value.trim(),dinner:f.dinner.value.trim(),ingr:f.ingr.value.trim(),by:S.meId||null,ts:Date.now()};
+    if(!data.lunch&&!data.dinner&&!data.ingr){if(m.date) await w(()=>S.db.doc('meals/'+ds).delete());return true}
+    return w(()=>S.db.doc('meals/'+ds).set(data));};
+  f.onsubmit=async e=>{e.preventDefault();if(await save()){closeModal();toast('Gespeichert 🍽️')}};
+  $('#mealShopBtn').onclick=async()=>{if(await save()){closeModal();mealShop(ds,f.ingr.value)}};
+  const del=$('#mealDel');if(del) del.onclick=e=>confirmBtn(e.currentTarget,'Wirklich löschen?',async()=>{if(await w(()=>S.db.doc('meals/'+ds).delete())){closeModal();toast('Gelöscht')}});
+}
+async function mealShop(ds,ingrText){
+  const txt=ingrText!=null?ingrText:(S.meals[ds]||{}).ingr||'';
+  const items=txt.split(/[,;\n]+/).map(s=>s.trim()).filter(Boolean);
+  if(!items.length){toast('Keine Zutaten eingetragen');return}
+  let n=0;for(const it of items){if(await addItem(it,null,{silent:true})) n++}
+  toast(n?`🛒 ${n} Zutat${n===1?'':'en'} auf die Einkaufsliste`:'Alles steht schon auf der Liste');
+}
+
+/* ---------- Haushalt & Rechnungen ---------- */
+const INTV={monat:{label:'monatlich',m:1},quartal:{label:'vierteljährlich',m:3},halbjahr:{label:'halbjährlich',m:6},jahr:{label:'jährlich',m:12},einmal:{label:'einmalig',m:0}};
+function addMonths(ds,n){const [y,m,d]=ds.split('-').map(Number);const t=new Date(y,m-1+n,1);const last=new Date(t.getFullYear(),t.getMonth()+1,0).getDate();t.setDate(Math.min(d,last));return iso(t)}
+function billOcc(b,until){const out=[];if(!b.due) return out;const step=(INTV[b.interval]||INTV.monat).m;let k=0,ds=b.due;while(ds<=until&&k<600){out.push(ds);if(!step) break;k++;ds=addMonths(b.due,step*k)}return out}
+function pkey(ds){return 'd'+ds.replace(/-/g,'')}
+function billNext(b){const paid=b.paid||{};return billOcc(b,addDays(today(),800)).find(ds=>!paid[pkey(ds)])||null}
+function billStatus(b){
+  const n=billNext(b);if(!n) return {n:null,cls:'ok',txt:'alles bezahlt',diff:9999};
+  const diff=Math.round((parse(n)-parse(today()))/864e5);
+  if(diff<0) return {n,cls:'late',txt:`überfällig seit ${-diff} Tag${diff===-1?'':'en'}`,diff};
+  if(diff===0) return {n,cls:'soon',txt:'heute fällig',diff};
+  if(diff<=3) return {n,cls:'soon',txt:`fällig in ${diff} Tag${diff===1?'':'en'}`,diff};
+  return {n,cls:'ok',txt:'nächste Fälligkeit '+fmtDay(n),diff};
+}
+function eur(x){return Number(x||0).toLocaleString('de-DE',{style:'currency',currency:'EUR'})}
+function billsDue(){return S.bills.filter(b=>{const s=billStatus(b);return s.n&&s.diff<=3}).length}
+function renderBills(){
+  if(!$('#billList')) return;
+  const monthly=S.bills.reduce((a,b)=>{const m=(INTV[b.interval]||INTV.monat).m;return a+(m?Number(b.amount||0)/m:0)},0);
+  const due=billsDue();
+  $('#billSum').innerHTML=`<div class="bill-sum-row"><div><small class="muted">Fixkosten pro Monat (ca.)</small><b>${eur(monthly)}</b></div><div><small class="muted">Bald fällig</small><b class="${due?'late-txt':''}">${due}</b></div></div>`;
+  const list=[...S.bills].sort((a,b)=>billStatus(a).diff-billStatus(b).diff);
+  $('#billList').innerHTML=list.length?list.map(b=>{const s=billStatus(b);const resp=member(b.who);
+    return `<div class="bill ${s.cls}"><div class="bill-ic">${esc(b.icon||'💸')}</div>
+      <div class="bill-main"><b>${esc(b.title)}</b><small>${eur(b.amount)} · ${(INTV[b.interval]||INTV.monat).label}${resp?' · '+esc(resp.name):''}</small><small class="bill-st">${s.txt}</small></div>
+      ${s.n?`<button class="btn soft sm" data-act="bill-paid" data-id="${esc(b.id)}">✓ Bezahlt</button>`:''}
+      <button class="icon-btn" data-act="edit-bill" data-id="${esc(b.id)}" aria-label="Bearbeiten">✎</button></div>`}).join('')
+    :`<div class="empty">Noch keine Ausgaben. Trag Miete, Strom, Internet, Versicherungen usw. ein – sie erscheinen dann auch im Kalender.</div>`;
+}
+function billEvents(){
+  const ys=new Set([S.cal.y,new Date().getFullYear(),new Date().getFullYear()+1]);const out=[];
+  for(const b of S.bills){const paid=b.paid||{};
+    for(const ds of billOcc(b,(Math.max(...ys))+'-12-31')){ if(!ys.has(+ds.slice(0,4))) continue;
+      out.push({id:'bill-'+b.id+'-'+ds,virtual:true,kind:'bill',billId:b.id,title:`${b.title} (${eur(b.amount)})${paid[pkey(ds)]?' ✓':''}`,cat:'rechnung',start:ds,end:ds,allDay:true,who:b.who?[b.who]:[],note:''});}}
+  return out;
+}
+function openBillEdit(id){
+  const b=id?S.bills.find(x=>x.id===id):null;const v=b||{title:'',amount:'',interval:'monat',due:today(),who:'',note:'',icon:'💸'};
+  modal(`<h3>${b?'Ausgabe bearbeiten':'Neue Ausgabe'}</h3><form id="billForm" autocomplete="off">
+    <div class="row"><label style="flex:0 0 80px">Symbol<input name="icon" maxlength="4" value="${esc(v.icon||'💸')}"></label><label>Was?<input name="title" required maxlength="60" value="${esc(v.title)}" placeholder="z. B. Miete, Strom, Internet"></label></div>
+    <div class="row"><label>Betrag (€)<input name="amount" type="number" step="0.01" min="0" inputmode="decimal" value="${esc(v.amount)}"></label>
+      <label>Wie oft?<select name="interval">${Object.entries(INTV).map(([k,x])=>`<option value="${k}" ${k===v.interval?'selected':''}>${x.label}</option>`).join('')}</select></label></div>
+    <div class="row"><label>${b?'Erste Fälligkeit':'Nächste Fälligkeit'}<input name="due" type="date" required value="${esc(v.due)}"></label>
+      <label>Zuständig<select name="who"><option value="">–</option>${S.members.map(m=>`<option value="${esc(m.id)}" ${m.id===v.who?'selected':''}>${esc(m.name)}</option>`).join('')}</select></label></div>
+    <label>Notiz<input name="note" maxlength="120" value="${esc(v.note||'')}" placeholder="z. B. Lastschrift, Vertragsnummer …"></label>
+    <div class="actions">${b?'<button type="button" class="btn ghost danger" id="billDel">Löschen</button>':''}<span class="sp"></span><button class="btn primary">Speichern</button></div>
+  </form>`);
+  const f=$('#billForm');
+  f.onsubmit=async e=>{e.preventDefault();
+    const data={title:f.title.value.trim(),icon:f.icon.value.trim()||'💸',amount:Math.round(parseFloat(String(f.amount.value).replace(',','.'))*100)/100||0,interval:f.interval.value,due:f.due.value,who:f.who.value||null,note:f.note.value.trim(),paid:b?.paid||{},by:b?.by??S.meId??null,ts:b?.ts??Date.now()};
+    if(!data.title||!data.due) return;
+    if(await w(()=>b?S.db.doc('bills/'+b.id).set(data):S.db.collection('bills').add(data))){closeModal();toast(b?'Gespeichert':'Ausgabe eingetragen 💸')}
+  };
+  const del=$('#billDel');if(del) del.onclick=e=>confirmBtn(e.currentTarget,'Wirklich löschen?',async()=>{if(await w(()=>S.db.doc('bills/'+b.id).delete())){closeModal();toast('Gelöscht')}});
+}
+async function billPaid(id){
+  const b=S.bills.find(x=>x.id===id);if(!b) return;const n=billNext(b);if(!n) return;
+  if(await w(()=>S.db.doc('bills/'+id).update({['paid.'+pkey(n)]:Date.now()})))
+    toast(`✓ ${b.title} für ${fmtDay(n)} bezahlt`,{label:'Rückgängig',fn:()=>{const p={...(b.paid||{})};delete p[pkey(n)];w(()=>S.db.doc('bills/'+id).update({paid:p}))}});
+}
+function billReminderOnce(){
+  const n=billsDue();if(!n) return;const k='jiy-billrem-'+today();if(ls(k)) return;lsSet(k,'1');
+  setTimeout(()=>toast(`💸 ${n} Rechnung${n===1?'':'en'} bald fällig`,{label:'Ansehen',fn:()=>show('haushalt')}),1500);
+}
+
+/* ---------- Gebetszeiten (Muslim World League) ---------- */
+const DR=Math.PI/180;
+const dsin=d=>Math.sin(d*DR),dcos=d=>Math.cos(d*DR),dtan=d=>Math.tan(d*DR);
+const darcsin=x=>Math.asin(x)/DR,darccos=x=>Math.acos(x)/DR,darctan2=(y,x)=>Math.atan2(y,x)/DR,darccot=x=>Math.atan(1/x)/DR;
+const fixA=(a,b)=>{a=a-b*Math.floor(a/b);return a<0?a+b:a};
+function julianDay(y,m,d){if(m<=2){y-=1;m+=12}const A=Math.floor(y/100),B=2-A+Math.floor(A/4);return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+d+B-1524.5}
+function sunPosition(jd){
+  const D=jd-2451545.0,g=fixA(357.529+0.98560028*D,360),q=fixA(280.459+0.98564736*D,360);
+  const L=fixA(q+1.915*dsin(g)+0.020*dsin(2*g),360),e=23.439-0.00000036*D;
+  const RA=fixA(darctan2(dcos(e)*dsin(L),dcos(L))/15,24);
+  return {decl:darcsin(dsin(e)*dsin(L)),eqt:q/15-RA};
+}
+const PRAYER_CFG={fajr:18,isha:17,asrFactor:1};
+function prayerTimes(date,lat,lng){
+  const tz=-new Date(date.getFullYear(),date.getMonth(),date.getDate(),12).getTimezoneOffset()/60;
+  const jd=julianDay(date.getFullYear(),date.getMonth()+1,date.getDate())-lng/(15*24);
+  const midDay=t=>fixA(12-sunPosition(jd+t).eqt,24);
+  const sunAngle=(angle,t,ccw)=>{const decl=sunPosition(jd+t).decl,noon=midDay(t);
+    const T=darccos((-dsin(angle)-dsin(decl)*dsin(lat))/(dcos(decl)*dcos(lat)))/15;return noon+(ccw?-T:T)};
+  const asr=(f,t)=>{const decl=sunPosition(jd+t).decl;return sunAngle(-darccot(f+dtan(Math.abs(lat-decl))),t)};
+  const r={fajr:sunAngle(PRAYER_CFG.fajr,5/24,true),sunrise:sunAngle(0.833,6/24,true),dhuhr:midDay(12/24),
+    asr:asr(PRAYER_CFG.asrFactor,13/24),maghrib:sunAngle(0.833,18/24),isha:sunAngle(PRAYER_CFG.isha,18/24)};
+  for(const k in r) r[k]+=tz-lng/15;
+  const night=fixA(r.sunrise-r.maghrib,24);
+  const fp=PRAYER_CFG.fajr/60*night,ip=PRAYER_CFG.isha/60*night;
+  if(isNaN(r.fajr)||fixA(r.sunrise-r.fajr,24)>fp) r.fajr=r.sunrise-fp;
+  if(isNaN(r.isha)||fixA(r.isha-r.maghrib,24)>ip) r.isha=r.maghrib+ip;
+  r.dhuhr+=1/60; // 1 Minute Sicherheit nach Zenit
+  return r;
+}
+function hm(h){const t=Math.round(fixA(h,24)*60)%1440;return pad(Math.floor(t/60))+':'+pad(t%60)}
+const PRAYERS=[['fajr','Fajr','الفجر'],['sunrise','Sonnenaufgang','الشروق'],['dhuhr','Dhuhr','الظهر'],['asr','Asr','العصر'],['maghrib','Maghrib','المغرب'],['isha','Isha','العشاء']];
+const DEFAULT_LOC={lat:49.0134,lng:12.1016,name:'Regensburg',def:true};
+function getLoc(){try{const x=JSON.parse(ls('jiy-loc')||'null');if(x&&typeof x.lat==='number') return x}catch{}return DEFAULT_LOC}
+function locate(){
+  return new Promise(res=>{
+    if(!navigator.geolocation){res(null);return}
+    navigator.geolocation.getCurrentPosition(async p=>{
+      const loc={lat:p.coords.latitude,lng:p.coords.longitude,ts:Date.now(),name:''};
+      try{const r=await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${loc.lat}&longitude=${loc.lng}&localityLanguage=de`);const j=await r.json();loc.name=j.city||j.locality||j.principalSubdivision||''}catch{}
+      lsSet('jiy-loc',JSON.stringify(loc));res(loc);
+    },()=>res(null),{enableHighAccuracy:false,timeout:15000,maximumAge:3600e3});
+  });
+}
+function nextPrayer(loc){
+  const now=new Date(),h=now.getHours()+now.getMinutes()/60+now.getSeconds()/3600;
+  const t=prayerTimes(now,loc.lat,loc.lng);
+  for(const [k,de] of PRAYERS){if(k==='sunrise') continue;if(t[k]>h) return {k,de,at:t[k],inH:t[k]-h,tomorrow:false}}
+  const tm=new Date(now);tm.setDate(tm.getDate()+1);const t2=prayerTimes(tm,loc.lat,loc.lng);
+  return {k:'fajr',de:'Fajr',at:t2.fajr,inH:t2.fajr+24-h,tomorrow:true};
+}
+function durTxt(hh){const m=Math.max(0,Math.round(hh*60));const h=Math.floor(m/60);return h?`${h} Std ${m%60} Min`:`${m} Min`}
+function renderPrayer(){
+  if(!$('#prTimes')) return;
+  const loc=getLoc(),now=new Date(),t=prayerTimes(now,loc.lat,loc.lng),np=nextPrayer(loc);
+  $('#prLoc').textContent='📍 '+(loc.def?'Regensburg (Standard)':(loc.name||`Mein Standort (${loc.lat.toFixed(2)}, ${loc.lng.toFixed(2)})`));
+  $('#prDate').textContent=fmtLong(today())+(hijriLong(today())?' · '+hijriLong(today()):'');
+  $('#prNext').innerHTML=`<small>Nächstes Gebet${np.tomorrow?' (morgen)':''}</small><b>${np.de} · ${hm(np.at)}</b><span>in ${durTxt(np.inH)}</span>`;
+  $('#prTimes').innerHTML=PRAYERS.map(([k,de,ar])=>`<div class="pr-row ${k===np.k&&!np.tomorrow?'next':''} ${k==='sunrise'?'sun':''}"><span class="pr-de">${de}</span><span class="pr-ar">${ar}</span><b>${hm(t[k])}</b></div>`).join('');
+  renderQibla();
+}
+function qiblaDir(lat,lng){const kLat=21.4225,kLng=39.8262,dL=(kLng-lng)*DR;
+  return fixA(Math.atan2(Math.sin(dL),Math.cos(lat*DR)*Math.tan(kLat*DR)-Math.sin(lat*DR)*Math.cos(dL))/DR,360)}
+function compassWord(a){return ['Norden','Nordosten','Osten','Südosten','Süden','Südwesten','Westen','Nordwesten'][Math.round(a/45)%8]}
+function renderQibla(){
+  const loc=getLoc(),q=qiblaDir(loc.lat,loc.lng),hd=S.heading;
+  const dial=$('#qDial'),needle=$('#qNeedle');if(!dial) return;
+  dial.style.transform=`rotate(${-(hd||0)}deg)`;
+  needle.style.transform=`rotate(${q-(hd||0)}deg)`;
+  const off=hd==null?null:Math.abs(((q-hd+540)%360)-180);
+  $('#compass').classList.toggle('aligned',off!=null&&off<6);
+  $('#qInfo').innerHTML=`Qibla: <b>${Math.round(q)}°</b> von Norden (${compassWord(q)})`+(hd==null?'':(off<6?' · <b>✓ Richtung stimmt</b>':` · noch ${Math.round(off)}° drehen`));
+}
+async function startCompass(){
+  try{if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){const r=await DeviceOrientationEvent.requestPermission();if(r!=='granted'){toast('Kompass wurde nicht erlaubt');return}}}catch{}
+  if(S.compassOn){toast('Kompass läuft – Handy flach halten 📱');return}
+  S.compassOn=true;
+  const h=e=>{let hd=null;
+    if(typeof e.webkitCompassHeading==='number') hd=e.webkitCompassHeading;
+    else if(e.absolute&&e.alpha!=null) hd=360-e.alpha;
+    if(hd==null) return;
+    S.heading=hd;if(!S.qRaf){S.qRaf=requestAnimationFrame(()=>{S.qRaf=null;renderQibla()})}};
+  window.addEventListener('deviceorientationabsolute',h,true);
+  window.addEventListener('deviceorientation',h,true);
+  toast('Handy flach halten und langsam drehen 📱');
+  setTimeout(()=>{if(S.heading==null) $('#qInfo').innerHTML+='<br><span class="muted">Kein Kompass erkannt – richte dich nach der Grad-Angabe.</span>'},3500);
+}
+async function initPrayer(){
+  renderPrayer();
+  if(!S.prTimer) S.prTimer=setInterval(()=>{if(S.view==='gebet') renderPrayer()},30000);
+  const l=getLoc();
+  if(l.def||!l.ts||Date.now()-l.ts>6*3600e3){const x=await locate();if(x) renderPrayer();else if(l.def) $('#prLocHint').hidden=false}
+  loadQuranList();
+}
+
+/* ---------- Quran ---------- */
+const QR_TOTAL=6236;
+const arDigits=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+async function cachedJson(key,url){
+  try{const c=ls(key);if(c) return JSON.parse(c)}catch{}
+  const r=await fetch(url);if(!r.ok) throw new Error('HTTP '+r.status);const j=await r.json();
+  try{localStorage.setItem(key,JSON.stringify(j))}catch{}
+  return j;
+}
+async function loadQuranList(){
+  if(S.qrList) return;
+  try{const j=await cachedJson('jiy-qr-list','https://api.alquran.cloud/v1/surah');S.qrList=j.data;
+    $('#surahSel').innerHTML=S.qrList.map(s=>`<option value="${s.number}">${s.number}. ${esc(s.name)} – ${esc(s.englishName)} (${s.numberOfAyahs})</option>`).join('');
+    const mine=S.quran[S.meId];$('#surahSel').value=String(mine?.surah||1);
+    renderQuranProgress();
+  }catch(e){console.warn(e);$('#qrText').innerHTML='<div class="empty">Quran konnte nicht geladen werden – Internetverbindung prüfen.</div>'}
+}
+function qrPercent(p){return p&&p.g?Math.min(100,Math.round(p.g/QR_TOTAL*1000)/10):0}
+function renderQuranProgress(){
+  const box=$('#qrProgress');if(!box) return;
+  const rows=S.members.map(m=>{const p=S.quran[m.id];const s=p&&S.qrList?S.qrList[p.surah-1]:null;
+    return `<div class="qr-prog">${av(m.id,'sm')}<span class="qr-name">${esc(m.name)}</span><span class="qr-where">${p?`Sure ${p.surah}${s?' '+esc(s.englishName):''}, Vers ${p.ayah}`:'<span class="muted">noch nicht begonnen</span>'}</span><span class="qr-bar"><i style="width:${qrPercent(p)}%"></i></span><span class="qr-pc">${qrPercent(p)}%</span>${p&&p.khatm?`<span class="qr-k" title="Khatm">🏅${p.khatm}</span>`:''}</div>`}).join('');
+  box.innerHTML=rows||'<div class="muted">Noch keine Profile.</div>';
+  const mine=S.quran[S.meId];
+  $('#qrContinue').hidden=!mine;
+  if(mine) $('#qrContinue').textContent=`▶ Weiterlesen: Sure ${mine.surah}, Vers ${mine.ayah}`;
+}
+async function openSurah(n,scrollTo){
+  n=Number(n)||1;S.qrSurah=n;$('#surahSel').value=String(n);qrStop();
+  $('#qrText').innerHTML='<div class="empty">Lade …</div>';
+  try{
+    const j=await cachedJson('jiy-qr-s'+n,`https://api.alquran.cloud/v1/surah/${n}/quran-uthmani`);
+    S.qrAyahs=j.data.ayahs;const s=j.data;
+    const mine=S.quran[S.meId];
+    $('#qrText').innerHTML=`<div class="qr-title">${esc(s.name)}<small>${esc(s.englishName)} · ${s.numberOfAyahs} Verse</small></div>`+
+      S.qrAyahs.map((a,i)=>`<div class="ayah ${mine&&mine.surah===n&&mine.ayah===a.numberInSurah?'mark':''}" id="ay-${i}"><span class="ay-txt">${esc(a.text)} <span class="ay-no">﴿${arDigits(a.numberInSurah)}﴾</span></span>
+        <span class="ay-tools"><button class="ay-btn" data-act="qr-play-from" data-id="${i}" title="Ab hier anhören">▶</button><button class="ay-btn" data-act="qr-mark" data-id="${i}" title="Bis hier gelesen">🔖</button></span></div>`).join('');
+    if(scrollTo) setTimeout(()=>{const el=$('#ay-'+(scrollTo-1));if(el) el.scrollIntoView({behavior:'smooth',block:'center'})},100);
+  }catch(e){console.warn(e);$('#qrText').innerHTML='<div class="empty">Sure konnte nicht geladen werden – Internetverbindung prüfen.</div>'}
+}
+async function qrSaveProgress(i,silent){
+  if(!S.meId){openWhoAmI();return}
+  const a=S.qrAyahs&&S.qrAyahs[i];if(!a) return;
+  const old=S.quran[S.meId]||{};
+  let khatm=old.khatm||0;if(a.number===QR_TOTAL&&old.g!==QR_TOTAL) khatm++;
+  const data={surah:S.qrSurah,ayah:a.numberInSurah,g:a.number,khatm,ts:Date.now()};
+  if(await w(()=>S.db.doc('quran/'+S.meId).set(data))){
+    document.querySelectorAll('.ayah.mark').forEach(x=>x.classList.remove('mark'));$('#ay-'+i)?.classList.add('mark');
+    if(!silent) toast(`🔖 Gespeichert: Sure ${data.surah}, Vers ${data.ayah}`);
+  }
+}
+function qrAudio(){if(!S.qrAudioEl){S.qrAudioEl=new Audio();S.qrAudioEl.preload='auto';
+  S.qrAudioEl.addEventListener('ended',()=>{if(S.qrPlaying) qrPlayIdx(S.qrIdx+1)});
+  S.qrAudioEl.addEventListener('error',()=>{if(S.qrPlaying){toast('Audio konnte nicht geladen werden');qrStop()}});}
+  return S.qrAudioEl}
+function qrPlayIdx(i){
+  if(!S.qrAyahs||i>=S.qrAyahs.length){qrStop();return}
+  S.qrIdx=i;S.qrPlaying=true;
+  document.querySelectorAll('.ayah.playing').forEach(x=>x.classList.remove('playing'));
+  const el=$('#ay-'+i);if(el){el.classList.add('playing');el.scrollIntoView({behavior:'smooth',block:'center'})}
+  const au=qrAudio();au.src=`https://cdn.islamic.network/quran/audio/128/ar.alafasy/${S.qrAyahs[i].number}.mp3`;
+  au.play().catch(()=>{toast('Bitte nochmal auf ▶ tippen');qrStop()});
+  $('#qrPlayBtn').textContent='⏸ Pause';
+  clearTimeout(S.qrSaveT);S.qrSaveT=setTimeout(()=>{if(S.meId) qrSaveProgress(i,true)},4000);
+}
+function qrStop(){S.qrPlaying=false;if(S.qrAudioEl) S.qrAudioEl.pause();const b=$('#qrPlayBtn');if(b) b.textContent='▶ Anhören';document.querySelectorAll('.ayah.playing').forEach(x=>x.classList.remove('playing'))}
+function qrToggle(){
+  if(S.qrPlaying){qrStop();return}
+  if(!S.qrAyahs){openSurah($('#surahSel').value).then(()=>qrPlayIdx(0));return}
+  qrPlayIdx(S.qrIdx>=0&&S.qrIdx<S.qrAyahs.length?S.qrIdx:0);
+}
+
 /* ---------- Badges & Gesamt-Render ---------- */
 function renderBadges(){
   const seen=chatSeen();
   const unread=S.view==='chat'?0:S.messages.filter(m=>(m.ts||0)>seen&&m.by!==S.meId).length;
   const cb=$('#chatBadge');cb.textContent=unread>9?'9+':unread;cb.hidden=!unread;
   const open=S.shop.filter(i=>i.open&&!i.checked).length;const sb=$('#shopBadge');sb.textContent=open;sb.hidden=!open;
+  const bd=billsDue();const mb=$('#moreBadge');mb.textContent=bd;mb.hidden=!bd;
+  const mh=$('#moreBillHint');if(mh) mh.textContent=bd?`${bd} bald fällig`:'Rechnungen & Fixkosten';
 }
-function renderAll(){applyAdmin();renderMe();renderCal();renderChat();renderShop();renderFam();renderBadges()}
+function renderAll(){applyAdmin();renderMe();renderCal();renderChat();renderShop();renderFam();renderMeals();renderBills();renderQuranProgress();renderBadges()}
 
 /* ---------- Aktionen ---------- */
 const ACT={
@@ -1082,6 +1618,23 @@ const ACT={
   'copy-abo':async()=>{const u=icsUrl();try{await navigator.clipboard.writeText(u);toast('Link kopiert ✓')}catch{const i=$('#aboUrl');i.focus();i.select();toast('Link markiert – jetzt kopieren')}},
   call:(t,id)=>startCall(id),
   finish:()=>finishShopping(),
+  whatsapp:()=>openWhatsApp(),
+  'my-pin':()=>{if(!S.meId){openWhoAmI();return}openSetPin(S.meId,false)},
+  'meal-prev':()=>{S.mealWeek=addDays(S.mealWeek,-7);renderMeals()},
+  'meal-next':()=>{S.mealWeek=addDays(S.mealWeek,7);renderMeals()},
+  'meal-today':()=>{S.mealWeek=weekStart(today());renderMeals()},
+  'edit-meal':(t,id)=>openMealEdit(id),
+  'meal-shop':(t,id)=>mealShop(id),
+  'new-bill':()=>openBillEdit(null),
+  'edit-bill':(t,id)=>openBillEdit(id),
+  'bill-paid':(t,id)=>billPaid(id),
+  locate:async()=>{toast('Suche Standort …');const x=await locate();if(x){$('#prLocHint').hidden=true;renderPrayer();toast('📍 '+(x.name||'Standort')+' übernommen')}else{$('#prLocHint').hidden=false;toast('Standort nicht verfügbar')}},
+  compass:()=>startCompass(),
+  'qr-open':()=>openSurah($('#surahSel').value),
+  'qr-toggle':()=>qrToggle(),
+  'qr-play-from':(t,id)=>qrPlayIdx(+id),
+  'qr-mark':(t,id)=>qrSaveProgress(+id),
+  'qr-continue':()=>{const p=S.quran[S.meId];if(p) openSurah(p.surah,p.ayah)},
 };
 document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(!t) return;const f=ACT[t.dataset.act];if(f){e.preventDefault();f(t,t.dataset.id,e)}});
 
@@ -1089,12 +1642,16 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(
 function subscribe(){
   const got={members:false,events:false,chat:false,shop:false};
   const timer=setTimeout(()=>{if(!Object.values(got).every(Boolean)) banner('Die gemeinsamen Daten sind gerade nicht erreichbar – vielleicht offline. Es wird weiter versucht.')},10000);
-  const done=(k,snap)=>{if(!snap.metadata.fromCache&&!got[k]){got[k]=true;if(Object.values(got).every(Boolean)){clearTimeout(timer);banner('');S.loaded=true;resolveMe();renderAll();initIcs()}}};
+  const done=(k,snap)=>{if(!snap.metadata.fromCache&&!got[k]){got[k]=true;if(Object.values(got).every(Boolean)){clearTimeout(timer);banner('');S.loaded=true;resolveMe();renderAll();initIcs();billReminderOnce()}}};
   const err=k=>e=>{got[k]=true;console.error(k,e);if(e&&e.code==='permission-denied') banner('Kein Zugriff auf die Daten – stimmen die E-Mails in firestore.rules?');else banner('Daten konnten nicht geladen werden. Bitte Seite später neu öffnen.')};
   const rows=s=>s.docs.map(d=>({id:d.id,...d.data()}));
   S.db.collection('members').onSnapshot(s=>{S.members=rows(s).sort((a,b)=>(a.order||0)-(b.order||0)||(a.ts||0)-(b.ts||0));resolveMe();renderAll();scheduleIcsSync();done('members',s)},err('members'));
   S.db.collection('events').onSnapshot(s=>{S.events=rows(s).filter(e=>e.start);renderCal();scheduleIcsSync();done('events',s)},err('events'));
   S.db.collection('chat').orderBy('ts','desc').limit(200).onSnapshot(s=>{S.messages=rows(s).reverse();renderChat();if(S.view==='chat') markChatSeen();renderBadges();done('chat',s)},err('chat'));
+  const errX=k=>e=>console.warn(k,e);
+  S.db.collection('meals').where('date','>=',addDays(today(),-60)).onSnapshot(s=>{const o={};for(const d of s.docs){const x=d.data();o[x.date||d.id]=x}S.meals=o;renderMeals()},errX('meals'));
+  S.db.collection('bills').onSnapshot(s=>{S.bills=rows(s);renderBills();renderCal();renderBadges();if(S.loaded) billReminderOnce()},errX('bills'));
+  S.db.collection('quran').onSnapshot(s=>{const o={};for(const d of s.docs) o[d.id]=d.data();S.quran=o;renderQuranProgress()},errX('quran'));
   S.db.collection('shop').onSnapshot(s=>{S.shop=rows(s);renderShop();renderBadges();done('shop',s)},err('shop'));
 }
 
@@ -1161,6 +1718,7 @@ function startApp(user,hash){
   S.db=DB;subscribe();
 }
 (function init(){
+  S.mealWeek=weekStart(today());
   show(location.hash.slice(1)||'kalender');
   $('#aiCard').hidden=true;
   renderAll();
