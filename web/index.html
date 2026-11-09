@@ -512,6 +512,7 @@ button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .m
       <div class="more-grid">
         <button class="more-btn" data-act="tab" data-id="haushalt" id="hhTab"><span class="mi">💸</span><b>Haushalt</b><small id="moreBillHint">Rechnungen &amp; Fixkosten</small></button>
         <button class="more-btn" data-act="whatsapp"><span class="mi">🟢</span><b>WhatsApp</b><small>Chat &amp; Anruf</small></button>
+        <button class="more-btn" data-act="guard-setup" id="guardBtn" hidden><span class="mi">📲</span><b>Kinderschutz einrichten</b><small id="guardHint">Berechtigungen prüfen</small></button>
         <button class="more-btn" data-act="wifi"><span class="mi">📶</span><b>WLAN</b><small>QR-Code für Gäste</small></button>
         <button class="more-btn" data-act="sos"><span class="mi">🆘</span><b>Notruf</b><small>112 · 110 · Eltern</small></button>
         <button class="more-btn" data-act="app-update"><span class="mi">⬇️</span><b>App &amp; Update</b><small id="updHint">neu laden · APK</small></button>
@@ -1938,13 +1939,20 @@ function applyAppGuard(){
     const d=S.myDev||{},exempt=!isKid();
     const on=!!d.appGuard&&!exempt,allowed=quietUntil(d)?[]:(d.appsAllowed||[]);
     const cfg=JSON.stringify({on,allowed});if(cfg!==S.guardCfg){S.guardCfg=cfg;window.JIYNative.setAppGuard(cfg)}
-    if(on){const pm=JSON.parse(window.JIYNative.guardPerms());
-      if((!pm.usage||!pm.overlay)&&!S.guardAsked&&$('#modal').hidden){S.guardAsked=true;
-        modal(`<h3>📲 App-Freigabe einrichten</h3><p class="muted">Damit JIY nur freigegebene Apps erlaubt, braucht es einmalig zwei Berechtigungen. <b>Bitte von Mama oder Papa erledigen.</b></p>
-          <div class="sos-list"><button class="sos-btn p" data-act="guard-usage">${pm.usage?'✅':'1️⃣'} Nutzungsdatenzugriff → „JIY Family“ erlauben</button>
-          <button class="sos-btn p" data-act="guard-overlay">${pm.overlay?'✅':'2️⃣'} Über anderen Apps anzeigen → erlauben</button></div>
-          <p class="hint">Danach JIY wieder öffnen.</p>`)}}
+    const gb=$('#guardBtn');
+    if(on){const pm=JSON.parse(window.JIYNative.guardPerms());const ok=pm.usage&&pm.overlay;
+      if(gb){gb.hidden=false;$('#guardHint').innerHTML=ok?'✅ aktiv':'<b class="late-txt">⚠️ Berechtigungen fehlen</b>'}
+      if(!ok&&!S.guardAsked&&$('#modal').hidden){S.guardAsked=true;guardSetupModal()}}
+    else if(gb) gb.hidden=true;
   }catch(e){console.warn('guard',e)}
+}
+function guardSetupModal(){
+  let pm={usage:false,overlay:false};try{pm=JSON.parse(window.JIYNative.guardPerms())}catch{}
+  modal(`<h3>📲 App-Freigabe einrichten</h3><p class="muted">Damit JIY nur freigegebene Apps erlaubt, braucht es einmalig zwei Berechtigungen. <b>Bitte von Mama oder Papa erledigen.</b></p>
+    <div class="sos-list"><button class="sos-btn p" data-act="guard-usage">${pm.usage?'✅':'1️⃣'} Nutzungsdatenzugriff<span>tippen → „JIY Family“ → einschalten</span></button>
+    <button class="sos-btn p" data-act="guard-overlay">${pm.overlay?'✅':'2️⃣'} Über anderen Apps anzeigen<span>tippen → „Erlauben“ einschalten</span></button></div>
+    <p class="hint"><b>Xiaomi/Redmi:</b> zusätzlich Einstellungen → Apps → JIY Family → <b>Sonstige Berechtigungen</b> → „Pop-up-Fenster im Hintergrund anzeigen“ erlauben und bei <b>Ein/Aus</b> „Keine Einschränkungen“. Ist ein Schalter grau: dort oben rechts ⋮ → „Eingeschränkte Einstellungen zulassen“.</p>
+    <p class="hint">Danach zurück zu JIY – hier steht dann ✅.</p>`);
 }
 function cacheSos(){try{lsSet('jiy-sos',JSON.stringify(S.members.filter(m=>roleOf(m)==='admin'&&m.phone).map(m=>({name:m.name,phone:m.phone}))))}catch{}}
 function sosHtml(){
@@ -2140,6 +2148,7 @@ const ACT={
   'wifi':()=>wifiModal(),
   'wifi-edit':()=>wifiEdit(),
   'guard-usage':()=>{try{window.JIYNative.openUsageSettings()}catch{}},
+  'guard-setup':()=>guardSetupModal(),
   'guard-overlay':()=>{try{window.JIYNative.openOverlaySettings()}catch{}},
   'app-update':()=>updateModal(),
   'acc-block':(t,id)=>accBlock(id),
