@@ -23,8 +23,7 @@ Am Ende hast du:
 Öffne `web/index.html` und ganz oben im Abschnitt **EINSTELLUNGEN**:
 
 - `FIREBASE_CONFIG` → die Werte aus Schritt 1.6 einsetzen (apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId).
-- `ALLOWED_EMAILS` → deine E-Mail und die deiner Frau (genau wie in `firestore.rules`).
-- `OWNER_EMAIL` → deine E-Mail (ist schon eingetragen).
+- `ALLOWED_HASHES` / `OWNER_HASH` → SHA-256-Fingerabdrücke der E-Mails (klein geschrieben). So stehen eure Adressen nicht öffentlich im Code.
 
 > Der `apiKey` von Firebase ist nicht geheim – geschützt werden eure Daten durch die Regeln aus Schritt 1.5.
 
@@ -53,7 +52,7 @@ Am Ende hast du:
 
 - **Aussehen/Funktionen ändern:** auf GitHub `web/index.html` öffnen → ✏️ bearbeiten → *Commit changes*.
   Nach ca. 1 Minute ist die Änderung in der App (App einmal schließen und neu öffnen).
-- **Neue E-Mail freischalten:** in `web/index.html` bei `ALLOWED_EMAILS` **und** in Firebase bei den Firestore-Regeln ergänzen.
+- **Neue E-Mail freischalten:** Fingerabdruck (SHA-256 der klein geschriebenen E-Mail) in `web/index.html` bei `ALLOWED_HASHES` ergänzen **und** die E-Mail in Firebase bei den Firestore-Regeln eintragen.
 - **Neue APK** brauchst du nur, wenn sich etwas im Ordner `android` ändert. Sie landet automatisch unter *Releases*
   und lässt sich über die alte App drüber installieren.
 
