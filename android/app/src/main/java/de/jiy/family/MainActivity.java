@@ -1,10 +1,13 @@
 package de.jiy.family;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.CookieManager;
+import android.webkit.GeolocationPermissions;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -24,6 +27,9 @@ import java.util.List;
 public class MainActivity extends Activity {
 
     private static final int FILE_REQUEST = 42;
+    private static final int LOCATION_REQUEST = 43;
+    private GeolocationPermissions.Callback geoCallback;
+    private String geoOrigin;
     private WebView web;
     private ValueCallback<Uri[]> fileCallback;
     private String appHost;
@@ -46,6 +52,7 @@ public class MainActivity extends Activity {
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setAllowFileAccess(false);
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
+        s.setGeolocationEnabled(true);
         s.setUserAgentString(s.getUserAgentString() + " JIYFamilyApp");
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, true);
@@ -58,6 +65,19 @@ public class MainActivity extends Activity {
         });
 
         web.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
+                if (hasLocationPermission()) {
+                    callback.invoke(origin, true, false);
+                } else {
+                    geoOrigin = origin;
+                    geoCallback = callback;
+                    requestPermissions(new String[]{
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_REQUEST);
+                }
+            }
+
             @Override
             public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
                 if (fileCallback != null) {
@@ -120,6 +140,24 @@ public class MainActivity extends Activity {
             Toast.makeText(this, "Link kann nicht geöffnet werden", Toast.LENGTH_SHORT).show();
         }
         return true;
+    }
+
+    private boolean hasLocationPermission() {
+        return checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                || checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == LOCATION_REQUEST && geoCallback != null) {
+            boolean granted = false;
+            for (int r : grantResults) {
+                if (r == PackageManager.PERMISSION_GRANTED) granted = true;
+            }
+            geoCallback.invoke(geoOrigin, granted, false);
+            geoCallback = null;
+        }
     }
 
     @Override
