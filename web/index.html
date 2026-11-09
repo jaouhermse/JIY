@@ -235,6 +235,7 @@ label.check input{width:20px;height:20px;accent-color:var(--pri)}
 .who-grid button small{font-size:12px}
 .wa-list{display:flex;flex-direction:column;gap:8px}
 .wa-row{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:14px;padding:10px 12px;text-decoration:none;color:inherit}
+.wa-btn{background:#25D366!important;color:#fff!important}
 .wa-row b{flex:0 0 auto}
 button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .muted{flex:1;font-size:13px}.wa-go{color:#128C7E;font-weight:900}
 /* Essen */
@@ -332,9 +333,7 @@ button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .m
       <div class="chat-wrap">
         <div class="call-bar">
           <span class="muted" style="font-weight:800;flex:1">Familien-Chat</span>
-          <button class="btn soft sm" data-act="whatsapp" title="WhatsApp">🟢</button>
-          <button class="btn soft sm" data-act="call" data-id="audio">📞 Anruf</button>
-          <button class="btn primary sm" data-act="call" data-id="video">🎥 Videoanruf</button>
+          <button class="btn primary sm wa-btn" data-act="whatsapp">🟢 WhatsApp-Anruf</button>
         </div>
         <div id="chatList" class="chat-list"></div>
         <div id="chatPhotoPill" class="photo-pill" hidden></div>
@@ -1299,7 +1298,7 @@ function waNumber(p){let d=String(p||'').replace(/[^\d+]/g,'');if(d.startsWith('
 function openWhatsApp(){
   const list=S.members.filter(m=>m.phone&&m.id!==S.meId);
   modal(`<h3>🟢 WhatsApp</h3>
-    ${list.length?`<p class="muted" style="margin-top:-6px">Öffnet den WhatsApp-Chat. Für einen Anruf dort oben auf 📞 oder 🎥 tippen.</p>
+    ${list.length?`<p class="muted" style="margin-top:-6px">Wen möchtest du anrufen? WhatsApp öffnet sich – dort oben auf 📞 (Anruf) oder 🎥 (Video) tippen.</p>
     <div class="wa-list">${list.map(m=>`<a class="wa-row" href="https://wa.me/${esc(waNumber(m.phone))}" target="_blank" rel="noopener">${av(m.id)}<b>${esc(m.name)}</b><span class="muted">${esc(m.phone)}</span><span class="wa-go">Chat →</span></a>`).join('')}</div>`
     :`<p class="muted">Noch keine Handynummern hinterlegt. Ein Administrator kann sie unter <b>Familie</b> beim Profil eintragen.</p>`}`);
 }
