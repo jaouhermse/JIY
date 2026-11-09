@@ -215,6 +215,9 @@ label.check input{width:20px;height:20px;accent-color:var(--pri)}
 .info li{margin-bottom:6px}
 .welcome{text-align:center;padding:26px 18px}
 .welcome .big{font-size:44px}
+.abo-steps{padding-left:20px;margin:0 0 8px;font-weight:600;line-height:1.5;font-size:14px}
+.abo-steps li{margin-bottom:6px}
+#aboUrl{font-size:13px}
 /* login */
 .login{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px}
 .login[hidden]{display:none}
@@ -322,6 +325,18 @@ label.check input{width:20px;height:20px;accent-color:var(--pri)}
         <div class="colors" id="famColors"></div>
         <button class="btn primary">Hinzufügen</button>
       </form>
+      <div class="card" id="aboCard" hidden>
+        <h3>📅 Kalender-Abo für Gmail &amp; Outlook</h3>
+        <p class="hint" style="margin-top:4px">Alle JIY-Termine und Geburtstage erscheinen automatisch als eigener Kalender „JIY Familie“. Google und Outlook holen Änderungen selbst alle paar Stunden ab.</p>
+        <div class="row" style="align-items:center;margin-bottom:12px"><input id="aboUrl" readonly><button class="btn soft" data-act="copy-abo">Kopieren</button></div>
+        <ol class="abo-steps">
+          <li><b>Google Kalender (Gmail, am PC):</b> calendar.google.com → links bei „Weitere Kalender“ auf <b>+</b> → <b>Per URL</b> → Link einfügen → <b>Kalender hinzufügen</b>.</li>
+          <li><b>Outlook:</b> outlook.live.com/calendar → <b>Kalender hinzufügen</b> → <b>Aus dem Internet abonnieren</b> → Link einfügen → Name „JIY Familie“ → <b>Importieren</b>.</li>
+        </ol>
+        <details><summary class="hint" style="cursor:pointer">Einrichtung auf GitHub (einmalig)</summary>
+          <p class="hint">GitHub → Repo → <b>Settings → Secrets and variables → Actions → New repository secret</b>.<br>Name: <b>ICS_TOKEN</b> · Wert: <code id="aboToken" style="user-select:all;font-weight:800"></code></p>
+        </details>
+      </div>
     </section>
   </main>
 
@@ -589,6 +604,7 @@ function renderFam(){
   const used=new Set(S.members.map(m=>m.color));
   if(!S.colorTouched){S.newColor=COLORS.find(c=>!used.has(c))||COLORS[S.members.length%COLORS.length]}
   $('#famColors').innerHTML=COLORS.map(c=>`<button type="button" class="color ${c===S.newColor?'on':''}" style="background:${c}" data-act="pick-color" data-id="${c}" aria-label="Farbe"></button>`).join('');
+  renderAbo();
 }
 $('#famForm').name.addEventListener('input',e=>{const f=$('#famForm');if(!f.short.dataset.touched) f.short.value=initials(e.target.value)});
 $('#famForm').short.addEventListener('input',e=>{e.target.dataset.touched=e.target.value?'1':''});
@@ -969,6 +985,62 @@ Liste die Zutaten, die man dafür im Supermarkt kaufen muss (ohne Wasser, Salz u
 Antworte nur mit einem JSON-Array, z. B. [{"name":"Hackfleisch","emoji":"🥩","qty":"500 g"}]. name: kurz auf Deutsch; emoji: genau ein Emoji; qty: kurze Mengenangabe.`,`Suche Zutaten für ${dish} …`);
 });
 
+/* ---------- Kalender-Abo (ICS) ---------- */
+const PAGES_BASE=location.origin+location.pathname.replace(/[^/]*$/,'');
+const TE=new TextEncoder();
+function icsEsc(t){return String(t||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n')}
+function icsFold(line){let out=[],cur='',n=0;for(const ch of line){const b=TE.encode(ch).length;if(n+b>73){out.push(cur);cur=' '+ch;n=1+b}else{cur+=ch;n+=b}}out.push(cur);return out.join('\r\n')}
+function ymd(d){return String(d).replace(/-/g,'')}
+const VTZ=['BEGIN:VTIMEZONE','TZID:Europe/Berlin','BEGIN:DAYLIGHT','TZOFFSETFROM:+0100','TZOFFSETTO:+0200','TZNAME:CEST','DTSTART:19700329T020000','RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU','END:DAYLIGHT','BEGIN:STANDARD','TZOFFSETFROM:+0200','TZOFFSETTO:+0100','TZNAME:CET','DTSTART:19701025T030000','RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU','END:STANDARD','END:VTIMEZONE'];
+function buildIcs(){
+  const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//JIY Family//DE','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:JIY Familie','X-WR-TIMEZONE:Europe/Berlin','REFRESH-INTERVAL;VALUE=DURATION:PT1H','X-PUBLISHED-TTL:PT1H',...VTZ];
+  const stamp='20250101T000000Z',cutoff=addDays(today(),-365);
+  const evs=[...S.events].sort((a,b)=>String(a.id).localeCompare(String(b.id)));
+  for(const e of evs){
+    if(!e.start||(e.end||e.start)<cutoff) continue;
+    const c=CATS[e.cat]||CATS.termin,end=e.end||e.start;
+    const who=(e.who||[]).map(member).filter(Boolean).map(m=>m.name).join(', ');
+    L.push('BEGIN:VEVENT','UID:'+e.id+'@jiy-family','DTSTAMP:'+stamp);
+    if(e.allDay||!e.from) L.push('DTSTART;VALUE=DATE:'+ymd(e.start),'DTEND;VALUE=DATE:'+ymd(addDays(end,1)));
+    else{const to=e.to||plusHour(e.from);L.push('DTSTART;TZID=Europe/Berlin:'+ymd(e.start)+'T'+e.from.replace(':','')+'00','DTEND;TZID=Europe/Berlin:'+ymd(end)+'T'+to.replace(':','')+'00')}
+    L.push('SUMMARY:'+icsEsc(c.icon+' '+e.title));
+    const desc=[who?'Dabei: '+who:'',e.note||''].filter(Boolean).join('\n');
+    if(desc) L.push('DESCRIPTION:'+icsEsc(desc));
+    L.push('CATEGORIES:'+icsEsc(c.label),'END:VEVENT');
+  }
+  for(const m of [...S.members].sort((a,b)=>String(a.id).localeCompare(String(b.id)))){
+    if(!m.birth) continue;
+    L.push('BEGIN:VEVENT','UID:bday-'+m.id+'@jiy-family','DTSTAMP:'+stamp,'DTSTART;VALUE=DATE:'+ymd(m.birth),'DTEND;VALUE=DATE:'+ymd(addDays(m.birth,1)),'RRULE:FREQ=YEARLY','SUMMARY:'+icsEsc('🎂 Geburtstag '+m.name),'TRANSP:TRANSPARENT','END:VEVENT');
+  }
+  L.push('END:VCALENDAR');
+  return L.map(icsFold).join('\r\n')+'\r\n';
+}
+let icsTimer=null;
+async function initIcs(){
+  if(S.icsInit||!S.db) return;S.icsInit=true;
+  try{
+    const d=await S.db.doc('config/ics').get();
+    if(d.exists&&d.data().token) S.icsToken=d.data().token;
+    else if(S.isOwner){
+      const tok=Array.from(crypto.getRandomValues(new Uint8Array(20)),b=>'abcdefghijkmnpqrstuvwxyz23456789'[b%32]).join('');
+      await S.db.doc('config/ics').set({token:tok,ts:Date.now()});S.icsToken=tok;
+    }
+    if(S.icsToken){const x=await S.db.doc('ics/'+S.icsToken).get();S.icsLast=x.exists?x.data().ics:null}
+  }catch(e){console.warn('ics',e)}
+  renderFam();scheduleIcsSync();
+}
+function scheduleIcsSync(){
+  if(!S.icsToken||!S.loaded||!S.db) return;
+  clearTimeout(icsTimer);
+  icsTimer=setTimeout(async()=>{const ics=buildIcs();if(ics===S.icsLast) return;
+    try{await S.db.doc('ics/'+S.icsToken).set({ics,updated:Date.now()});S.icsLast=ics}catch(e){console.warn('ics write',e)}},4000);
+}
+function icsUrl(){return S.icsToken?PAGES_BASE+'cal/'+S.icsToken+'.ics':''}
+function renderAbo(){
+  const card=$('#aboCard');if(!card) return;card.hidden=!S.icsToken;
+  if(S.icsToken){$('#aboUrl').value=icsUrl();$('#aboToken').textContent=S.icsToken}
+}
+
 /* ---------- Badges & Gesamt-Render ---------- */
 function renderBadges(){
   const seen=chatSeen();
@@ -1001,6 +1073,7 @@ const ACT={
   'edit-item':(t,id)=>openItemEdit(id),
   'cat-tab':(t,id)=>{S.catTab=id;renderShop()},
   'ai-ideas':()=>aiIdeas(),
+  'copy-abo':async()=>{const u=icsUrl();try{await navigator.clipboard.writeText(u);toast('Link kopiert ✓')}catch{const i=$('#aboUrl');i.focus();i.select();toast('Link markiert – jetzt kopieren')}},
   call:(t,id)=>startCall(id),
   finish:()=>finishShopping(),
 };
@@ -1010,11 +1083,11 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(
 function subscribe(){
   const got={members:false,events:false,chat:false,shop:false};
   const timer=setTimeout(()=>{if(!Object.values(got).every(Boolean)) banner('Die gemeinsamen Daten sind gerade nicht erreichbar – vielleicht offline. Es wird weiter versucht.')},10000);
-  const done=(k,snap)=>{if(!snap.metadata.fromCache&&!got[k]){got[k]=true;if(Object.values(got).every(Boolean)){clearTimeout(timer);banner('');S.loaded=true;resolveMe();renderAll()}}};
+  const done=(k,snap)=>{if(!snap.metadata.fromCache&&!got[k]){got[k]=true;if(Object.values(got).every(Boolean)){clearTimeout(timer);banner('');S.loaded=true;resolveMe();renderAll();initIcs()}}};
   const err=k=>e=>{got[k]=true;console.error(k,e);if(e&&e.code==='permission-denied') banner('Kein Zugriff auf die Daten – stimmen die E-Mails in firestore.rules?');else banner('Daten konnten nicht geladen werden. Bitte Seite später neu öffnen.')};
   const rows=s=>s.docs.map(d=>({id:d.id,...d.data()}));
-  S.db.collection('members').onSnapshot(s=>{S.members=rows(s).sort((a,b)=>(a.order||0)-(b.order||0)||(a.ts||0)-(b.ts||0));resolveMe();renderAll();done('members',s)},err('members'));
-  S.db.collection('events').onSnapshot(s=>{S.events=rows(s).filter(e=>e.start);renderCal();done('events',s)},err('events'));
+  S.db.collection('members').onSnapshot(s=>{S.members=rows(s).sort((a,b)=>(a.order||0)-(b.order||0)||(a.ts||0)-(b.ts||0));resolveMe();renderAll();scheduleIcsSync();done('members',s)},err('members'));
+  S.db.collection('events').onSnapshot(s=>{S.events=rows(s).filter(e=>e.start);renderCal();scheduleIcsSync();done('events',s)},err('events'));
   S.db.collection('chat').orderBy('ts','desc').limit(200).onSnapshot(s=>{S.messages=rows(s).reverse();renderChat();if(S.view==='chat') markChatSeen();renderBadges();done('chat',s)},err('chat'));
   S.db.collection('shop').onSnapshot(s=>{S.shop=rows(s);renderShop();renderBadges();done('shop',s)},err('shop'));
 }
