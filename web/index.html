@@ -240,6 +240,8 @@ label.check input{width:20px;height:20px;accent-color:var(--pri)}
 .sos-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .sos-btn{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:#FDECEC;color:#9B1C1C;font-weight:800;text-decoration:none;border:1px solid #F6C9C9}
 .sos-btn.p{background:#EAF6EE;color:#14532D;border-color:#C6E6D0}.sos-btn span{margin-left:auto;font-weight:600;font-size:13px;opacity:.8}
+.app-list{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:6px 10px;background:#fff}
+.app-row{display:flex!important;gap:8px;align-items:center;padding:6px 0;font-weight:600;border-bottom:1px solid var(--line)}.app-row:last-child{border-bottom:0}.app-row input{width:auto!important}
 .dev-kids{font-size:12px;color:var(--muted);font-weight:600}.dev-kids a{color:var(--accent,#2563eb)}
 .dev.blk{background:#FFF6F2;border-color:#F3D3C4}.dev-ic{font-size:24px}.dev-main{flex:1;min-width:0;display:flex;flex-direction:column}
 .dev-main small{color:var(--muted);font-weight:600;font-size:12px}.dev-act{display:flex;gap:6px;align-items:center}
@@ -393,14 +395,21 @@ button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .m
         </div>
         <div class="row">
           <label>Geburtsdatum<input type="date" name="birth"></label>
-          <label>Rolle<select name="role"><option value="user">Benutzer</option><option value="admin">Administrator</option></select></label>
+          <label>Rolle<select name="role"><option value="admin">👑 Eltern</option><option value="user">🧒 Kind</option><option value="guest">👋 Gast</option></select></label>
         </div>
-        <p class="hint role-hint" id="famRoleHint" hidden>Unter 18 Jahren immer Benutzer.</p>
+        <p class="hint role-hint" id="famRoleHint" hidden>Unter 18 Jahren: Kind oder Gast.</p>
+        <p class="hint">👑 Eltern: alles inkl. Familie &amp; Kinderschutz · 🧒 Kind: mit Kinderschutz, ohne Haushalt · 👋 Gast: Kalender, Chat, Einkauf, Essen, Gebet, WLAN – ohne Haushalt &amp; Familie.</p>
         <label>Handynummer (für WhatsApp, optional)<input name="phone" type="tel" maxlength="25" placeholder="+49 151 …"></label>
         <div class="lbl">Farbe</div>
         <div class="colors" id="famColors"></div>
         <button class="btn primary">Hinzufügen</button>
       </form>
+      <div class="card" id="accessCard" hidden>
+        <h3>🔑 Zugang freischalten</h3>
+        <p class="hint" style="margin-top:4px">Neue Person (z. B. Kind mit eigenem Handy): E-Mail hier eintragen. Danach in JIY „Neues Konto erstellen“ mit genau dieser E-Mail, Bestätigungs-Mail anklicken – fertig. Danach unter Profile ein Profil für die Person anlegen.</p>
+        <form id="allowForm" class="row" autocomplete="off" style="display:flex;gap:8px"><input name="email" type="email" required placeholder="name@beispiel.de" style="flex:1"><button class="btn primary">Freischalten</button></form>
+        <div id="allowList" style="margin-top:10px"></div>
+      </div>
       <div class="card" id="devCard" hidden>
         <h3>📱 Geräte &amp; Zugriff</h3>
         <p class="hint" style="margin-top:4px">Hier siehst du, wo JIY benutzt wird. Ein gesperrtes Gerät oder Konto kommt nicht mehr in die App.</p>
@@ -478,8 +487,9 @@ button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .m
     <section id="view-mehr" class="view" hidden>
       <h2>☰ Mehr</h2>
       <div class="more-grid">
-        <button class="more-btn" data-act="tab" data-id="haushalt"><span class="mi">💸</span><b>Haushalt</b><small id="moreBillHint">Rechnungen &amp; Fixkosten</small></button>
+        <button class="more-btn" data-act="tab" data-id="haushalt" id="hhTab"><span class="mi">💸</span><b>Haushalt</b><small id="moreBillHint">Rechnungen &amp; Fixkosten</small></button>
         <button class="more-btn" data-act="whatsapp"><span class="mi">🟢</span><b>WhatsApp</b><small>Chat &amp; Anruf</small></button>
+        <button class="more-btn" data-act="wifi"><span class="mi">📶</span><b>WLAN</b><small>QR-Code für Gäste</small></button>
         <button class="more-btn" data-act="sos"><span class="mi">🆘</span><b>Notruf</b><small>112 · 110 · Eltern</small></button>
         <button class="more-btn" data-act="app-update"><span class="mi">⬇️</span><b>App &amp; Update</b><small id="updHint">neu laden · APK</small></button>
         <button class="more-btn" data-act="notif"><span class="mi">🔔</span><b>Benachrichtigungen</b><small>Gebet, Chat, Termine</small></button>
@@ -651,7 +661,11 @@ function member(id){return S.members.find(m=>m.id===id)}
 function ageOf(birth,at){if(!birth) return null;const b=parse(birth),d=at?parse(at):new Date();let a=d.getFullYear()-b.getFullYear();
   if(d.getMonth()<b.getMonth()||(d.getMonth()===b.getMonth()&&d.getDate()<b.getDate())) a--;return a}
 function isMinor(m){const a=ageOf(m&&m.birth);return a!==null&&a<18}
-function roleOf(m){return m&&m.role==='admin'&&!isMinor(m)?'admin':'user'}
+// Rollen: admin = Eltern, user = Kind, guest = Gast
+function roleOf(m){if(!m) return 'user';if(m.role==='guest') return 'guest';return m.role==='admin'&&!isMinor(m)?'admin':'user'}
+const ROLE_TXT={admin:'👑 Eltern',user:'🧒 Kind',guest:'👋 Gast'};
+function isKid(){const me=member(S.meId);return me?roleOf(me)==='user':S.isOwner!==true}
+function isGuest(){const me=member(S.meId);return !!me&&roleOf(me)==='guest'}
 function amAdmin(){
   // Rechte hängen am gewählten Profil: Benutzer-Profile (z. B. Kinder) sehen „Familie“ nie – auch nicht auf dem Handy des Administrators
   const me=member(S.meId);
@@ -660,11 +674,12 @@ function amAdmin(){
 }
 // Profile, die auf diesem Konto gewählt werden dürfen: das eigene + Profile ohne eigenes Konto (z. B. Kinder)
 function myProfiles(){return S.members.filter(m=>(S.uid&&m.uid===S.uid)||!m.uid)}
-function applyAdmin(){const ok=amAdmin();$('#famTab').hidden=!ok;if(!ok&&S.view==='familie') show('kalender')}
+function applyAdmin(){const ok=amAdmin();$('#famTab').hidden=!ok;if(!ok&&S.view==='familie') show('kalender');
+  const hh=amAdmin()||(!isGuest()&&!isKid());const hb=$('#hhTab');if(hb) hb.hidden=!hh;if(!hh&&S.view==='haushalt') show('kalender')}
 function syncRole(form,hintEl){
   const minor=form.birth.value&&ageOf(form.birth.value)<18;
-  if(minor) form.role.value='user';
-  form.role.disabled=!!minor;hintEl.hidden=!minor;
+  if(minor&&form.role.value==='admin') form.role.value='user';
+  const o=form.role.querySelector('option[value=admin]');if(o) o.disabled=!!minor;hintEl.hidden=!minor;
 }
 function av(id,cls=''){
   const m=member(id);
@@ -703,6 +718,7 @@ function modal(html){
 }
 function closeModal(){$('#modal').hidden=true;$('#sheet').innerHTML='';if(S.onModalClose){const f=S.onModalClose;S.onModalClose=null;f()}}
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal') closeModal()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.myDev){S.guardAsked=false;applyAppGuard()}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#modal').hidden) closeModal()});
 function confirmBtn(btn,label,fn){
   if(btn.dataset.armed){fn();return}
@@ -741,7 +757,7 @@ function renderMe(){
   $('#meBtn').innerHTML=m?`${av(m.id)}${esc(m.name)}`:`<span class="av ghost">?</span>Wer bin ich?`;
 }
 function openWhoAmI(){
-  if(!S.members.length){if(!amAdmin()){toast('Es sind noch keine Profile angelegt – bitte den Administrator fragen');return}show('familie');toast('Lege zuerst die Familienmitglieder an');return}
+  if(!S.members.length){if(!amAdmin()){toast('Es sind noch keine Profile angelegt – bitte Mama oder Papa fragen');return}show('familie');toast('Lege zuerst die Familienmitglieder an');return}
   modal(`<h3>Wer bist du?</h3><p class="muted" style="margin-top:-6px">Dann sehen alle, wer was geschrieben oder eingetragen hat.</p>
     <div class="who-grid">${myProfiles().map(m=>`<button data-act="set-me" data-id="${esc(m.id)}">${av(m.id,'lg')}${esc(m.name)}${m.pin&&m.id!==S.meId?'<small>🔒</small>':''}</button>`).join('')}</div>
     <p class="hint" style="text-align:center">Angemeldet als ${esc(S.email||'')}</p>
@@ -755,6 +771,7 @@ async function setMe(id){
   if(t.pin&&!(own&&cur&&roleOf(cur)==='admin')){const ok=await askPin(t);if(!ok) return}
   lsSet('jiy-me',id);S.meId=id;closeModal();renderAll();
   if(S.devId&&S.db) S.db.doc('devices/'+S.devId).update({member:id}).catch(()=>{});
+  S.guardAsked=false;applyAppGuard();
   if(!t.pin) setTimeout(()=>openSetPin(id,true),900);
   // Konto nur mit dem ersten Erwachsenen-Profil verknüpfen – Kinder-Profile bleiben ohne Konto
   if(S.uid&&S.db&&S.canWrite&&!t.uid&&!isMinor(t)&&!S.members.some(m=>m.uid===S.uid))
@@ -770,7 +787,7 @@ function renderFam(){
   } else {
     list.innerHTML=S.members.map(m=>`<div class="fam-card">${av(m.id,'lg')}
       <div class="fam-main"><b>${esc(m.name)}${m.id===S.meId?'<span class="badge-me">Das bist du</span>':''}</b>
-      <small>${roleOf(m)==='admin'?'👑 Administrator':'Benutzer'} · Kürzel ${esc(m.short||initials(m.name))}${m.birth?` · 🎂 ${parse(m.birth).toLocaleDateString('de-DE',{day:'numeric',month:'long'})} (${ageOf(m.birth)} J.)`:''}</small>
+      <small>${ROLE_TXT[roleOf(m)]} · Kürzel ${esc(m.short||initials(m.name))}${m.birth?` · 🎂 ${parse(m.birth).toLocaleDateString('de-DE',{day:'numeric',month:'long'})} (${ageOf(m.birth)} J.)`:''}</small>
       <small>${m.uid?'mit Konto verknüpft':'ohne Konto'}${m.pin?' · 🔒 PIN':''}${m.phone?' · 🟢 '+esc(m.phone):''}</small></div>
       ${m.id!==S.meId?`<button class="btn soft sm" data-act="set-me" data-id="${esc(m.id)}">Das bin ich</button>`:''}
       <button class="icon-btn" data-act="edit-member" data-id="${esc(m.id)}" aria-label="Bearbeiten">✎</button></div>`).join('');
@@ -787,7 +804,7 @@ $('#famForm').birth.addEventListener('change',()=>syncRole($('#famForm'),$('#fam
 $('#famForm').addEventListener('submit',async e=>{
   e.preventDefault();const f=e.target;const name=f.name.value.trim();if(!name) return;
   const short=(f.short.value.trim()||initials(name)).toUpperCase().slice(0,3);
-  const birth=f.birth.value||'';const role=birth&&ageOf(birth)<18?'user':f.role.value;
+  const birth=f.birth.value||'';const role=birth&&ageOf(birth)<18&&f.role.value==='admin'?'user':f.role.value;
   const phone=f.phone.value.trim();
   const ok=await w(()=>S.db.collection('members').add({name,short,birth,role,phone,color:S.newColor,uid:null,pin:null,ts:Date.now(),order:S.members.length}));
   if(ok){f.reset();delete f.short.dataset.touched;syncRole(f,$('#famRoleHint'));S.colorTouched=false;toast(`${name} ist dabei 🎉`)}
@@ -798,8 +815,8 @@ function openMemberEdit(id){
     <div class="row"><label>Name<input name="name" required maxlength="40" value="${esc(m.name)}"></label>
     <label style="flex:0 0 96px">Kürzel<input name="short" maxlength="3" value="${esc(m.short||'')}"></label></div>
     <div class="row"><label>Geburtsdatum<input type="date" name="birth" value="${esc(m.birth||'')}"></label>
-    <label>Rolle<select name="role"><option value="user" ${roleOf(m)==='user'?'selected':''}>Benutzer</option><option value="admin" ${roleOf(m)==='admin'?'selected':''}>Administrator</option></select></label></div>
-    <p class="hint" id="memRoleHint" hidden>Unter 18 Jahren immer Benutzer.</p>
+    <label>Rolle<select name="role">${[['admin','👑 Eltern'],['user','🧒 Kind'],['guest','👋 Gast']].map(([v,t])=>`<option value="${v}" ${roleOf(m)===v?'selected':''}>${t}</option>`).join('')}</select></label></div>
+    <p class="hint" id="memRoleHint" hidden>Unter 18 Jahren: Kind oder Gast.</p>
     <label>Handynummer (WhatsApp)<input name="phone" type="tel" maxlength="25" value="${esc(m.phone||'')}" placeholder="+49 151 …"></label>
     <div class="row" style="align-items:center;margin-bottom:12px"><span class="muted" style="flex:1;font-weight:700">🔒 PIN: ${m.pin?'gesetzt':'keine'}</span>${m.pin?'<button type="button" class="btn ghost sm" id="memPinReset">PIN zurücksetzen</button>':''}</div>
     <div class="lbl">Farbe</div><div class="colors" id="memColors">${COLORS.map(c=>`<button type="button" class="color ${c===color?'on':''}" style="background:${c}" data-c="${c}"></button>`).join('')}</div>
@@ -810,8 +827,8 @@ function openMemberEdit(id){
   $('#memDel').onclick=e=>confirmBtn(e.currentTarget,'Wirklich löschen?',async()=>{if(await w(()=>S.db.doc('members/'+id).delete())){closeModal();toast('Profil gelöscht')}});
   $('#memForm').onsubmit=async e=>{e.preventDefault();const f=e.target;const name=f.name.value.trim();if(!name) return;
     const short=(f.short.value.trim()||initials(name)).toUpperCase().slice(0,3);
-    const birth=f.birth.value||'';const role=birth&&ageOf(birth)<18?'user':f.role.value;
-    if(m.uid&&m.uid===S.uid&&role!=='admin'&&S.isOwner!==true&&!f.dataset.armed){f.dataset.armed='1';toast('Achtung: Du nimmst dir selbst die Admin-Rechte. Nochmal Speichern zum Bestätigen.');return}
+    const birth=f.birth.value||'';const role=birth&&ageOf(birth)<18&&f.role.value==='admin'?'user':f.role.value;
+    if(m.uid&&m.uid===S.uid&&role!=='admin'&&S.isOwner!==true&&!f.dataset.armed){f.dataset.armed='1';toast('Achtung: Du nimmst dir selbst die Eltern-Rechte. Nochmal Speichern zum Bestätigen.');return}
     if(await w(()=>S.db.doc('members/'+id).update({name,short,color,birth,role,phone:f.phone.value.trim()}))) closeModal()};
 }
 
@@ -1324,7 +1341,7 @@ function openWhatsApp(){
   modal(`<h3>🟢 WhatsApp</h3>
     ${list.length?`<p class="muted" style="margin-top:-6px">Wen möchtest du anrufen? WhatsApp öffnet sich – dort oben auf 📞 (Anruf) oder 🎥 (Video) tippen.</p>
     <div class="wa-list">${list.map(m=>`<a class="wa-row" href="https://wa.me/${esc(waNumber(m.phone))}" target="_blank" rel="noopener">${av(m.id)}<b>${esc(m.name)}</b><span class="muted">${esc(m.phone)}</span><span class="wa-go">Chat →</span></a>`).join('')}</div>`
-    :`<p class="muted">Noch keine Handynummern hinterlegt. Ein Administrator kann sie unter <b>Familie</b> beim Profil eintragen.</p>`}`);
+    :`<p class="muted">Noch keine Handynummern hinterlegt. Mama oder Papa können sie unter <b>Familie</b> beim Profil eintragen.</p>`}`);
 }
 
 /* ---------- Essen ---------- */
@@ -1714,7 +1731,8 @@ async function registerDevice(){
   ref.onSnapshot(s=>{const d=s.exists?s.data():null;S.myDev=d;
     if(isBlk(d)) return showBlocked('device',d.until);
     if(S.blockedShown==='device') return location.reload();
-    guardCheck()},()=>{});
+    guardCheck();applyAppGuard()},()=>{});
+  uploadApps(ref);
   S.db.doc('blocked/'+S.uid).onSnapshot(s=>{const d=s.exists?s.data():null;if(d&&(!d.until||d.until>Date.now())) showBlocked('account',d.until);else if(S.blockedShown==='account') location.reload()},()=>{});
   startGuard();
 }
@@ -1729,7 +1747,7 @@ function quietUntil(d){
   const e=new Date(n);e.setHours(Math.floor(t/60),t%60,0,0);if(e<=n) e.setDate(e.getDate()+1);return e.getTime();
 }
 function guardState(){
-  const d=S.myDev,me=member(S.meId);if(!d||(me?roleOf(me)==='admin':S.isOwner===true)) return null; // Kinderschutz gilt nur für Benutzer (Kinder), nie für Administratoren
+  const d=S.myDev;if(!d||!isKid()) return null; // Kinderschutz gilt nur für Kinder – nie für Eltern oder Gäste
   const q=quietUntil(d);if(q) return {kind:'quiet',until:q};
   if(d.limitMin>0&&usedMin()>=d.limitMin){const e=new Date();e.setHours(24,0,0,0);return {kind:'limit',until:e.getTime()}}
   return null;
@@ -1744,12 +1762,65 @@ function startGuard(){
   setInterval(()=>{
     const now=Date.now(),dt=Math.min(60,Math.round((now-last)/1000));last=now;
     if(document.visibilityState==='visible'&&!S.blockedShown) lsSet(useKey(),String((+ls(useKey())||0)+dt));
-    guardCheck();
+    guardCheck();applyAppGuard();
     const ref=S.db.doc('devices/'+S.devId);
     if(now-lastPush>180000){lastPush=now;ref.update({lastSeen:now,used:usedMin(),usedDay:today()}).catch(()=>{})}
     if(S.myDev?.trackLoc&&now-lastLoc>600000&&navigator.geolocation&&document.visibilityState==='visible'){lastLoc=now;
       navigator.geolocation.getCurrentPosition(p=>ref.update({loc:{lat:+p.coords.latitude.toFixed(5),lng:+p.coords.longitude.toFixed(5),acc:Math.round(p.coords.accuracy),ts:Date.now()}}).catch(()=>{}),()=>{},{enableHighAccuracy:true,timeout:20000,maximumAge:120000})}
   },20000);
+}
+/* ---- WLAN-QR ---- */
+function loadQr(){
+  if(window.qrcode) return Promise.resolve(true);
+  return new Promise(res=>{const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js';
+    sc.onload=()=>res(!!window.qrcode);sc.onerror=()=>res(false);document.head.appendChild(sc)});
+}
+function wifiStr(w){const e=x=>String(x||'').replace(/([\\;,:"])/g,'\\$1');
+  return `WIFI:T:${w.sec==='nopass'?'nopass':w.sec||'WPA'};S:${e(w.ssid)};${w.sec==='nopass'?'':'P:'+e(w.pass)+';'}${w.hidden?'H:true;':''};`}
+async function wifiModal(){
+  const w=S.wifi;
+  if(!w||!w.ssid){if(amAdmin()) return wifiEdit();return modal(`<h3>📶 WLAN</h3><p class="muted">Das WLAN ist noch nicht eingetragen. Mama oder Papa können es hier hinterlegen.</p>`)}
+  modal(`<h3>📶 WLAN zu Hause</h3><p class="muted" style="margin-top:-6px">Mit der Handy-Kamera scannen – fertig verbunden.</p>
+    <div id="wifiQr" style="display:flex;justify-content:center;margin:10px 0;min-height:120px;align-items:center" class="muted">QR-Code wird erstellt …</div>
+    <div class="dev"><span class="dev-ic">📶</span><div class="dev-main"><small>Netzwerk</small><b>${esc(w.ssid)}</b></div></div>
+    ${w.sec==='nopass'?'':`<div class="dev"><span class="dev-ic">🔑</span><div class="dev-main"><small>Passwort</small><b id="wifiPw">••••••••</b></div><button type="button" class="btn ghost sm" id="wifiShow">Zeigen</button><button type="button" class="btn ghost sm" id="wifiCopy">Kopieren</button></div>`}
+    ${amAdmin()?'<div class="actions"><span class="sp"></span><button type="button" class="btn ghost" data-act="wifi-edit">✎ Ändern</button></div>':''}`);
+  const sh=$('#wifiShow');if(sh) sh.onclick=()=>{const el=$('#wifiPw');const vis=el.dataset.v==='1';el.textContent=vis?'••••••••':w.pass;el.dataset.v=vis?'':'1';sh.textContent=vis?'Zeigen':'Verbergen'};
+  const cp=$('#wifiCopy');if(cp) cp.onclick=async()=>{try{await navigator.clipboard.writeText(w.pass);toast('Passwort kopiert')}catch{toast(w.pass)}};
+  const ok=await loadQr();const box=$('#wifiQr');if(!box) return;
+  if(!ok){box.textContent='QR-Code braucht Internet – Passwort unten nutzen.';return}
+  const q=window.qrcode(0,'M');q.addData(wifiStr(w));q.make();
+  box.innerHTML=q.createSvgTag({cellSize:6,margin:2,scalable:true});const sv=box.querySelector('svg');if(sv){sv.style.width='220px';sv.style.height='220px';sv.style.background='#fff';sv.style.borderRadius='12px'}
+}
+function wifiEdit(){
+  if(!amAdmin()) return;const wf=S.wifi||{};
+  modal(`<h3>📶 WLAN eintragen</h3><form id="wifiForm" autocomplete="off">
+    <label>Netzwerkname (SSID)<input name="ssid" required maxlength="64" value="${esc(wf.ssid||'')}"></label>
+    <label>Passwort<input name="pass" maxlength="64" value="${esc(wf.pass||'')}"></label>
+    <label>Verschlüsselung<select name="sec">${[['WPA','WPA/WPA2/WPA3 (normal)'],['WEP','WEP (alt)'],['nopass','Ohne Passwort']].map(([v,t])=>`<option value="${v}" ${(wf.sec||'WPA')===v?'selected':''}>${t}</option>`).join('')}</select></label>
+    <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="hidden" ${wf.hidden?'checked':''} style="width:auto"> Verstecktes Netzwerk</label>
+    <p class="hint">Alle in JIY (auch Gäste) können das WLAN sehen und den QR-Code scannen lassen.</p>
+    <div class="actions"><span class="sp"></span><button class="btn primary">Speichern</button></div></form>`);
+  $('#wifiForm').onsubmit=async e=>{e.preventDefault();const f=e.target;
+    const d={ssid:f.ssid.value.trim(),pass:f.pass.value,sec:f.sec.value,hidden:f.hidden.checked,ts:Date.now()};
+    if(await w(()=>S.db.doc('config/wifi').set(d))){S.wifi=d;wifiModal()}};
+}
+function uploadApps(ref){
+  try{if(!NATIVE||!window.JIYNative.listApps) return;const js=window.JIYNative.listApps();const k=today()+':'+js.length;
+    if(ls('jiy-apps-k')===k) return;const apps=JSON.parse(js);ref.update({apps}).then(()=>lsSet('jiy-apps-k',k)).catch(()=>{})}catch(e){console.warn('apps',e)}
+}
+function applyAppGuard(){
+  try{if(!NATIVE||!window.JIYNative.setAppGuard) return;
+    const d=S.myDev||{},exempt=!isKid();
+    const on=!!d.appGuard&&!exempt,allowed=quietUntil(d)?[]:(d.appsAllowed||[]);
+    const cfg=JSON.stringify({on,allowed});if(cfg!==S.guardCfg){S.guardCfg=cfg;window.JIYNative.setAppGuard(cfg)}
+    if(on){const pm=JSON.parse(window.JIYNative.guardPerms());
+      if((!pm.usage||!pm.overlay)&&!S.guardAsked&&$('#modal').hidden){S.guardAsked=true;
+        modal(`<h3>📲 App-Freigabe einrichten</h3><p class="muted">Damit JIY nur freigegebene Apps erlaubt, braucht es einmalig zwei Berechtigungen. <b>Bitte von Mama oder Papa erledigen.</b></p>
+          <div class="sos-list"><button class="sos-btn p" data-act="guard-usage">${pm.usage?'✅':'1️⃣'} Nutzungsdatenzugriff → „JIY Family“ erlauben</button>
+          <button class="sos-btn p" data-act="guard-overlay">${pm.overlay?'✅':'2️⃣'} Über anderen Apps anzeigen → erlauben</button></div>
+          <p class="hint">Danach JIY wieder öffnen.</p>`)}}
+  }catch(e){console.warn('guard',e)}
 }
 function cacheSos(){try{lsSet('jiy-sos',JSON.stringify(S.members.filter(m=>roleOf(m)==='admin'&&m.phone).map(m=>({name:m.name,phone:m.phone}))))}catch{}}
 function sosHtml(){
@@ -1784,7 +1855,7 @@ function showBlocked(kind,until){
   if(until){const ms=until-Date.now()+3000;if(ms>0&&ms<2e9) setTimeout(()=>location.reload(),ms)}
   $('#login').hidden=false;
   $('#loginCard').innerHTML=`<div class="logo">JIY</div><h2>${kind==='quiet'?'🌙 Ruhezeit':kind==='limit'?'⏳ Zeit um':'🔒 Gesperrt'}</h2>
-    <p class="login-msg">${({account:'Dein Zugang zu JIY wurde vom Administrator gesperrt.',device:'Dieses Gerät wurde vom Administrator gesperrt.',quiet:'🌙 Ruhezeit – jetzt ist Pause.',limit:'⏳ Deine Bildschirmzeit für heute ist aufgebraucht.'})[kind]}<br><b>${until?'Wieder frei '+esc(untilTxt(until)):'Bitte wende dich an den Administrator.'}</b></p>
+    <p class="login-msg">${({account:'Dein Zugang zu JIY wurde von Mama oder Papa gesperrt.',device:'Dieses Gerät wurde von Mama oder Papa gesperrt.',quiet:'🌙 Ruhezeit – jetzt ist Pause.',limit:'⏳ Deine Bildschirmzeit für heute ist aufgebraucht.'})[kind]}<br><b>${until?'Wieder frei '+esc(untilTxt(until)):'Bitte frag Mama oder Papa.'}</b></p>
     <div class="lbl" style="margin-top:12px">🆘 Notruf</div>${sosHtml()}
     <button class="btn ghost" style="width:100%;margin-top:14px" id="blkOut">Abmelden</button>`;
   $('#blkOut').onclick=async()=>{try{await signOut(auth)}catch{}location.reload()};
@@ -1792,7 +1863,7 @@ function showBlocked(kind,until){
 function agoTxt(ts){if(!ts) return '–';const m=Math.round((Date.now()-ts)/60000);if(m<2) return 'gerade eben';if(m<60) return `vor ${m} Min`;const h=Math.round(m/60);if(h<24) return `vor ${h} Std`;const d=Math.round(h/24);return d===1?'gestern':`vor ${d} Tagen`}
 function renderDevices(){
   const card=$('#devCard');if(!card) return;
-  card.hidden=!(S.isOwner===true&&amAdmin());if(card.hidden) return;
+  renderAccess();card.hidden=!amAdmin();if(card.hidden) return;
   const devs=[...(S.devices||[])].sort((a,b)=>(b.lastSeen||0)-(a.lastSeen||0));
   const blocked=new Map((S.blockedAcc||[]).filter(b=>!b.until||b.until>Date.now()).map(b=>[b.id,b]));
   $('#devList').innerHTML=devs.length?devs.map(d=>{const mm=member(d.member);const mine=d.id===S.devId;
@@ -1810,7 +1881,16 @@ function renderDevices(){
     return `<div class="dev ${bl?'blk':''}"><span class="dev-ic">👤</span><div class="dev-main"><b>${esc(email)}</b><small>${bl?'<b class="late-txt">🔒 Konto gesperrt '+esc(untilTxt(blocked.get(uid).until))+'</b>':'aktiv'}${me?' · du':''}</small></div>
       ${me?'':`<button class="btn ${bl?'soft':'ghost danger'} sm" data-act="acc-block" data-id="${esc(uid)}">${bl?'Entsperren':'Konto sperren'}</button>`}</div>`}).join('')||'<div class="muted">–</div>';
 }
+function renderAccess(){
+  const card=$('#accessCard');if(!card) return;card.hidden=!amAdmin();if(card.hidden) return;
+  const fixed=['(Eltern – fest eingetragen)'];
+  $('#allowList').innerHTML=(S.allowed||[]).sort((a,b)=>(a.ts||0)-(b.ts||0)).map(a=>`<div class="dev"><span class="dev-ic">✉️</span><div class="dev-main"><b>${esc(a.email||a.id)}</b><small>freigeschaltet ${a.ts?new Date(a.ts).toLocaleDateString('de-DE'):''}</small></div><button class="btn ghost danger sm" data-act="allow-del" data-id="${esc(a.id)}">Entfernen</button></div>`).join('')||'<div class="muted">Noch keine weiteren E-Mails – die Eltern-Konten sind fest freigeschaltet.</div>';
+  const f=$('#allowForm');if(f&&!f.dataset.bound){f.dataset.bound='1';f.onsubmit=async e=>{e.preventDefault();const em=f.email.value.trim().toLowerCase();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return toast('Bitte eine gültige E-Mail eingeben');
+    if(await w(()=>S.db.doc('allowed/'+em).set({email:em,by:S.uid,ts:Date.now()}))){f.reset();toast('✅ '+em+' freigeschaltet – jetzt kann ein Konto erstellt werden')}}}
+}
+async function allowDel(id){if(await w(()=>S.db.doc('allowed/'+id).delete())) toast('Zugang entfernt – zusätzlich unter „Konten“ sperren, falls schon angemeldet')}
 function kidsLine(d){const p=[];
+  if(d.appGuard) p.push(`📲 App-Freigabe an (${(d.appsAllowed||[]).length} Apps)`);
   if(d.limitMin>0) p.push(`⏳ heute ${d.usedDay===today()?(d.used||0):0}/${d.limitMin} Min`);
   if(d.quietFrom&&d.quietTo) p.push(`🌙 ${esc(d.quietFrom)}–${esc(d.quietTo)}`);
   if(d.trackLoc) p.push(d.loc?`<a href="https://www.google.com/maps?q=${d.loc.lat},${d.loc.lng}" target="_blank" rel="noopener">📍 Standort (${agoTxt(d.loc.ts)})</a>`:'📍 wartet auf Standort');
@@ -1830,9 +1910,17 @@ function devEdit(id){
     <div style="display:flex;gap:8px"><label style="flex:1">Ruhezeit von<input name="qf" type="time" value="${esc(d.quietFrom||'')}"></label><label style="flex:1">bis<input name="qt" type="time" value="${esc(d.quietTo||'')}"></label></div>
     <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="loc" ${d.trackLoc?'checked':''} style="width:auto"> 📍 Standort dieses Geräts anzeigen</label>
     <p class="hint">Standort wird gesendet, solange JIY auf dem Gerät offen ist (alle 10 Min). Ruhezeit leer lassen = aus.</p>
+    ${d.app==='App'?`<div class="lbl" style="margin-top:6px">📲 App-Freigabe</div>
+    <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="guard" ${d.appGuard?'checked':''} style="width:auto"> Nur freigegebene Apps erlauben</label>
+    ${(d.apps||[]).length?`<div style="display:flex;gap:6px;margin:6px 0"><button type="button" class="btn ghost sm" id="appAll">Alle</button><button type="button" class="btn ghost sm" id="appNone">Keine</button></div>
+    <div class="app-list">${(d.apps||[]).map(a=>`<label class="app-row"><input type="checkbox" name="app" value="${esc(a.p)}" ${(d.appsAllowed||[]).includes(a.p)?'checked':''}> ${esc(a.l)}</label>`).join('')}</div>`
+    :'<p class="hint">Die App-Liste erscheint, sobald auf dem Gerät die neue APK installiert ist und JIY einmal geöffnet wurde.</p>'}
+    <p class="hint">Telefon, Notruf und JIY sind immer erlaubt. In der Ruhezeit sind alle anderen Apps gesperrt. Gilt nur für Kinder – nie für Eltern oder Gäste.</p>`:''}
     <p class="hint">${esc(d.model||'')} · ${d.app==='App'?'App':'Browser'} · zuerst gesehen ${d.first?new Date(d.first).toLocaleDateString('de-DE'):'–'}</p>
     <div class="actions">${d.id===S.devId?'':'<button type="button" class="btn ghost danger" id="devDel">Entfernen</button>'}<span class="sp"></span><button class="btn primary">Speichern</button></div></form>`);
-  $('#devForm').onsubmit=async e=>{e.preventDefault();if(await w(()=>S.db.doc('devices/'+id).update({name:e.target.name.value.trim(),limitMin:+e.target.limit.value||0,quietFrom:e.target.qf.value||'',quietTo:e.target.qt.value||'',trackLoc:e.target.loc.checked}))) closeModal()};
+  $('#devForm').onsubmit=async e=>{e.preventDefault();if(await w(()=>S.db.doc('devices/'+id).update({name:e.target.name.value.trim(),limitMin:+e.target.limit.value||0,quietFrom:e.target.qf.value||'',quietTo:e.target.qt.value||'',trackLoc:e.target.loc.checked,
+    ...(e.target.guard?{appGuard:e.target.guard.checked,appsAllowed:[...e.target.querySelectorAll('[name=app]:checked')].map(x=>x.value)}:{})}))) closeModal()};
+  const al=$('#appAll'),an=$('#appNone');if(al){al.onclick=()=>$('#devForm').querySelectorAll('[name=app]').forEach(x=>x.checked=true);an.onclick=()=>$('#devForm').querySelectorAll('[name=app]').forEach(x=>x.checked=false)}
   const del=$('#devDel');if(del) del.onclick=e=>confirmBtn(e.currentTarget,'Wirklich entfernen?',async()=>{if(await w(()=>S.db.doc('devices/'+id).delete())){closeModal();toast('Gerät entfernt – meldet es sich wieder an, erscheint es neu')}});
 }
 async function accBlock(uid){
@@ -1880,6 +1968,11 @@ const ACT={
   'dev-block':(t,id)=>devBlock(id),
   'dev-edit':(t,id)=>devEdit(id),
   'sos':()=>sosModal(),
+  'allow-del':(t,id)=>allowDel(id),
+  'wifi':()=>wifiModal(),
+  'wifi-edit':()=>wifiEdit(),
+  'guard-usage':()=>{try{window.JIYNative.openUsageSettings()}catch{}},
+  'guard-overlay':()=>{try{window.JIYNative.openOverlaySettings()}catch{}},
   'app-update':()=>updateModal(),
   'acc-block':(t,id)=>accBlock(id),
   'copy-abo':async()=>{const u=icsUrl();try{await navigator.clipboard.writeText(u);toast('Link kopiert ✓')}catch{const i=$('#aboUrl');i.focus();i.select();toast('Link markiert – jetzt kopieren')}},
@@ -1920,11 +2013,11 @@ function subscribe(){
   const errX=k=>e=>console.warn(k,e);
   S.db.collection('meals').where('date','>=',addDays(today(),-60)).onSnapshot(s=>{const o={};for(const d of s.docs){const x=d.data();o[x.date||d.id]=x}S.meals=o;renderMeals()},errX('meals'));
   S.db.collection('bills').onSnapshot(s=>{S.bills=rows(s);renderBills();renderCal();renderBadges();scheduleAlarms();if(S.loaded) billReminderOnce()},errX('bills'));
-  if(S.isOwner){
-    S.db.collection('devices').onSnapshot(s=>{S.devices=rows(s);renderDevices()},errX('devices'));
-    S.db.collection('blocked').onSnapshot(s=>{S.blockedAcc=rows(s);renderDevices()},errX('blocked'));
-    setInterval(()=>{if(S.view==='familie') renderDevices()},60000);
-  }
+  S.db.collection('devices').onSnapshot(s=>{S.devices=rows(s);renderDevices()},errX('devices'));
+  S.db.collection('blocked').onSnapshot(s=>{S.blockedAcc=rows(s);renderDevices()},errX('blocked'));
+  S.db.doc('config/wifi').onSnapshot(s=>{S.wifi=s.exists?s.data():null},()=>{});
+  S.db.collection('allowed').onSnapshot(s=>{S.allowed=rows(s);renderAccess()},()=>{});
+  setInterval(()=>{if(S.view==='familie') renderDevices()},60000);
   S.db.collection('quran').onSnapshot(s=>{const o={};for(const d of s.docs) o[d.id]=d.data();S.quran=o;renderQuranProgress()},errX('quran'));
   S.db.collection('shop').onSnapshot(s=>{S.shop=rows(s);renderShop();renderBadges();done('shop',s)},err('shop'));
 }
@@ -1945,7 +2038,8 @@ function showLogin(mode,user,msg){
     return;
   }
   if(mode==='denied'){
-    box.innerHTML=head+`<p class="login-msg"><b>${esc(user.email)}</b> gehört nicht zur Familie.<br>Der Administrator muss diese E-Mail freischalten.</p>
+    box.innerHTML=head+`<p class="login-msg"><b>${esc(user.email)}</b> ist noch nicht freigeschaltet.<br>Mama oder Papa müssen sie in JIY unter <b>Familie → Zugang freischalten</b> eintragen. Danach hier neu laden.</p>
+      <button class="btn primary" style="width:100%;margin-top:14px" onclick="location.reload()">Neu laden</button>
       <button class="btn ghost" style="width:100%;margin-top:14px" id="dOut">Abmelden</button>`;
     $('#dOut').onclick=()=>signOut(auth);return;
   }
@@ -1965,7 +2059,6 @@ function showLogin(mode,user,msg){
   f.onsubmit=async e=>{e.preventDefault();const em=f.email.value.trim().toLowerCase(),pw=f.pw.value;const b=f.querySelector('button');b.disabled=true;
     try{
       if(reg){
-        if(!ALLOWED_HASHES.includes(await emailHash(em))){$('#loginErr').textContent='Diese E-Mail ist nicht für die Familie freigeschaltet.';b.disabled=false;return}
         const c=await createUserWithEmailAndPassword(auth,em,pw);await sendEmailVerification(c.user);
       } else await signInWithEmailAndPassword(auth,em,pw);
     }catch(err){$('#loginErr').textContent=authMsg(err);b.disabled=false}};
@@ -2002,7 +2095,10 @@ function startApp(user,hash){
     if(!user){if(started){location.reload();return}showLogin('login');return}
     if(!user.emailVerified){showLogin('verify',user);return}
     const hash=await emailHash(user.email);
-    if(!ALLOWED_HASHES.includes(hash)){showLogin('denied',user);return}
+    if(!ALLOWED_HASHES.includes(hash)){
+      let ok=false;try{const d=await DB.doc('allowed/'+String(user.email||'').toLowerCase()).get();ok=d.exists}catch{}
+      if(!ok){showLogin('denied',user);return}
+    }
     startApp(user,hash);
   });
 })();
