@@ -399,6 +399,8 @@ button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .m
         </div>
         <p class="hint role-hint" id="famRoleHint" hidden>Unter 18 Jahren: Kind oder Gast.</p>
         <p class="hint">👑 Eltern: alles inkl. Familie &amp; Kinderschutz · 🧒 Kind: mit Kinderschutz, ohne Haushalt · 👋 Gast: Kalender, Chat, Einkauf, Essen, Gebet, WLAN – ohne Haushalt &amp; Familie.</p>
+        <label>E-Mail (Anmeldung in JIY, optional)<input name="email" type="email" maxlength="80" placeholder="name@beispiel.de" autocomplete="off"></label>
+        <p class="hint" style="margin-top:-4px">Mit E-Mail: Wer sich mit dieser E-Mail anmeldet, ist automatisch dieses Profil – und die E-Mail wird gleich freigeschaltet. Ohne E-Mail (z. B. kleine Kinder): Profil wird auf einem Eltern-Gerät gewählt.</p>
         <label>Handynummer (für WhatsApp, optional)<input name="phone" type="tel" maxlength="25" placeholder="+49 151 …"></label>
         <div class="lbl">Farbe</div>
         <div class="colors" id="famColors"></div>
@@ -678,7 +680,15 @@ function amAdmin(){
   return roleOf(me)==='admin'&&(S.isOwner===true||(!!S.uid&&me.uid===S.uid));
 }
 // Profile, die auf diesem Konto gewählt werden dürfen: das eigene + Profile ohne eigenes Konto (z. B. Kinder)
-function myProfiles(){return S.members.filter(m=>(S.uid&&m.uid===S.uid)||!m.uid)}
+function normEmail(e){return String(e||'').trim().toLowerCase()}
+// Profil gehört zu diesem Konto: per E-Mail oder per Verknüpfung
+function ownsProfile(m){return !!m&&((!!S.uid&&m.uid===S.uid)||(!!m.email&&normEmail(m.email)===normEmail(S.email)))}
+// wählbar: das eigene Profil + Profile ohne E-Mail und ohne Konto (z. B. kleine Kinder)
+function myProfiles(){return S.members.filter(m=>ownsProfile(m)||(!m.uid&&!m.email))}
+async function allowEmail(em){
+  try{if(ALLOWED_HASHES.includes(await emailHash(em))) return;if((S.allowed||[]).some(a=>a.id===em)) return;
+    await S.db.doc('allowed/'+em).set({email:em,by:S.uid,ts:Date.now()});toast('✅ '+em+' ist freigeschaltet')}catch(e){console.warn('allow',e)}
+}
 function applyAdmin(){const ok=amAdmin();$('#famTab').hidden=!ok;if(!ok&&S.view==='familie') show('kalender');
   const hh=amAdmin()||(!isGuest()&&!isKid());const hb=$('#hhTab');if(hb) hb.hidden=!hh;if(!hh&&S.view==='haushalt') show('kalender')}
 function syncRole(form,hintEl){
@@ -753,7 +763,12 @@ window.addEventListener('hashchange',()=>show(location.hash.slice(1)));
 /* ---------- Ich / Profile ---------- */
 function resolveMe(){
   const l=ls('jiy-me');let m=myProfiles().find(x=>x.id===l);
+  // Profil mit meiner E-Mail hat Vorrang, außer auf diesem Gerät ist bewusst ein Kinderprofil (ohne E-Mail) gewählt
+  const mine=S.members.find(x=>x.email&&normEmail(x.email)===normEmail(S.email));
+  if(mine&&(!m||m.email||ownsProfile(m))) m=mine;
   if(!m&&S.uid) m=S.members.find(x=>x.uid===S.uid);
+  if(mine&&S.uid&&mine.uid!==S.uid&&S.db&&!S.linking){S.linking=true;
+    S.db.doc('members/'+mine.id).update({uid:S.uid}).catch(()=>{}).finally(()=>S.linking=false)}
   S.meId=m?m.id:null;
   if(!S.meId&&S.members.length&&!S.askedMe&&S.loaded){S.askedMe=true;openWhoAmI()}
 }
@@ -793,7 +808,7 @@ function renderFam(){
     list.innerHTML=S.members.map(m=>`<div class="fam-card">${av(m.id,'lg')}
       <div class="fam-main"><b>${esc(m.name)}${m.id===S.meId?'<span class="badge-me">Das bist du</span>':''}</b>
       <small>${ROLE_TXT[roleOf(m)]} · Kürzel ${esc(m.short||initials(m.name))}${m.birth?` · 🎂 ${parse(m.birth).toLocaleDateString('de-DE',{day:'numeric',month:'long'})} (${ageOf(m.birth)} J.)`:''}</small>
-      <small>${m.uid?'mit Konto verknüpft':'ohne Konto'}${m.pin?' · 🔒 PIN':''}${m.phone?' · 🟢 '+esc(m.phone):''}</small></div>
+      <small>${m.email?'✉️ '+esc(m.email):m.uid?'mit Konto verknüpft':'ohne Konto'}${m.pin?' · 🔒 PIN':''}${m.phone?' · 🟢 '+esc(m.phone):''}</small></div>
       ${m.id!==S.meId?`<button class="btn soft sm" data-act="set-me" data-id="${esc(m.id)}">Das bin ich</button>`:''}
       <button class="icon-btn" data-act="edit-member" data-id="${esc(m.id)}" aria-label="Bearbeiten">✎</button></div>`).join('');
   }
@@ -810,8 +825,10 @@ $('#famForm').addEventListener('submit',async e=>{
   e.preventDefault();const f=e.target;const name=f.name.value.trim();if(!name) return;
   const short=(f.short.value.trim()||initials(name)).toUpperCase().slice(0,3);
   const birth=f.birth.value||'';const role=birth&&ageOf(birth)<18&&f.role.value==='admin'?'user':f.role.value;
-  const phone=f.phone.value.trim();
-  const ok=await w(()=>S.db.collection('members').add({name,short,birth,role,phone,color:S.newColor,uid:null,pin:null,ts:Date.now(),order:S.members.length}));
+  const phone=f.phone.value.trim(),email=normEmail(f.email.value);
+  if(email&&S.members.some(x=>normEmail(x.email)===email)){toast('Diese E-Mail gehört schon zu einem anderen Profil');return}
+  const ok=await w(()=>S.db.collection('members').add({name,short,birth,role,phone,email,color:S.newColor,uid:email&&email===normEmail(S.email)?S.uid:null,pin:null,ts:Date.now(),order:S.members.length}));
+  if(ok&&email) allowEmail(email);
   if(ok){f.reset();delete f.short.dataset.touched;syncRole(f,$('#famRoleHint'));S.colorTouched=false;toast(`${name} ist dabei 🎉`)}
 });
 function openMemberEdit(id){
@@ -822,6 +839,7 @@ function openMemberEdit(id){
     <div class="row"><label>Geburtsdatum<input type="date" name="birth" value="${esc(m.birth||'')}"></label>
     <label>Rolle<select name="role">${[['admin','👑 Eltern'],['user','🧒 Kind'],['guest','👋 Gast']].map(([v,t])=>`<option value="${v}" ${roleOf(m)===v?'selected':''}>${t}</option>`).join('')}</select></label></div>
     <p class="hint" id="memRoleHint" hidden>Unter 18 Jahren: Kind oder Gast.</p>
+    <label>E-Mail (Anmeldung in JIY)<input name="email" type="email" maxlength="80" value="${esc(m.email||'')}" placeholder="name@beispiel.de" autocomplete="off"></label>
     <label>Handynummer (WhatsApp)<input name="phone" type="tel" maxlength="25" value="${esc(m.phone||'')}" placeholder="+49 151 …"></label>
     <div class="row" style="align-items:center;margin-bottom:12px"><span class="muted" style="flex:1;font-weight:700">🔒 PIN: ${m.pin?'gesetzt':'keine'}</span>${m.pin?'<button type="button" class="btn ghost sm" id="memPinReset">PIN zurücksetzen</button>':''}</div>
     <div class="lbl">Farbe</div><div class="colors" id="memColors">${COLORS.map(c=>`<button type="button" class="color ${c===color?'on':''}" style="background:${c}" data-c="${c}"></button>`).join('')}</div>
@@ -834,7 +852,11 @@ function openMemberEdit(id){
     const short=(f.short.value.trim()||initials(name)).toUpperCase().slice(0,3);
     const birth=f.birth.value||'';const role=birth&&ageOf(birth)<18&&f.role.value==='admin'?'user':f.role.value;
     if(m.uid&&m.uid===S.uid&&role!=='admin'&&S.isOwner!==true&&!f.dataset.armed){f.dataset.armed='1';toast('Achtung: Du nimmst dir selbst die Eltern-Rechte. Nochmal Speichern zum Bestätigen.');return}
-    if(await w(()=>S.db.doc('members/'+id).update({name,short,color,birth,role,phone:f.phone.value.trim()}))) closeModal()};
+    const email=normEmail(f.email.value);
+    if(email&&S.members.some(x=>x.id!==id&&normEmail(x.email)===email)){toast('Diese E-Mail gehört schon zu einem anderen Profil');return}
+    const ch={name,short,color,birth,role,phone:f.phone.value.trim(),email};
+    if(normEmail(m.email)!==email&&m.uid&&m.uid!==S.uid) ch.uid=null; // E-Mail geändert -> alte Verknüpfung lösen
+    if(await w(()=>S.db.doc('members/'+id).update(ch))){closeModal();if(email) allowEmail(email)}};
 }
 
 /* ---------- Kalender ---------- */
