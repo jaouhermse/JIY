@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: '17 * * * *'   # jede Stunde: Kalender-Abo aktualisieren
 
 permissions:
   contents: write
@@ -11,8 +13,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: jiy-build
-  cancel-in-progress: true
+  group: jiy-build-${{ github.event_name }}
+  cancel-in-progress: false
 
 jobs:
   # 1) Web-App auf GitHub Pages veröffentlichen (das sieht die App auf dem Handy)
@@ -23,6 +25,18 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Kalender-Abo (ICS) aus Firebase holen
+        env:
+          ICS_TOKEN: ${{ secrets.ICS_TOKEN }}
+        run: |
+          if [ -z "$ICS_TOKEN" ]; then echo "Kein ICS_TOKEN – Kalender-Abo uebersprungen"; exit 0; fi
+          mkdir -p web/cal
+          if curl -sf "https://firestore.googleapis.com/v1/projects/jiy-family/databases/(default)/documents/ics/$ICS_TOKEN" -o doc.json; then
+            python3 -c "import json,sys; d=json.load(open('doc.json')); open('web/cal/'+sys.argv[1]+'.ics','w',newline='').write(d['fields']['ics']['stringValue'])" "$ICS_TOKEN"
+            echo "Kalender-Abo aktualisiert"
+          else
+            echo "Noch kein Kalender in Firebase"
+          fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
@@ -32,6 +46,7 @@ jobs:
 
   # 2) Android-APK bauen und unter "Releases" bereitstellen
   apk:
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
