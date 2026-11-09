@@ -364,10 +364,15 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "733473934669",
   appId: "1:733473934669:web:d6037cb3b417f4b639fb04"
 };
-// Wer ist Besitzer (immer Administrator)?
-const OWNER_EMAIL = "jaouher.mselmi@gmail.com";
-// Wer darf die App benutzen? (klein schreiben, auch in firestore.rules eintragen!)
-const ALLOWED_EMAILS = ["jaouher.mselmi@gmail.com"];
+// E-Mails stehen hier NICHT im Klartext, sondern als SHA-256-Fingerabdruck (klein geschrieben, ohne Leerzeichen).
+// Neue Person freischalten: Fingerabdruck ihrer E-Mail hier ergänzen UND die E-Mail in den Firebase-Regeln eintragen.
+// Besitzer (immer Administrator):
+const OWNER_HASH = "d7b30f1d913ddeefd6ab5624dec3b8ae58803999432149b4a2a1e20cb87afcad";
+// Wer darf die App benutzen?
+const ALLOWED_HASHES = [
+  "d7b30f1d913ddeefd6ab5624dec3b8ae58803999432149b4a2a1e20cb87afcad",
+  "1e7464b8aa86e759b582a5fad12ba6764b4b7c568b36eeb96b4fc1b16a5a24f8"
+];
 // Videos & Fotos über Firebase Storage? (braucht Tarif "Blaze"). false = Fotos verkleinert, keine Videos.
 const USE_STORAGE = false;
 /* ===================================================================== */
@@ -379,6 +384,7 @@ import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager
   setDoc, updateDoc, deleteDoc, addDoc, onSnapshot, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
+async function emailHash(e){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(String(e||'').trim().toLowerCase()));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
 const CONFIGURED = !String(FIREBASE_CONFIG.apiKey).includes("HIER_EINTRAGEN");
 let fbApp=null, auth=null, fs=null;
 if(CONFIGURED){
@@ -1128,7 +1134,7 @@ function showLogin(mode,user,msg){
   f.onsubmit=async e=>{e.preventDefault();const em=f.email.value.trim().toLowerCase(),pw=f.pw.value;const b=f.querySelector('button');b.disabled=true;
     try{
       if(reg){
-        if(!ALLOWED_EMAILS.map(x=>x.toLowerCase()).includes(em)){$('#loginErr').textContent='Diese E-Mail ist nicht für die Familie freigeschaltet.';b.disabled=false;return}
+        if(!ALLOWED_HASHES.includes(await emailHash(em))){$('#loginErr').textContent='Diese E-Mail ist nicht für die Familie freigeschaltet.';b.disabled=false;return}
         const c=await createUserWithEmailAndPassword(auth,em,pw);await sendEmailVerification(c.user);
       } else await signInWithEmailAndPassword(auth,em,pw);
     }catch(err){$('#loginErr').textContent=authMsg(err);b.disabled=false}};
@@ -1143,11 +1149,11 @@ function authMsg(e){const c=e&&e.code||'';
   return 'Hat nicht geklappt ('+c+').';
 }
 let started=false;
-function startApp(user){
+function startApp(user,hash){
   $('#login').hidden=true;
   if(started) return;started=true;
   S.uid=user.uid;S.email=user.email;
-  S.isOwner=String(user.email||'').toLowerCase()===OWNER_EMAIL.toLowerCase();
+  S.isOwner=hash===OWNER_HASH;
   S.assets=makeAssets(user);S.sample=null;
   $('#chatPhotoLbl').hidden=false;$('#aiCard').hidden=true;
   $('#chatPhoto').accept=USE_STORAGE?'image/*,video/*':'image/*';
@@ -1159,11 +1165,12 @@ function startApp(user){
   $('#aiCard').hidden=true;
   renderAll();
   if(!CONFIGURED){showLogin('setup');return}
-  onAuthStateChanged(auth,user=>{
+  onAuthStateChanged(auth,async user=>{
     if(!user){if(started){location.reload();return}showLogin('login');return}
     if(!user.emailVerified){showLogin('verify',user);return}
-    if(!ALLOWED_EMAILS.map(x=>x.toLowerCase()).includes(String(user.email).toLowerCase())){showLogin('denied',user);return}
-    startApp(user);
+    const hash=await emailHash(user.email);
+    if(!ALLOWED_HASHES.includes(hash)){showLogin('denied',user);return}
+    startApp(user,hash);
   });
 })();
 </script>
