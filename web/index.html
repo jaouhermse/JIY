@@ -548,12 +548,17 @@ const USE_STORAGE = false;
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-  sendEmailVerification, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  sendEmailVerification, sendPasswordResetEmail, signOut, updatePassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, getDoc, getDocs,
   setDoc, updateDoc, deleteDoc, addDoc, onSnapshot, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 async function emailHash(e){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(String(e||'').trim().toLowerCase()));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+/* Kürzel-Anmeldung für Kinder & Gäste (ohne eigene E-Mail) */
+function kidKey(short){return String(short||'').toLowerCase().normalize('NFD').replace(/[^a-z0-9]/g,'')}
+function kidEmail(short){return 'kid-'+kidKey(short)+'-'+OWNER_HASH.slice(0,8)+'@jiy-family.app'}
+function kidPw(short,pin){return 'JIY#'+String(pin).trim()+'#'+kidKey(short).toUpperCase()}
+function isKidEmail(e){return /^kid-[a-z0-9]+-[a-f0-9]{8}@jiy-family\.app$/.test(String(e||'').toLowerCase())}
 const CONFIGURED = !String(FIREBASE_CONFIG.apiKey).includes("HIER_EINTRAGEN");
 let fbApp=null, auth=null, fs=null;
 if(CONFIGURED){
@@ -682,9 +687,15 @@ function amAdmin(){
 // Profile, die auf diesem Konto gewählt werden dürfen: das eigene + Profile ohne eigenes Konto (z. B. Kinder)
 function normEmail(e){return String(e||'').trim().toLowerCase()}
 // Profil gehört zu diesem Konto: per E-Mail oder per Verknüpfung
-function ownsProfile(m){return !!m&&((!!S.uid&&m.uid===S.uid)||(!!m.email&&normEmail(m.email)===normEmail(S.email)))}
-// wählbar: das eigene Profil + Profile ohne E-Mail und ohne Konto (z. B. kleine Kinder)
-function myProfiles(){return S.members.filter(m=>ownsProfile(m)||(!m.uid&&!m.email))}
+function ownsProfile(m){return !!m&&((!!S.uid&&m.uid===S.uid)||(!!m.email&&normEmail(m.email)===normEmail(S.email))||(!!m.login&&normEmail(m.login)===normEmail(S.email)))}
+// Eltern-Konto: fest eingetragene Eltern oder eigenes Profil mit Rolle Eltern
+function isParentAcc(){if(S.isOwner===true||S.parentAcc) return true;const own=S.members.find(ownsProfile);return !!own&&roleOf(own)==='admin'}
+// „Wer bin ich?“: Eltern sehen alle Profile – alle anderen nur ihr eigenes
+function myProfiles(){
+  if(isParentAcc()) return S.members.slice();
+  const own=S.members.filter(ownsProfile);if(own.length) return own;
+  return S.members.filter(m=>!m.uid&&!m.email&&!m.login);
+}
 async function allowEmail(em){
   try{if(ALLOWED_HASHES.includes(await emailHash(em))) return;if((S.allowed||[]).some(a=>a.id===em)) return;
     await S.db.doc('allowed/'+em).set({email:em,by:S.uid,ts:Date.now()});toast('✅ '+em+' ist freigeschaltet')}catch(e){console.warn('allow',e)}
@@ -764,7 +775,7 @@ window.addEventListener('hashchange',()=>show(location.hash.slice(1)));
 function resolveMe(){
   const l=ls('jiy-me');let m=myProfiles().find(x=>x.id===l);
   // Profil mit meiner E-Mail hat Vorrang, außer auf diesem Gerät ist bewusst ein Kinderprofil (ohne E-Mail) gewählt
-  const mine=S.members.find(x=>x.email&&normEmail(x.email)===normEmail(S.email));
+  const mine=S.members.find(x=>(x.email&&normEmail(x.email)===normEmail(S.email))||(x.login&&normEmail(x.login)===normEmail(S.email)));
   if(mine&&(!m||m.email||ownsProfile(m))) m=mine;
   if(!m&&S.uid) m=S.members.find(x=>x.uid===S.uid);
   if(mine&&S.uid&&mine.uid!==S.uid&&S.db&&!S.linking){S.linking=true;
@@ -787,8 +798,9 @@ async function setMe(id){
   const t=member(id);if(!t) return;
   if(id===S.meId){closeModal();return}
   if(!myProfiles().some(m=>m.id===id)){toast('Dieses Profil gehört zu einem anderen Konto');return}
-  const own=S.uid&&t.uid===S.uid,cur=member(S.meId);
-  if(t.pin&&!(own&&cur&&roleOf(cur)==='admin')){const ok=await askPin(t);if(!ok) return}
+  const own=ownsProfile(t),cur=member(S.meId),curAdmin=cur?roleOf(cur)==='admin':isParentAcc();
+  // Eltern wechseln ohne PIN zu Kind/Gast und zurück ins eigene Profil – sonst PIN
+  if(t.pin&&!(curAdmin&&(own||roleOf(t)!=='admin'))){const ok=await askPin(t);if(!ok) return}
   lsSet('jiy-me',id);S.meId=id;closeModal();renderAll();
   if(S.devId&&S.db) S.db.doc('devices/'+S.devId).update({member:id}).catch(()=>{});
   S.guardAsked=false;applyAppGuard();
@@ -808,7 +820,7 @@ function renderFam(){
     list.innerHTML=S.members.map(m=>`<div class="fam-card">${av(m.id,'lg')}
       <div class="fam-main"><b>${esc(m.name)}${m.id===S.meId?'<span class="badge-me">Das bist du</span>':''}</b>
       <small>${ROLE_TXT[roleOf(m)]} · Kürzel ${esc(m.short||initials(m.name))}${m.birth?` · 🎂 ${parse(m.birth).toLocaleDateString('de-DE',{day:'numeric',month:'long'})} (${ageOf(m.birth)} J.)`:''}</small>
-      <small>${m.email?'✉️ '+esc(m.email):m.uid?'mit Konto verknüpft':'ohne Konto'}${m.pin?' · 🔒 PIN':''}${m.phone?' · 🟢 '+esc(m.phone):''}</small></div>
+      <small>${m.email?'✉️ '+esc(m.email):m.login?'🔑 Kürzel-Anmeldung':m.uid?'mit Konto verknüpft':'ohne Konto'}${m.pin?' · 🔒 PIN':''}${m.phone?' · 🟢 '+esc(m.phone):''}</small></div>
       ${m.id!==S.meId?`<button class="btn soft sm" data-act="set-me" data-id="${esc(m.id)}">Das bin ich</button>`:''}
       <button class="icon-btn" data-act="edit-member" data-id="${esc(m.id)}" aria-label="Bearbeiten">✎</button></div>`).join('');
   }
@@ -841,10 +853,14 @@ function openMemberEdit(id){
     <p class="hint" id="memRoleHint" hidden>Unter 18 Jahren: Kind oder Gast.</p>
     <label>E-Mail (Anmeldung in JIY)<input name="email" type="email" maxlength="80" value="${esc(m.email||'')}" placeholder="name@beispiel.de" autocomplete="off"></label>
     <label>Handynummer (WhatsApp)<input name="phone" type="tel" maxlength="25" value="${esc(m.phone||'')}" placeholder="+49 151 …"></label>
+    ${roleOf(m)!=='admin'&&!m.email?`<div class="row" style="align-items:center;margin-bottom:8px"><span class="muted" style="flex:1;font-weight:700">🔑 Kürzel-Anmeldung: ${m.login?'an ('+esc(m.short||'')+')':'aus'}</span>
+      <button type="button" class="btn ghost sm" id="memKid">${m.login?'PIN ändern':'Einrichten'}</button>${m.login?'<button type="button" class="btn ghost danger sm" id="memKidOff">Aus</button>':''}</div>`:''}
     <div class="row" style="align-items:center;margin-bottom:12px"><span class="muted" style="flex:1;font-weight:700">🔒 PIN: ${m.pin?'gesetzt':'keine'}</span>${m.pin?'<button type="button" class="btn ghost sm" id="memPinReset">PIN zurücksetzen</button>':''}</div>
     <div class="lbl">Farbe</div><div class="colors" id="memColors">${COLORS.map(c=>`<button type="button" class="color ${c===color?'on':''}" style="background:${c}" data-c="${c}"></button>`).join('')}</div>
     <div class="actions"><button type="button" class="btn ghost danger" id="memDel">Löschen</button><span class="sp"></span><button class="btn primary">Speichern</button></div></form>`);
   const mf=$('#memForm');syncRole(mf,$('#memRoleHint'));mf.birth.onchange=()=>syncRole(mf,$('#memRoleHint'));
+  const mk=$('#memKid');if(mk) mk.onclick=()=>kidLoginSetup(id);
+  const mko=$('#memKidOff');if(mko) mko.onclick=e=>confirmBtn(e.currentTarget,'Wirklich?',()=>kidLoginOff(id));
   const pr=$('#memPinReset');if(pr) pr.onclick=e=>confirmBtn(e.currentTarget,'Wirklich?',async()=>{if(await w(()=>S.db.doc('members/'+id).update({pin:null}))){closeModal();toast('PIN zurückgesetzt')}});
   $('#memColors').onclick=e=>{const b=e.target.closest('[data-c]');if(!b) return;color=b.dataset.c;$('#memColors').querySelectorAll('.color').forEach(x=>x.classList.toggle('on',x===b))};
   $('#memDel').onclick=e=>confirmBtn(e.currentTarget,'Wirklich löschen?',async()=>{if(await w(()=>S.db.doc('members/'+id).delete())){closeModal();toast('Profil gelöscht')}});
@@ -1359,6 +1375,47 @@ function openSetPin(mid,first){
     if(p!==f.pin2.value.trim()) return err('Die beiden PINs sind nicht gleich.');
     if(await w(async()=>S.db.doc('members/'+m.id).update({pin:await pinHash(m.id,p)}))){closeModal();toast('PIN gespeichert 🔒')}
   };
+}
+
+/* ---------- Kürzel-Anmeldung einrichten (nur Eltern) ---------- */
+let kidAuth=null;
+function getKidAuth(){if(!kidAuth) kidAuth=getAuth(initializeApp(FIREBASE_CONFIG,'jiy-kid-setup'));return kidAuth}
+function kidLoginSetup(id){
+  const m=member(id);if(!m||!amAdmin()) return;
+  const k=kidKey(m.short);if(k.length<2){toast('Bitte zuerst ein Kürzel mit 2–3 Buchstaben vergeben');return}
+  if(S.members.some(x=>x.id!==id&&x.login&&kidKey(x.short)===k)){toast('Dieses Kürzel nutzt schon jemand anderes');return}
+  modal(`<h3>🔑 Kürzel-Anmeldung für ${esc(m.name)}</h3>
+    <p class="muted" style="margin-top:-6px">${esc(m.name)} meldet sich dann auf dem eigenen Handy mit <b>Kürzel ${esc((m.short||'').toUpperCase())}</b> und dieser PIN an – ohne E-Mail.</p>
+    <form id="kidSetForm" autocomplete="off">
+      <label>PIN (4–6 Ziffern)<input name="pin" type="password" inputmode="numeric" maxlength="6" class="pin-input"></label>
+      <label>PIN wiederholen<input name="pin2" type="password" inputmode="numeric" maxlength="6" class="pin-input"></label>
+      <p class="login-err" id="kidSetErr"></p>
+      <div class="actions"><button type="button" class="btn ghost" data-act="close">Abbrechen</button><span class="sp"></span><button class="btn primary">Speichern</button></div></form>`);
+  const f=$('#kidSetForm');
+  f.onsubmit=async e=>{e.preventDefault();const err=t=>{$('#kidSetErr').textContent=t};
+    const pin=f.pin.value.trim();if(!/^\d{4,6}$/.test(pin)) return err('Bitte 4 bis 6 Ziffern eingeben.');
+    if(pin!==f.pin2.value.trim()) return err('Die beiden PINs sind nicht gleich.');
+    const b=f.querySelector('.btn.primary');b.disabled=true;b.textContent='⏳ …';
+    try{
+      const ka=getKidAuth(),em=kidEmail(m.short),pw=kidPw(m.short,pin);let uid=null;
+      let old=null;try{const d=await S.db.doc('kidlogin/'+id).get();old=d.exists?d.data():null}catch{}
+      if(old&&old.email===em&&old.pw){const c=await signInWithEmailAndPassword(ka,em,old.pw);await updatePassword(c.user,pw);uid=c.user.uid}
+      else{try{const c=await createUserWithEmailAndPassword(ka,em,pw);uid=c.user.uid}
+        catch(x){if(String(x&&x.code).includes('email-already-in-use')){const c=await signInWithEmailAndPassword(ka,em,pw);uid=c.user.uid}else throw x}}
+      try{await signOut(ka)}catch{}
+      if(old&&old.email&&old.email!==em){try{await S.db.doc('allowed/'+old.email).delete()}catch{}}
+      await S.db.doc('allowed/'+em).set({email:em,kid:true,member:id,by:S.uid,ts:Date.now()});
+      await S.db.doc('kidlogin/'+id).set({email:em,pw,ts:Date.now()});
+      await S.db.doc('members/'+id).update({login:em,uid,pin:await pinHash(id,pin)});
+      closeModal();toast('✅ '+m.name+' kann sich jetzt mit Kürzel '+(m.short||'').toUpperCase()+' anmelden');
+    }catch(x){console.warn('kid',x);b.disabled=false;b.textContent='Speichern';
+      err(String(x&&x.code||'').includes('invalid-credential')?'Für dieses Kürzel gibt es schon eine andere Anmeldung – bitte ein anderes Kürzel wählen.':'Hat nicht geklappt ('+(x&&x.code||x)+'). Sind die Firebase-Regeln veröffentlicht?')}
+  };
+}
+async function kidLoginOff(id){
+  const m=member(id);if(!m||!m.login) return;
+  try{await S.db.doc('allowed/'+m.login).delete()}catch{}
+  if(await w(()=>S.db.doc('members/'+id).update({login:null}))){closeModal();toast('Kürzel-Anmeldung ausgeschaltet')}
 }
 
 /* ---------- WhatsApp ---------- */
@@ -1939,7 +1996,7 @@ async function appDecide(key,ok){
 function renderAccess(){
   const card=$('#accessCard');if(!card) return;card.hidden=!amAdmin();if(card.hidden) return;
   const fixed=['(Eltern – fest eingetragen)'];
-  $('#allowList').innerHTML=(S.allowed||[]).sort((a,b)=>(a.ts||0)-(b.ts||0)).map(a=>`<div class="dev"><span class="dev-ic">✉️</span><div class="dev-main"><b>${esc(a.email||a.id)}</b><small>freigeschaltet ${a.ts?new Date(a.ts).toLocaleDateString('de-DE'):''}</small></div><button class="btn ghost danger sm" data-act="allow-del" data-id="${esc(a.id)}">Entfernen</button></div>`).join('')||'<div class="muted">Noch keine weiteren E-Mails – die Eltern-Konten sind fest freigeschaltet.</div>';
+  $('#allowList').innerHTML=(S.allowed||[]).sort((a,b)=>(a.ts||0)-(b.ts||0)).map(a=>`<div class="dev"><span class="dev-ic">✉️</span><div class="dev-main"><b>${a.kid?'🔑 Kürzel '+esc((member(a.member)||{}).short||'')+' · '+esc((member(a.member)||{}).name||''):esc(a.email||a.id)}</b><small>freigeschaltet ${a.ts?new Date(a.ts).toLocaleDateString('de-DE'):''}</small></div><button class="btn ghost danger sm" data-act="allow-del" data-id="${esc(a.id)}">Entfernen</button></div>`).join('')||'<div class="muted">Noch keine weiteren E-Mails – die Eltern-Konten sind fest freigeschaltet.</div>';
   const f=$('#allowForm');if(f&&!f.dataset.bound){f.dataset.bound='1';f.onsubmit=async e=>{e.preventDefault();const em=f.email.value.trim().toLowerCase();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return toast('Bitte eine gültige E-Mail eingeben');
     if(await w(()=>S.db.doc('allowed/'+em).set({email:em,by:S.uid,ts:Date.now()}))){f.reset();toast('✅ '+em+' freigeschaltet – jetzt kann ein Konto erstellt werden')}}}
 }
@@ -2100,6 +2157,22 @@ function showLogin(mode,user,msg){
       <button class="btn ghost" style="width:100%;margin-top:14px" id="dOut">Abmelden</button>`;
     $('#dOut').onclick=()=>signOut(auth);return;
   }
+  if(mode==='kid'){
+    box.innerHTML=head+`<p class="login-msg">Für Kinder &amp; Gäste – ohne E-Mail.<br>Kürzel und PIN bekommst du von Mama oder Papa.</p>
+      <form id="kidForm" autocomplete="off">
+        <label>Kürzel<input name="short" required maxlength="3" autocapitalize="characters" style="text-transform:uppercase;font-weight:800;letter-spacing:2px"></label>
+        <label>PIN<input name="pin" required type="password" inputmode="numeric" maxlength="6" class="pin-input" placeholder="••••"></label>
+        <p class="login-err" id="loginErr">${esc(msg||'')}</p>
+        <button class="btn primary" style="width:100%">Anmelden</button>
+      </form>
+      <div class="login-links"><button class="linkbtn" id="kBack">← Mit E-Mail anmelden</button></div>`;
+    $('#kBack').onclick=()=>showLogin('login');
+    const kf=$('#kidForm');
+    kf.onsubmit=async e=>{e.preventDefault();const b=kf.querySelector('button');b.disabled=true;
+      try{await signInWithEmailAndPassword(auth,kidEmail(kf.short.value),kidPw(kf.short.value,kf.pin.value))}
+      catch(err){$('#loginErr').textContent=String(err&&err.code||'').includes('too-many')?'Zu viele Versuche – bitte kurz warten.':'Kürzel oder PIN stimmt nicht.';b.disabled=false}};
+    return;
+  }
   const reg=mode==='register';
   box.innerHTML=head+`<p class="login-msg">${reg?'Neues Konto für die Familie':'Willkommen zurück!'}</p>
     <form id="loginForm" autocomplete="on">
@@ -2108,8 +2181,10 @@ function showLogin(mode,user,msg){
       <p class="login-err" id="loginErr">${esc(msg||'')}</p>
       <button class="btn primary" style="width:100%">${reg?'Konto erstellen':'Anmelden'}</button>
     </form>
-    <div class="login-links"><button class="linkbtn" id="lSwitch">${reg?'Ich habe schon ein Konto':'Neues Konto erstellen'}</button>${reg?'':'<button class="linkbtn" id="lReset">Passwort vergessen</button>'}</div>`;
+    <div class="login-links"><button class="linkbtn" id="lSwitch">${reg?'Ich habe schon ein Konto':'Neues Konto erstellen'}</button>${reg?'':'<button class="linkbtn" id="lReset">Passwort vergessen</button>'}</div>
+    ${reg?'':'<button class="btn ghost" style="width:100%;margin-top:12px" id="lKid">🧒 Kind / 👋 Gast: mit Kürzel anmelden</button>'}`;
   $('#lSwitch').onclick=()=>showLogin(reg?'login':'register');
+  const lk=$('#lKid');if(lk) lk.onclick=()=>showLogin('kid');
   const f=$('#loginForm');
   if(!reg) $('#lReset').onclick=async()=>{const em=f.email.value.trim();if(!em){$('#loginErr').textContent='Bitte zuerst die E-Mail eintragen.';return}
     try{await sendPasswordResetEmail(auth,em);$('#loginErr').textContent='E-Mail zum Zurücksetzen wurde gesendet ✓'}catch(e){$('#loginErr').textContent=authMsg(e)}};
@@ -2134,7 +2209,7 @@ function startApp(user,hash){
   $('#login').hidden=true;
   if(started) return;started=true;
   S.uid=user.uid;S.email=user.email;
-  S.isOwner=hash===OWNER_HASH;
+  S.isOwner=hash===OWNER_HASH;S.parentAcc=ALLOWED_HASHES.includes(hash);
   S.assets=makeAssets(user);S.sample=null;
   $('#chatPhotoLbl').hidden=false;$('#aiCard').hidden=true;
   $('#chatPhoto').accept=USE_STORAGE?'image/*,video/*':'image/*';
@@ -2150,7 +2225,7 @@ function startApp(user,hash){
   if(!CONFIGURED){showLogin('setup');return}
   onAuthStateChanged(auth,async user=>{
     if(!user){if(started){location.reload();return}showLogin('login');return}
-    if(!user.emailVerified){showLogin('verify',user);return}
+    if(!user.emailVerified&&!isKidEmail(user.email)){showLogin('verify',user);return}
     const hash=await emailHash(user.email);
     if(!ALLOWED_HASHES.includes(hash)){
       let ok=false;try{const d=await DB.doc('allowed/'+String(user.email||'').toLowerCase()).get();ok=d.exists}catch{}
