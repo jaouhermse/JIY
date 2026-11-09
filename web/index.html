@@ -465,6 +465,7 @@ button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .m
       <div class="more-grid">
         <button class="more-btn" data-act="tab" data-id="haushalt"><span class="mi">💸</span><b>Haushalt</b><small id="moreBillHint">Rechnungen &amp; Fixkosten</small></button>
         <button class="more-btn" data-act="whatsapp"><span class="mi">🟢</span><b>WhatsApp</b><small>Chat &amp; Anruf</small></button>
+        <button class="more-btn" data-act="notif"><span class="mi">🔔</span><b>Benachrichtigungen</b><small>Gebet, Chat, Termine</small></button>
         <button class="more-btn" data-act="my-pin"><span class="mi">🔒</span><b>Meine PIN</b><small>festlegen / ändern</small></button>
         <button class="more-btn" data-act="who-am-i"><span class="mi">👤</span><b>Profil wechseln</b><small>mit PIN</small></button>
         <button class="more-btn" data-act="tab" data-id="familie" id="famTab"><span class="mi">👨‍👩‍👦</span><b>Familie</b><small>Profile &amp; Kalender-Abo</small></button>
@@ -1454,7 +1455,7 @@ function locate(){
     navigator.geolocation.getCurrentPosition(async p=>{
       const loc={lat:p.coords.latitude,lng:p.coords.longitude,ts:Date.now(),name:''};
       try{const r=await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${loc.lat}&longitude=${loc.lng}&localityLanguage=de`);const j=await r.json();loc.name=j.city||j.locality||j.principalSubdivision||''}catch{}
-      S.locErr='';lsSet('jiy-loc',JSON.stringify(loc));res(loc);
+      S.locErr='';lsSet('jiy-loc',JSON.stringify(loc));scheduleAlarms();res(loc);
     },err=>{S.locErr=err&&err.code===1?'Standort-Zugriff ist nicht erlaubt. In der App: neue APK installieren und beim Fragen „Erlauben“ tippen (oder in den Android-Einstellungen → Apps → JIY Family → Berechtigungen → Standort). Du kannst den Ort auch unten suchen.':'Kein Standort-Signal – bitte später erneut versuchen oder den Ort unten suchen.';res(null)},{enableHighAccuracy:false,timeout:15000,maximumAge:600e3});
   });
 }
@@ -1597,6 +1598,70 @@ function qrToggle(){
   qrPlayIdx(S.qrIdx>=0&&S.qrIdx<S.qrAyahs.length?S.qrIdx:0);
 }
 
+/* ---------- Benachrichtigungen (kostenlos, über die Android-App) ---------- */
+const NATIVE=typeof window.JIYNative!=='undefined';
+const NOTIF_DEF={chat:true,events:true,remind:60,prayer:true,prayerMin:0,bills:true,days:true};
+function nset(){try{return {...NOTIF_DEF,...JSON.parse(ls('jiy-notif')||'{}')}}catch{return {...NOTIF_DEF}}}
+function nativeNotify(title,body,tag){if(!NATIVE) return;try{window.JIYNative.notify(String(title),String(body||''),String(tag||Date.now()))}catch(e){console.warn(e)}}
+function atMs(ds,hhmm){const [y,m,d]=ds.split('-').map(Number);const [h,mi]=String(hhmm).split(':').map(Number);return new Date(y,m-1,d,h,mi).getTime()}
+function remindTxt(min){return min>=1440?'Morgen':min>=60?`In ${min/60} Std`:`In ${min} Min`}
+function buildAlarms(){
+  const o=nset(),now=Date.now(),out=[],t0=today(),t14=addDays(t0,14);
+  if(o.prayer){const loc=getLoc();
+    for(let i=0;i<7;i++){const ds=addDays(t0,i),t=prayerTimes(parse(ds),loc.lat,loc.lng);
+      for(const [k,de] of PRAYERS){if(k==='sunrise') continue;
+        out.push({id:'pr-'+ds+'-'+k,at:atMs(ds,hm(t[k]))-o.prayerMin*60000,title:`🕌 ${de} – ${hm(t[k])}`,
+          body:o.prayerMin?`In ${o.prayerMin} Minuten ist ${de}.`:`Zeit für ${de}${loc.def?'':' · '+(loc.name||'Mein Standort')}.`})}}}
+  if(o.events){for(const e of S.events){if(!e.start||e.start<t0||e.start>t14) continue;
+    if(e.allDay||!e.from) out.push({id:'ev-'+e.id,at:atMs(e.start,'08:00'),title:`📅 Heute: ${e.title}`,body:[e.loc?'📍 '+e.loc:'',e.note||''].filter(Boolean).join(' · ')||'Ganztägig'});
+    else out.push({id:'ev-'+e.id,at:atMs(e.start,e.from)-Number(o.remind)*60000,title:`📅 ${e.title} um ${e.from}`,body:remindTxt(Number(o.remind))+(e.loc?' · 📍 '+e.loc:'')});}}
+  if(o.days){for(const e of bdayEvents().concat(islamEvents())){if(e.start<t0||e.start>t14) continue;
+    out.push({id:'d-'+e.id,at:atMs(e.start,'08:00'),title:(e.cat==='geburtstag'?'🎂 ':'🌙 ')+e.title,body:e.cat==='geburtstag'?'Glückwunsch nicht vergessen!':'Heute'})}}
+  if(o.bills){for(const b of S.bills){const n=billNext(b);if(!n||n>t14) continue;
+    if(n>t0) out.push({id:'b1-'+b.id+n,at:atMs(addDays(n,-1),'09:00'),title:`💸 Morgen fällig: ${b.title}`,body:eur(b.amount)});
+    out.push({id:'b0-'+b.id+n,at:atMs(n<t0?t0:n,'09:00'),title:`💸 ${n<t0?'Überfällig':'Heute fällig'}: ${b.title}`,body:eur(b.amount)});}}
+  return out.filter(a=>a.at>now+30000).sort((a,b)=>a.at-b.at).slice(0,200);
+}
+let alarmT=null;
+function scheduleAlarms(){if(!NATIVE||!S.loaded) return;clearTimeout(alarmT);alarmT=setTimeout(()=>{try{window.JIYNative.schedule(JSON.stringify(buildAlarms()))}catch(e){console.warn(e)}},2500)}
+function liveNotifyChat(msgs){
+  const maxTs=msgs.reduce((a,m)=>Math.max(a,m.ts||0),0);
+  if(S.lastChatTs==null){S.lastChatTs=maxTs;return}
+  const fresh=msgs.filter(m=>(m.ts||0)>S.lastChatTs&&m.by!==S.meId);S.lastChatTs=Math.max(S.lastChatTs,maxTs);
+  if(!NATIVE||!nset().chat||!fresh.length||(!document.hidden&&S.view==='chat')) return;
+  for(const m of fresh.slice(-3)){const mm=member(m.by);
+    nativeNotify('💬 '+(mm?mm.name:'Familie'),m.text||(m.img?'📷 Foto':m.vid?'🎬 Video':'Neue Nachricht'),'chat-'+(m.ts||Date.now()))}
+}
+function liveNotifyEvents(evs){
+  const ids=new Set(evs.map(e=>e.id));
+  if(!S.knownEv){S.knownEv=ids;return}
+  const fresh=evs.filter(e=>!S.knownEv.has(e.id)&&e.by&&e.by!==S.meId);S.knownEv=ids;
+  if(!NATIVE||!nset().events) return;
+  for(const e of fresh){const mm=member(e.by);nativeNotify('📅 Neuer Termin'+(mm?' von '+mm.name:''),e.title+' · '+rangeText(e)+(e.allDay?'':' · '+e.from+' Uhr'),'evnew-'+e.id)}
+}
+function openNotifSettings(){
+  const o=nset();
+  const sel=(name,opts,val)=>`<select name="${name}">${opts.map(([v,t])=>`<option value="${v}" ${Number(val)===v?'selected':''}>${t}</option>`).join('')}</select>`;
+  modal(`<h3>🔔 Benachrichtigungen</h3>
+    ${NATIVE?'':'<p class="hint" style="margin-top:-6px">Benachrichtigungen gibt es in der Android-App (APK). Hier im Browser kannst du sie nur einstellen.</p>'}
+    <form id="notifForm">
+      <label class="check"><input type="checkbox" name="chat" ${o.chat?'checked':''}> 💬 Neue Chat-Nachrichten</label>
+      <label class="check"><input type="checkbox" name="events" ${o.events?'checked':''}> 📅 Neue Termine &amp; Termin-Erinnerung</label>
+      <label>Erinnerung vor Terminen${sel('remind',[[15,'15 Minuten vorher'],[30,'30 Minuten vorher'],[60,'1 Stunde vorher'],[120,'2 Stunden vorher'],[1440,'1 Tag vorher']],o.remind)}</label>
+      <label class="check"><input type="checkbox" name="prayer" ${o.prayer?'checked':''}> 🕌 Gebetszeiten</label>
+      <label>Gebets-Erinnerung${sel('prayerMin',[[0,'zur Gebetszeit'],[5,'5 Minuten vorher'],[10,'10 Minuten vorher'],[15,'15 Minuten vorher']],o.prayerMin)}</label>
+      <label class="check"><input type="checkbox" name="bills" ${o.bills?'checked':''}> 💸 Rechnungen (Tag vorher &amp; am Fälligkeitstag)</label>
+      <label class="check"><input type="checkbox" name="days" ${o.days?'checked':''}> 🎂 Geburtstage &amp; 🌙 islamische Feiertage</label>
+      <p class="hint">Erinnerungen für Gebet, Termine und Rechnungen kommen auch, wenn die App geschlossen ist. Chat-Nachrichten und neue Termine von anderen kommen, solange die App im Hintergrund läuft.</p>
+      <div class="actions">${NATIVE?'<button type="button" class="btn ghost" id="notifTest">🔔 Test</button>':''}<span class="sp"></span><button class="btn primary">Speichern</button></div>
+    </form>`);
+  const f=$('#notifForm');
+  const t=$('#notifTest');if(t) t.onclick=()=>{nativeNotify('🔔 JIY Family','So sehen eure Benachrichtigungen aus.','test');toast('Test gesendet')};
+  f.onsubmit=e=>{e.preventDefault();
+    const v={chat:f.chat.checked,events:f.events.checked,remind:Number(f.remind.value),prayer:f.prayer.checked,prayerMin:Number(f.prayerMin.value),bills:f.bills.checked,days:f.days.checked};
+    lsSet('jiy-notif',JSON.stringify(v));scheduleAlarms();closeModal();toast('Gespeichert 🔔')};
+}
+
 /* ---------- Badges & Gesamt-Render ---------- */
 function renderBadges(){
   const seen=chatSeen();
@@ -1635,6 +1700,7 @@ const ACT={
   call:(t,id)=>startCall(id),
   finish:()=>finishShopping(),
   whatsapp:()=>openWhatsApp(),
+  notif:()=>openNotifSettings(),
   'my-pin':()=>{if(!S.meId){openWhoAmI();return}openSetPin(S.meId,false)},
   'meal-prev':()=>{S.mealWeek=addDays(S.mealWeek,-7);renderMeals()},
   'meal-next':()=>{S.mealWeek=addDays(S.mealWeek,7);renderMeals()},
@@ -1645,7 +1711,7 @@ const ACT={
   'edit-bill':(t,id)=>openBillEdit(id),
   'bill-paid':(t,id)=>billPaid(id),
   locate:()=>openLocModal(),
-  'loc-pick':(t,id)=>{const p=(S.locRes||[])[+id];if(!p) return;lsSet('jiy-loc',JSON.stringify({lat:p.latitude,lng:p.longitude,name:p.name,manual:true,ts:Date.now()}));$('#prLocHint').hidden=true;closeModal();renderPrayer();toast('📍 '+p.name+' übernommen')},
+  'loc-pick':(t,id)=>{const p=(S.locRes||[])[+id];if(!p) return;lsSet('jiy-loc',JSON.stringify({lat:p.latitude,lng:p.longitude,name:p.name,manual:true,ts:Date.now()}));scheduleAlarms();$('#prLocHint').hidden=true;closeModal();renderPrayer();toast('📍 '+p.name+' übernommen')},
   compass:()=>startCompass(),
   'qr-open':()=>openSurah($('#surahSel').value),
   'qr-toggle':()=>qrToggle(),
@@ -1659,15 +1725,15 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(
 function subscribe(){
   const got={members:false,events:false,chat:false,shop:false};
   const timer=setTimeout(()=>{if(!Object.values(got).every(Boolean)) banner('Die gemeinsamen Daten sind gerade nicht erreichbar – vielleicht offline. Es wird weiter versucht.')},10000);
-  const done=(k,snap)=>{if(!snap.metadata.fromCache&&!got[k]){got[k]=true;if(Object.values(got).every(Boolean)){clearTimeout(timer);banner('');S.loaded=true;resolveMe();renderAll();initIcs();billReminderOnce()}}};
+  const done=(k,snap)=>{if(!snap.metadata.fromCache&&!got[k]){got[k]=true;if(Object.values(got).every(Boolean)){clearTimeout(timer);banner('');S.loaded=true;resolveMe();renderAll();initIcs();billReminderOnce();scheduleAlarms()}}};
   const err=k=>e=>{got[k]=true;console.error(k,e);if(e&&e.code==='permission-denied') banner('Kein Zugriff auf die Daten – stimmen die E-Mails in firestore.rules?');else banner('Daten konnten nicht geladen werden. Bitte Seite später neu öffnen.')};
   const rows=s=>s.docs.map(d=>({id:d.id,...d.data()}));
-  S.db.collection('members').onSnapshot(s=>{S.members=rows(s).sort((a,b)=>(a.order||0)-(b.order||0)||(a.ts||0)-(b.ts||0));resolveMe();renderAll();scheduleIcsSync();done('members',s)},err('members'));
-  S.db.collection('events').onSnapshot(s=>{S.events=rows(s).filter(e=>e.start);renderCal();scheduleIcsSync();done('events',s)},err('events'));
-  S.db.collection('chat').orderBy('ts','desc').limit(200).onSnapshot(s=>{S.messages=rows(s).reverse();renderChat();if(S.view==='chat') markChatSeen();renderBadges();done('chat',s)},err('chat'));
+  S.db.collection('members').onSnapshot(s=>{S.members=rows(s).sort((a,b)=>(a.order||0)-(b.order||0)||(a.ts||0)-(b.ts||0));resolveMe();renderAll();scheduleIcsSync();scheduleAlarms();done('members',s)},err('members'));
+  S.db.collection('events').onSnapshot(s=>{S.events=rows(s).filter(e=>e.start);if(!s.metadata.fromCache) liveNotifyEvents(S.events);renderCal();scheduleIcsSync();scheduleAlarms();done('events',s)},err('events'));
+  S.db.collection('chat').orderBy('ts','desc').limit(200).onSnapshot(s=>{S.messages=rows(s).reverse();if(!s.metadata.fromCache) liveNotifyChat(S.messages);renderChat();if(S.view==='chat') markChatSeen();renderBadges();done('chat',s)},err('chat'));
   const errX=k=>e=>console.warn(k,e);
   S.db.collection('meals').where('date','>=',addDays(today(),-60)).onSnapshot(s=>{const o={};for(const d of s.docs){const x=d.data();o[x.date||d.id]=x}S.meals=o;renderMeals()},errX('meals'));
-  S.db.collection('bills').onSnapshot(s=>{S.bills=rows(s);renderBills();renderCal();renderBadges();if(S.loaded) billReminderOnce()},errX('bills'));
+  S.db.collection('bills').onSnapshot(s=>{S.bills=rows(s);renderBills();renderCal();renderBadges();scheduleAlarms();if(S.loaded) billReminderOnce()},errX('bills'));
   S.db.collection('quran').onSnapshot(s=>{const o={};for(const d of s.docs) o[d.id]=d.data();S.quran=o;renderQuranProgress()},errX('quran'));
   S.db.collection('shop').onSnapshot(s=>{S.shop=rows(s);renderShop();renderBadges();done('shop',s)},err('shop'));
 }
