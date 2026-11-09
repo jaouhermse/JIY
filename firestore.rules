@@ -3,14 +3,21 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // Nur diese E-Mails gehören zur Familie (klein schreiben!).
-    // Muss mit ALLOWED_EMAILS in web/index.html übereinstimmen.
+    // Vorlage – die echten E-Mails stehen nur in der Firebase-Konsole (nicht öffentlich).
     function family() {
       return request.auth != null
         && request.auth.token.email_verified == true
         && request.auth.token.email.lower() in [
-          'jaouher.mselmi@gmail.com',
-          'email_deiner_frau@outlook.de'
+          'deine.email@gmail.com',
+          'email.deiner.frau@outlook.de'
         ];
+    }
+
+    // Kalender-Abo: nur mit geheimer Adresse lesbar (keine Liste), schreiben nur Familie
+    match /ics/{token} {
+      allow get: if true;
+      allow list: if false;
+      allow write: if family();
     }
 
     match /{document=**} {
