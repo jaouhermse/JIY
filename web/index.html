@@ -248,6 +248,17 @@ body.chat-mode .chat-wrap{height:calc(100dvh - 86px - 104px - env(safe-area-inse
 .sos-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .sos-btn{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:#FDECEC;color:#9B1C1C;font-weight:800;text-decoration:none;border:1px solid #F6C9C9}
 .sos-btn.p{background:#EAF6EE;color:#14532D;border-color:#C6E6D0}.sos-btn span{margin-left:auto;font-weight:600;font-size:13px;opacity:.8}
+.pts-hero{text-align:center}.pts-big{font-family:var(--head);font-size:64px;line-height:1;color:var(--pri);margin-top:6px}.pts-big span{font-size:40px;margin-left:4px}.pts-sub{font-weight:800;font-size:16px;margin:4px 0 2px}
+.pts-sel{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:6px}.pts-sel button{flex:0 0 auto;border:0;background:var(--bg);border-radius:99px;padding:7px 12px;font-weight:700;font-size:13px;color:var(--ink)}.pts-sel button b{color:var(--saffron,#E3A33A);margin-left:4px}.pts-sel button.on{background:var(--pri);color:#fff}
+.pts-bonus{display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:12px;font-size:13px;font-weight:700}
+.rw,.rq{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}.rw:first-child,.rq:first-of-type{border-top:0}.rw-ic{font-size:30px;flex:none;width:40px;text-align:center}
+.rw-main{flex:1;min-width:0}.rw-main b{display:block;font-size:15px}.rw-main small{color:var(--muted);font-size:12px}.rw.can .rw-main small{color:#1B6B3A;font-weight:700}
+.rw-bar{height:6px;border-radius:6px;background:var(--bg);overflow:hidden;margin-top:5px}.rw-bar span{display:block;height:100%;background:var(--saffron,#E3A33A)}
+.rw-act{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}.rw-cost{font-size:14px}.rw-act .btn[disabled]{opacity:.5}
+.pts-open{border:2px solid var(--saffron,#E3A33A)}.ph{display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line);font-size:14px}.ph span{flex:1}.ph b{color:#1B6B3A}.ph b.neg{color:#B3261E}.pts-link{margin-top:10px;width:100%}
+.tpl-cats{margin-bottom:4px}.tpl-cat{flex:0 0 auto;padding:6px 11px;border-radius:999px;border:0;background:var(--bg);font-weight:800;font-size:13px;color:var(--muted);white-space:nowrap}.tpl-cat.on{background:var(--pri);color:#fff}
+.tpl.on{background:var(--pri-soft,#D5EBE8)!important;border-color:var(--pri)!important}.tpl small{font-weight:600;color:var(--muted)}
+.ch-cats button{background:var(--bg)!important;border:0!important;color:var(--muted);font-weight:800}.ch-cats button.on{background:var(--pri)!important;color:#fff}.ch-tpl button.on{border-color:var(--pri);background:var(--pri-soft,#D5EBE8)}
 .tpl-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px;-webkit-overflow-scrolling:touch}
 .tpl{flex:0 0 auto;padding:7px 10px;border-radius:999px;border:1px solid var(--line);background:#FFF8EE;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap}
 .score-head{display:flex;align-items:baseline;gap:8px;justify-content:space-between}.score-list{display:flex;flex-direction:column;gap:4px;margin-top:8px}
@@ -631,6 +642,16 @@ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
       <p class="hint">Fällige Rechnungen stehen auch im Kalender (💸) und es gibt beim Öffnen der App einen Hinweis.</p>
     </section>
 
+    <!-- PUNKTE & BELOHNUNGEN -->
+    <section id="view-punkte" class="view" hidden>
+      <h2>🎁 Punkte &amp; Belohnungen</h2>
+      <div class="card pts-hero" id="ptsHero"></div>
+      <div id="ptsReq"></div>
+      <div class="card"><h3 style="display:flex;align-items:center;gap:8px">🛍️ Belohnungen <span class="sp" style="flex:1"></span><button class="btn soft sm" data-act="rw-new" id="rwNewBtn">+ Neu</button></h3><div id="rwList"></div></div>
+      <div class="card" id="ptsHist"></div>
+      <p class="hint">⭐ Punkte gibt es für erledigte Aufgaben, für jedes +1 in einer Challenge und 5 Extrapunkte, wenn man eine Challenge schafft. Mama und Papa können auch Bonuspunkte schenken.</p>
+    </section>
+
     <!-- FAMILY CHALLENGE -->
     <section id="view-challenge" class="view" hidden>
       <h2>🏆 Family Challenge <span class="sp"></span><button class="btn primary sm" data-act="ch-new" id="chNewBtn">+ Neu</button></h2>
@@ -649,7 +670,7 @@ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
       <h2>✅ Aufgaben <span class="sp"></span><button class="btn ghost sm" id="taskMine">Nur meine</button></h2>
       <div class="card" id="taskScore"></div>
       <form id="taskForm" class="card task-add" autocomplete="off">
-        <div class="tpl-row" id="taskTpl"></div>
+        <div class="tpl-row tpl-cats" id="taskTplCat"></div><div class="tpl-row" id="taskTpl"></div>
         <input name="title" required maxlength="80" placeholder="Neue Aufgabe, z. B. Müll rausbringen">
         <div class="row"><select name="who" id="taskWho"></select><input name="due" type="date"></div>
         <div class="row"><select name="repeat" title="Wiederholen"><option value="">🔁 einmalig</option><option value="daily">🔁 täglich</option><option value="weekly">🔁 wöchentlich</option><option value="2weekly">🔁 alle 2 Wochen</option><option value="monthly">🔁 monatlich</option></select>
@@ -668,6 +689,7 @@ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
         <button class="more-btn" data-act="clock"><span class="mi">⏰</span><b>Wecker</b><small id="moreClockHint">Weckzeiten für alle</small></button>
         <button class="more-btn" data-act="announce"><span class="mi">📣</span><b>Durchsage</b><small>z. B. „Essen ist fertig!“</small></button>
         <button class="more-btn" data-act="tab" data-id="haushalt" id="hhTab"><span class="mi">💸</span><b>Haushalt</b><small id="moreBillHint">Rechnungen &amp; Fixkosten</small></button>
+        <button class="more-btn" data-act="tab" data-id="punkte"><span class="mi">🎁</span><b>Punkte &amp; Belohnungen</b><small id="morePtsHint">Pizza, Kino, Spielzeug …</small></button>
         <button class="more-btn" data-act="tab" data-id="challenge"><span class="mi">🏆</span><b>Family Challenge</b><small id="moreChHint">Wer schafft es?</small></button>
         <button class="more-btn" data-act="tab" data-id="stammbaum"><span class="mi">🌳</span><b>Stammbaum</b><small>Opa, Oma &amp; alle</small></button>
         <button class="more-btn" data-act="guard-setup" id="guardBtn" hidden><span class="mi">📲</span><b>Kinderschutz einrichten</b><small id="guardHint">Berechtigungen prüfen</small></button>
@@ -930,13 +952,13 @@ function confirmBtn(btn,label,fn){
 }
 
 /* ---------- Navigation ---------- */
-const VIEWS=['kalender','chat','einkauf','essen','gebet','mehr','haushalt','familie','aufgaben','challenge','stammbaum'];
+const VIEWS=['kalender','chat','einkauf','essen','gebet','mehr','haushalt','familie','aufgaben','challenge','stammbaum','punkte'];
 function show(v){
   if(!VIEWS.includes(v)) v='kalender';
   if(v==='familie'&&!amAdmin()) v='kalender';
   S.view=v;
   for(const x of VIEWS) $('#view-'+x).hidden=x!==v;
-  const tabOf=(v==='haushalt'||v==='familie'||v==='aufgaben'||v==='challenge'||v==='stammbaum')?'mehr':v;
+  const tabOf=(v==='haushalt'||v==='familie'||v==='aufgaben'||v==='challenge'||v==='stammbaum'||v==='punkte')?'mehr':v;
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.id===tabOf));
   document.body.classList.toggle('chat-mode',v==='chat');
   if(location.hash!=='#'+v) history.replaceState(null,'','#'+v);
@@ -944,6 +966,7 @@ function show(v){
   if(v==='gebet'){initPrayer();renderAzkar()}
   if(v==='challenge') renderChallenges();
   if(v==='stammbaum') renderTree();
+  if(v==='punkte') renderPoints();
   if(v==='essen') renderMeals();
   if(v==='haushalt') renderBills();
   if(v==='aufgaben') renderTasks();
@@ -1708,7 +1731,16 @@ async function mealShop(ds,ingrText){
 }
 
 /* ---------- Aufgaben ---------- */
-const TASK_TPL=[['🧹','Staubsaugen'],['🗑️','Müll rausbringen'],['🍽️','Spülmaschine ausräumen'],['🛏️','Zimmer aufräumen'],['👕','Wäsche aufhängen'],['🧽','Bad putzen'],['🪴','Blumen gießen'],['🍳','Tisch decken']];
+// Vorlagen: [Symbol, Titel, Wiederholung, Punkte]
+const TASK_TPL_G=[
+ ['🧹','Haushalt',[['🧹','Staubsaugen','weekly',2],['🗑️','Müll rausbringen','weekly',1],['🍽️','Spülmaschine ausräumen','daily',1],['🧽','Bad putzen','weekly',3],['🚽','WC putzen','weekly',2],['🪣','Boden wischen','weekly',3],['🪶','Staub wischen','weekly',2],['👕','Wäsche aufhängen','weekly',2],['🧺','Wäsche zusammenlegen','weekly',2],['🛏️','Bettwäsche wechseln','2weekly',2],['🪟','Fenster putzen','monthly',3],['🧊','Kühlschrank auswischen','monthly',2],['🪴','Blumen gießen','weekly',1]]],
+ ['🍽️','Küche',[['🍳','Tisch decken','daily',1],['🧻','Tisch abräumen','daily',1],['🛒','Einkaufen gehen','weekly',2],['🥕','Beim Kochen helfen','',2],['🥪','Brotdose packen','daily',1],['🍾','Pfand wegbringen','2weekly',1],['🔥','Herd sauber machen','weekly',2]]],
+ ['🧒','Kinder',[['🛏️','Bett machen','daily',1],['🧸','Spielzeug wegräumen','daily',1],['🏠','Zimmer aufräumen','daily',1],['🪥','Zähne putzen (morgens & abends)','daily',1],['👟','Schuhe & Jacke wegräumen','daily',1],['🎒','Kita-/Schultasche packen','daily',1],['👕','Allein anziehen','daily',1],['📚','Hausaufgaben machen','daily',2]]],
+ ['🕌','Glaube',[['🕌','Gebet pünktlich beten','daily',1],['📖','Eine Seite Quran lesen','daily',1],['📿','Morgen- & Abend-Azkar','daily',1],['🧠','Kurze Sure auswendig lernen','weekly',3],['🤲','Sadaqa geben','weekly',2]]],
+ ['🚗','Draußen',[['🚗','Auto waschen','monthly',3],['🧹','Auto aussaugen','monthly',2],['🛞','Reifendruck prüfen','monthly',1],['🌿','Balkon fegen','weekly',2],['🗑️','Mülltonnen rausstellen','weekly',1],['📬','Briefkasten leeren','daily',1]]],
+ ['❤️','Familie',[['📞','Oma & Opa anrufen','weekly',2],['🎲','Spieleabend vorbereiten','weekly',2],['🎁','Geschenk besorgen','',2],['💐','Mama eine Freude machen','weekly',2],['🧁','Zusammen backen','',2]]],
+ ['📋','Eltern',[['💸','Rechnungen prüfen','monthly',2],['✉️','Post sortieren','weekly',1],['🩺','Arzttermin vereinbaren','',1],['💾','Backup prüfen','monthly',2],['📄','Verträge & Fristen checken','monthly',2]]]];
+const TASK_TPL=TASK_TPL_G.flatMap(g=>g[2]);
 const REP_TXT={daily:'täglich',weekly:'wöchentlich','2weekly':'alle 2 Wochen',monthly:'monatlich'};
 function nextDue(ds,rep){const d=ds||today();if(rep==='daily') return addDays(d,1);if(rep==='weekly') return addDays(d,7);if(rep==='2weekly') return addDays(d,14);if(rep==='monthly') return addMonths(d,1);return ''}
 function taskWeekStart(){const d=parse(today());const w=(d.getDay()+6)%7;return addDays(today(),-w)}
@@ -1717,7 +1749,16 @@ function renderTaskScore(){
   const pts={};for(const t of S.tasks) if(t.done&&t.doneBy&&(t.doneAt||0)>=from) pts[t.doneBy]=(pts[t.doneBy]||0)+(+t.pts||1);
   const rows=S.members.map(m=>({m,p:pts[m.id]||0})).filter(x=>x.p>0).sort((a,b)=>b.p-a.p);
   const medal=['🥇','🥈','🥉'];
-  el.innerHTML=`<div class="score-head"><b>🏆 Punkte diese Woche</b><small class="muted">seit Montag</small></div>`+(rows.length?`<div class="score-list">${rows.map((x,i)=>`<div class="score-row">${medal[i]||'⭐'} <span>${esc(x.m.name)}</span><b>${x.p}</b></div>`).join('')}</div>`:'<small class="muted">Noch keine Punkte – erledigte Aufgaben bringen ⭐</small>');
+  el.innerHTML=`<div class="score-head"><b>🏆 Punkte diese Woche</b><small class="muted">seit Montag</small></div>`+`<button class="btn soft sm pts-link" data-act="tab" data-id="punkte">🎁 Punkte einlösen${S.meId?' · du hast '+ptsBalance(S.meId)+' ⭐':''}</button>`+(rows.length?`<div class="score-list">${rows.map((x,i)=>`<div class="score-row">${medal[i]||'⭐'} <span>${esc(x.m.name)}</span><b>${x.p}</b></div>`).join('')}</div>`:'<small class="muted">Noch keine Punkte – erledigte Aufgaben bringen ⭐</small>');
+}
+function renderTaskTpl(gi){
+  const cat=$('#taskTplCat'),tp=$('#taskTpl');if(!tp) return;
+  if(cat) cat.innerHTML=TASK_TPL_G.map(([i,n],k)=>`<button type="button" class="tpl-cat ${k===gi?'on':''}" data-g="${k}">${i} ${esc(n)}</button>`).join('');
+  tp.innerHTML=TASK_TPL_G[gi][2].map(([i,t,r,p],k)=>`<button type="button" class="tpl" data-k="${k}">${i} ${esc(t)}${r?` <small>· ${esc(REP_TXT[r])}</small>`:''}</button>`).join('');
+  if(cat) cat.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>renderTaskTpl(+b.dataset.g));
+  tp.querySelectorAll('.tpl').forEach(b=>b.onclick=()=>{const [i,t,r,p]=TASK_TPL_G[gi][2][+b.dataset.k],f=$('#taskForm');
+    f.title.value=t;f.repeat.value=r||'';f.pts.value=String(p||1);if(r&&!f.due.value) f.due.value=today();
+    tp.querySelectorAll('.tpl').forEach(x=>x.classList.toggle('on',x===b));f.title.focus()});
 }
 function taskLate(t){return !t.done&&t.due&&t.due<today()}
 function myTasksDue(){return S.tasks.filter(t=>!t.done&&(!t.who||t.who===S.meId)&&t.due&&t.due<=today()).length}
@@ -1725,8 +1766,7 @@ function renderTasks(){
   const list=$('#taskList');if(!list) return;
   const ws=$('#taskWho');if(ws){const cur=ws.value;ws.innerHTML=`<option value="">👨‍👩‍👦 Alle</option>`+S.members.map(m=>`<option value="${esc(m.id)}">${esc(m.name)}</option>`).join('')+`<option value="__rot">🔄 Abwechselnd …</option>`;ws.value=cur||''}
   const rb=$('#taskRot');if(rb&&rb.dataset.n!==String(S.members.length)){const sel=new Set([...rb.querySelectorAll('input:checked')].map(x=>x.value));rb.innerHTML=S.members.map(m=>`<label class="pick"><input type="checkbox" name="rot" value="${esc(m.id)}" ${sel.has(m.id)?'checked':''}><span>${esc(m.name)}</span></label>`).join('');rb.dataset.n=String(S.members.length)}
-  const tp=$('#taskTpl');if(tp&&!tp.dataset.bound){tp.dataset.bound='1';tp.innerHTML=TASK_TPL.map(([i,t])=>`<button type="button" class="tpl" data-t="${esc(t)}">${i} ${esc(t)}</button>`).join('');
-    tp.querySelectorAll('.tpl').forEach(b=>b.onclick=()=>{const f=$('#taskForm');f.title.value=b.dataset.t;f.title.focus()})}
+  const tp=$('#taskTpl');if(tp&&!tp.dataset.bound){tp.dataset.bound='1';renderTaskTpl(0)}
   renderTaskScore();
   const mine=!!S.taskMine;const mb=$('#taskMine');if(mb){mb.textContent=mine?'Alle zeigen':'Nur meine';mb.classList.toggle('on',mine)}
   let ts=S.tasks.filter(t=>!mine||!t.who||t.who===S.meId);
@@ -1908,8 +1948,15 @@ setInterval(()=>winCheck(),60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){winCheck();if(S.ann) renderAnnounce()}});
 
 /* ---------- Family Challenge ---------- */
-const CH_TPL=[['🕌','Alle 5 Gebete pünktlich',7,'Tage'],['📖','Jeden Tag Quran lesen',7,'Tage'],['📵','Handyfreies Abendessen',7,'Abende'],['📚','Jeden Tag 20 Min. lesen',7,'Tage'],
-  ['🚶','Spazieren gehen',5,'Mal'],['💧','Genug Wasser trinken',7,'Tage'],['🧹','Zimmer ordentlich',7,'Tage'],['🥦','Gemüse essen',7,'Tage'],['😊','Jeden Tag ein Kompliment',7,'Tage'],['🛏️','Pünktlich ins Bett',7,'Tage']];
+// Vorlagen: [Symbol, Titel, Ziel, Einheit, Team?]
+const CH_TPL_G=[
+ ['🕌','Glaube',[['🕌','Alle 5 Gebete pünktlich',7,'Tage'],['📿','Morgen- & Abend-Azkar',7,'Tage'],['📖','Jeden Tag eine Seite Quran',7,'Tage'],['🧠','Eine kurze Sure auswendig lernen',1,'Sure'],['🤲','Jeden Tag etwas Gutes tun',7,'Tage'],['💰','Gemeinsam für Sadaqa sparen',20,'Euro',1]]],
+ ['🧹','Haushalt',[['🛏️','Bett selbst machen',7,'Tage'],['🧸','Zimmer abends aufräumen',7,'Tage'],['🍽️','Tisch decken & abräumen',5,'Abende'],['👟','Schuhe & Jacke ordentlich',7,'Tage'],['🙋','Ohne Aufforderung helfen',5,'Mal']]],
+ ['📵','Bildschirm',[['📵','Handyfreies Abendessen',7,'Abende',1],['⏳','1 Stunde ohne Bildschirm',7,'Tage'],['🌙','Kein Handy nach 20 Uhr',5,'Tage'],['📺','Wochenende ohne Fernseher',2,'Tage',1]]],
+ ['💪','Gesundheit',[['🌳','30 Min. draußen',7,'Tage'],['💧','Genug Wasser trinken',7,'Tage'],['🥦','Obst oder Gemüse zu jeder Mahlzeit',7,'Tage'],['🛏️','Pünktlich ins Bett',7,'Tage'],['🪥','Zähne 2× am Tag putzen',14,'Tage'],['🚶','Spazieren gehen',5,'Mal']]],
+ ['📚','Lernen',[['📚','Jeden Tag 20 Min. lesen',7,'Tage'],['🔤','Jeden Tag ein arabisches Wort',7,'Tage'],['📕','Bücher lesen als Familie',5,'Bücher',1],['🧮','Jeden Tag Rechnen üben',7,'Tage']]],
+ ['❤️','Familie',[['😊','Jeden Tag ein Kompliment',7,'Tage'],['🎲','Familien-Spieleabend',4,'Abende',1],['📞','Opa & Oma anrufen',4,'Anrufe'],['👨‍🍳','Gemeinsam kochen',2,'Mal',1],['💌','Danke sagen',10,'Mal']]]];
+const CH_TPL=CH_TPL_G.flatMap(g=>g[2]);
 function chWho(c){const ids=(c.who&&c.who.length)?c.who:S.members.filter(m=>roleOf(m)!=='guest').map(m=>m.id);return ids.map(member).filter(Boolean)}
 function chOver(c){return c.closed||(c.end&&c.end<today())}
 function renderChallenges(){
@@ -1937,7 +1984,7 @@ function renderChallenges(){
 function chEdit(id){
   if(!iAmParent()) return;const c=id?(S.challenges||[]).find(x=>x.id===id):null;const who=new Set(c?c.who||[]:[]);
   modal(`<h3>🏆 ${c?'Challenge bearbeiten':'Neue Family Challenge'}</h3>
-    ${c?'':`<div class="ch-tpl">${CH_TPL.map(([i,t,g,u],k)=>`<button type="button" data-k="${k}">${i} ${esc(t)}</button>`).join('')}</div>`}
+    ${c?'':`<div class="ch-tpl ch-cats">${CH_TPL_G.map(([i,n],k)=>`<button type="button" data-g="${k}" class="${k?'':'on'}">${i} ${esc(n)}</button>`).join('')}</div><div class="ch-tpl" id="chTplItems"></div>`}
     <form id="chForm" autocomplete="off">
       <div class="row"><input name="icon" maxlength="4" value="${esc(c?c.icon:'🏆')}" style="flex:0 0 64px;text-align:center;font-size:22px"><input name="title" required maxlength="60" placeholder="z. B. Handyfreies Abendessen" value="${esc(c?c.title:'')}" style="flex:1"></div>
       <div class="row"><label style="flex:1">Ziel<input name="goal" type="number" min="1" max="999" value="${esc(c?c.goal:7)}"></label><label style="flex:1">Einheit<input name="unit" maxlength="20" value="${esc(c?c.unit:'Tage')}"></label></div>
@@ -1950,7 +1997,13 @@ function chEdit(id){
       <button class="btn primary" style="width:100%;margin-top:12px">${c?'Speichern':'🚀 Challenge starten'}</button>
     </form>`);
   const sh=$('#sheet'),f=$('#chForm');
-  sh.querySelectorAll('.ch-tpl [data-k]').forEach(b=>b.onclick=()=>{const [i,t,g,u]=CH_TPL[+b.dataset.k];f.icon.value=i;f.title.value=t;f.goal.value=g;f.unit.value=u;f.end.value=addDays(f.start.value||today(),g>1&&u!=='Mal'?g-1:6)});
+  const tplItems=gi=>{const box=$('#chTplItems');if(!box) return;
+    sh.querySelectorAll('.ch-cats [data-g]').forEach(b=>b.classList.toggle('on',+b.dataset.g===gi));
+    box.innerHTML=CH_TPL_G[gi][2].map(([i,t,g,u,tm],k)=>`<button type="button" data-k="${k}">${i} ${esc(t)}${tm?' 👥':''}</button>`).join('');
+    box.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const [i,t,g,u,tm]=CH_TPL_G[gi][2][+b.dataset.k];f.icon.value=i;f.title.value=t;f.goal.value=g;f.unit.value=u;f.team.value=tm?'1':'';
+      f.daily.checked=/Tage|Abende/.test(u);f.end.value=addDays(f.start.value||today(),/Tage|Abende/.test(u)&&g>1&&g<=31?g-1:6);
+      box.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))})};
+  sh.querySelectorAll('.ch-cats [data-g]').forEach(b=>b.onclick=()=>tplItems(+b.dataset.g));tplItems(0);
   sh.querySelectorAll('#chWhoChips [data-who]').forEach(b=>b.onclick=()=>b.classList.toggle('on'));
   f.onsubmit=async e=>{e.preventDefault();
     const d={icon:f.icon.value.trim()||'🏆',title:f.title.value.trim(),goal:Math.max(1,+f.goal.value||1),unit:f.unit.value.trim(),start:f.start.value||today(),end:f.end.value||'',
@@ -1971,6 +2024,74 @@ async function chPlus(key){
 }
 async function chClose(id){if(await w(()=>S.db.doc('challenges/'+id).update({closed:true}))) toast('🏁 Challenge beendet')}
 async function chDel(id,btn){confirmBtn(btn,'Wirklich löschen?',async()=>{if(await w(()=>S.db.doc('challenges/'+id).delete())) toast('Gelöscht')})}
+
+/* ---------- Punkte & Belohnungen ---------- */
+const RW_DEF=[['🍦','Eis essen',15],['🍽️','Abendessen aussuchen',15],['🌙','15 Min. länger aufbleiben',10],['📱','30 Min. extra Tablet',20],['🛝','Ausflug zum Spielplatz',20],['🎲','Spieleabend aussuchen',25],['🍕','Pizza-Abend',30],['🎬','Kino',60],['🧸','Neues Spielzeug',80],['🏊','Schwimmbad / Freizeitpark',100]];
+function ptsEarned(mid){let n=0;
+  for(const t of S.tasks||[]) if(t.done&&t.doneBy===mid) n+=(+t.pts||1);
+  for(const c of S.challenges||[]){const p=(c.prog||{})[mid]||0;n+=p;const g=+c.goal||1;
+    if(c.team){const sum=chWho(c).reduce((a,m)=>a+((c.prog||{})[m.id]||0),0);if(sum>=g&&p>0) n+=5}else if(p>=g) n+=5}
+  for(const b of S.bonus||[]) if(b.mid===mid) n+=(+b.pts||0);
+  return n}
+function ptsSpent(mid){return (S.redeem||[]).filter(r=>r.mid===mid&&r.status!=='nein').reduce((a,r)=>a+(+r.cost||0),0)}
+function ptsBalance(mid){return Math.max(0,ptsEarned(mid)-ptsSpent(mid))}
+function rewards(){const l=S.rewards||[];return l.length?[...l].sort((a,b)=>(+a.cost||0)-(+b.cost||0)):RW_DEF.map(([icon,title,cost],k)=>({id:'def'+k,icon,title,cost,def:true}))}
+function ptsWho(){const me=member(S.meId);if(iAmParent()){if(S.ptsFor&&member(S.ptsFor)) return member(S.ptsFor);return me||S.members.find(m=>roleOf(m)!=='guest')||null}return me}
+function renderPoints(){
+  const hero=$('#ptsHero');if(!hero) return;
+  const hint=$('#morePtsHint');if(hint&&S.meId) hint.textContent='Du hast '+ptsBalance(S.meId)+' ⭐';
+  if(S.view!=='punkte') return;
+  const who=ptsWho(),par=iAmParent(),kids=S.members.filter(m=>roleOf(m)!=='guest');
+  if(!who){hero.innerHTML='<p class="muted">Bitte zuerst unter „Profil wechseln“ dein Profil wählen.</p>';return}
+  const bal=ptsBalance(who.id);
+  hero.innerHTML=`${par?`<div class="pts-sel">${kids.map(m=>`<button class="${m.id===who.id?'on':''}" data-pf="${esc(m.id)}">${esc(m.name)} <b>${ptsBalance(m.id)}</b></button>`).join('')}</div>`:''}
+    <div class="pts-big">${bal}<span>⭐</span></div><div class="pts-sub">${who.id===S.meId?'Deine Punkte':'Punkte von '+esc(who.name)}</div>
+    <small class="muted">gesammelt ${ptsEarned(who.id)} · eingelöst ${ptsSpent(who.id)}</small>
+    ${par?`<div class="pts-bonus"><span>Bonus für ${esc(who.name)}:</span>${[1,5,10].map(n=>`<button class="btn soft sm" data-act="pts-bonus" data-id="${n}">+${n}</button>`).join('')}<button class="btn ghost sm" data-act="pts-bonus" data-id="-5">−5</button></div>`:''}`;
+  hero.querySelectorAll('[data-pf]').forEach(b=>b.onclick=()=>{S.ptsFor=b.dataset.pf;renderPoints()});
+  const nb=$('#rwNewBtn');if(nb) nb.hidden=!par;
+  $('#rwList').innerHTML=rewards().map(r=>{const can=bal>=(+r.cost||0);
+    return `<div class="rw ${can?'can':''}"><span class="rw-ic">${esc(r.icon||'🎁')}</span><div class="rw-main"><b>${esc(r.title)}</b><small>${can?'✅ Genug Punkte!':'noch '+((+r.cost||0)-bal)+' ⭐ sammeln'}</small>
+      <div class="rw-bar"><span style="width:${Math.min(100,bal/(+r.cost||1)*100)}%"></span></div></div>
+      <div class="rw-act"><b class="rw-cost">${+r.cost||0} ⭐</b><button class="btn ${can?'primary':'ghost'} sm" data-act="rw-redeem" data-id="${esc(r.id)}" ${can?'':'disabled'}>Einlösen</button>${par&&!r.def?`<button class="icon-btn" data-act="rw-edit" data-id="${esc(r.id)}" aria-label="Bearbeiten">✎</button>`:''}</div></div>`}).join('')+
+    (par&&!(S.rewards||[]).length?'<p class="hint">Das sind Vorschläge – mit <b>+ Neu</b> eigene Belohnungen anlegen (dann gilt nur deine Liste).</p>':'');
+  const open=(S.redeem||[]).filter(r=>r.status==='offen'&&(par||r.mid===S.meId)).sort((a,b)=>a.ts-b.ts);
+  $('#ptsReq').innerHTML=open.length?`<div class="card pts-open"><h3>⏳ Offene Wünsche</h3>${open.map(r=>{const m=member(r.mid);
+    return `<div class="rq"><span class="rw-ic">${esc(r.icon||'🎁')}</span><div class="rw-main"><b>${esc(m?m.name:'?')}: ${esc(r.title)}</b><small>${r.cost} ⭐ · ${new Date(r.ts).toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'numeric'})}</small></div>
+      ${par?`<button class="btn primary sm" data-act="rq-ok" data-id="${esc(r.id)}">✅ Erfüllt</button><button class="btn ghost danger sm" data-act="rq-no" data-id="${esc(r.id)}">✖</button>`:'<small class="muted">wartet auf Mama/Papa</small>'}</div>`}).join('')}</div>`:'';
+  const hist=[...(S.redeem||[]).filter(r=>r.mid===who.id&&r.status!=='offen').map(r=>({ts:r.doneAt||r.ts,t:(r.status==='ok'?'🎉 ':'✖ ')+r.title,n:r.status==='ok'?-r.cost:0})),
+    ...(S.bonus||[]).filter(b=>b.mid===who.id).map(b=>({ts:b.ts,t:(b.pts>0?'🎁 Bonus':'➖ Abzug')+(b.why?' – '+b.why:''),n:+b.pts}))].sort((a,b)=>b.ts-a.ts).slice(0,15);
+  $('#ptsHist').innerHTML=`<h3>📜 Verlauf</h3>`+(hist.length?hist.map(h=>`<div class="ph"><span>${esc(h.t)}</span><small class="muted">${new Date(h.ts).toLocaleDateString('de-DE',{day:'numeric',month:'numeric'})}</small><b class="${h.n<0?'neg':''}">${h.n>0?'+':''}${h.n||''}</b></div>`).join(''):'<small class="muted">Noch nichts eingelöst.</small>');
+}
+async function rwRedeem(id){
+  const who=ptsWho(),r=rewards().find(x=>x.id===id);if(!who||!r) return;
+  if(ptsBalance(who.id)<(+r.cost||0)) return toast('Noch nicht genug Punkte ⭐');
+  const btn=document.querySelector(`[data-act="rw-redeem"][data-id="${CSS.escape(id)}"]`);
+  confirmBtn(btn,`${r.cost} ⭐ einlösen?`,async()=>{
+    if(await w(()=>S.db.collection('redeem').add({mid:who.id,title:r.title,icon:r.icon||'🎁',cost:+r.cost||0,status:'offen',by:S.meId||null,ts:Date.now()}))){
+      try{S.db.collection('chat').add({text:`🎁 ${who.name} löst ein: ${r.icon||''} ${r.title} (${r.cost} ⭐) – Mama/Papa bitte bestätigen`,by:S.meId||null,ts:Date.now()})}catch{}
+      try{navigator.vibrate&&navigator.vibrate([60,40,60])}catch{}toast('🎉 Wunsch geschickt! Mama/Papa bestätigen.')}});
+}
+async function rqSet(id,st){if(!iAmParent()) return;if(await w(()=>S.db.doc('redeem/'+id).update({status:st,doneBy:S.meId||null,doneAt:Date.now()}))) toast(st==='ok'?'🎉 Erfüllt!':'Abgelehnt – Punkte zurück')}
+function ptsBonus(n){const who=ptsWho();if(!iAmParent()||!who) return;
+  const ideas=n>0?['Super geholfen','Toll gelernt','Lieb zur Schwester/zum Bruder','Ohne Meckern']:['Nicht aufgeräumt','Gestritten'];
+  modal(`<h3>${n>0?'🎁 +'+n:'➖ '+n} ⭐ für ${esc(who.name)}</h3><div class="ch-tpl">${ideas.map(t=>`<button type="button" data-why="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+    <form id="bonusForm" autocomplete="off"><input name="why" maxlength="60" placeholder="Wofür? (optional)"><button class="btn primary" style="width:100%;margin-top:10px">${n>0?'Schenken':'Abziehen'}</button></form>`);
+  const f=$('#bonusForm');$('#sheet').querySelectorAll('[data-why]').forEach(b=>b.onclick=()=>{f.why.value=b.dataset.why});
+  f.onsubmit=async e=>{e.preventDefault();if(await w(()=>S.db.collection('bonus').add({mid:who.id,pts:+n,why:f.why.value.trim().slice(0,60),by:S.meId||null,ts:Date.now()}))){closeModal();toast((n>0?'+':'')+n+' ⭐ für '+who.name)}};
+}
+function rwEdit(id){
+  if(!iAmParent()) return;const r=id?(S.rewards||[]).find(x=>x.id===id):null;
+  modal(`<h3>🎁 ${r?'Belohnung bearbeiten':'Neue Belohnung'}</h3>
+    ${r?'':`<div class="ch-tpl">${RW_DEF.map(([i,t,c],k)=>`<button type="button" data-k="${k}">${i} ${esc(t)} · ${c}⭐</button>`).join('')}</div>`}
+    <form id="rwForm" autocomplete="off"><div class="row"><input name="icon" maxlength="4" value="${esc(r?r.icon:'🎁')}" style="flex:0 0 64px;text-align:center;font-size:22px"><input name="title" required maxlength="50" placeholder="z. B. Pizza-Abend" value="${esc(r?r.title:'')}" style="flex:1"></div>
+      <label>Kostet ⭐ Punkte<input name="cost" type="number" min="1" max="9999" required value="${esc(r?r.cost:30)}"></label>
+      <button class="btn primary" style="width:100%">Speichern</button>${r?`<button type="button" class="btn ghost danger" style="width:100%;margin-top:8px" id="rwDel">Löschen</button>`:''}</form>`);
+  const f=$('#rwForm');$('#sheet').querySelectorAll('.ch-tpl [data-k]').forEach(b=>b.onclick=()=>{const [i,t,c]=RW_DEF[+b.dataset.k];f.icon.value=i;f.title.value=t;f.cost.value=c});
+  f.onsubmit=async e=>{e.preventDefault();const d={icon:f.icon.value.trim()||'🎁',title:f.title.value.trim(),cost:Math.max(1,+f.cost.value||1)};if(!d.title) return;
+    const ok=r?await w(()=>S.db.doc('rewards/'+r.id).update(d)):await w(()=>S.db.collection('rewards').add({...d,ts:Date.now()}));if(ok){closeModal();toast('Gespeichert ✓')}};
+  const del=$('#rwDel');if(del) del.onclick=()=>confirmBtn(del,'Wirklich löschen?',async()=>{if(await w(()=>S.db.doc('rewards/'+r.id).delete())){closeModal();toast('Gelöscht')}});
+}
 
 /* ---------- Stammbaum ---------- */
 const TREE_REL={
@@ -2653,7 +2774,7 @@ async function appDecide(key,ok){
   if(ok){al.add(pkg);dn.delete(pkg)}else{dn.add(pkg);al.delete(pkg)}
   if(await w(()=>S.db.doc('devices/'+id).update({appsAllowed:[...al],appsDenied:[...dn]}))) toast(ok?'✅ App freigegeben':'🚫 App bleibt gesperrt');
 }
-const WIPE={chat:'Chat',shop:'Einkauf',events:'Termine',meals:'Essen',bills:'Haushalt',tasks:'Aufgaben',announce:'Durchsagen',challenges:'Challenges',quran:'Quran-Fortschritt',devices:'Geräteliste'};
+const WIPE={chat:'Chat',shop:'Einkauf',events:'Termine',meals:'Essen',bills:'Haushalt',tasks:'Aufgaben',announce:'Durchsagen',challenges:'Challenges',redeem:'Eingelöste Wünsche',bonus:'Bonuspunkte',quran:'Quran-Fortschritt',devices:'Geräteliste'};
 async function wipeColl(name){
   let n=0;const snap=await S.db.collection(name).get();
   for(const d of snap.docs){if(name==='devices'&&d.id===S.devId) continue;try{await S.db.doc(name+'/'+d.id).delete();n++}catch{}}
@@ -2756,7 +2877,12 @@ function renderBadges(){
   const th=$('#moreTaskHint');if(th){const op=S.tasks.filter(t=>!t.done&&(!t.who||t.who===S.meId)).length;th.innerHTML=td?`<b class="late-txt">${td} fällig</b>`:op?`${op} offen für dich`:'Wer macht was?'}
   const mh=$('#moreBillHint');if(mh) mh.textContent=bd?`${bd} bald fällig`:'Rechnungen & Fixkosten';
 }
-function renderAll(){applyAdmin();renderMe();renderCal();renderChat();renderShop();renderFam();renderMeals();renderBills();renderQuranProgress();renderBadges();renderChallenges();renderTree();if(S.ann) renderAnnounce()}
+function liveNotifyRedeem(list){const ids=new Set(list.map(r=>r.id+r.status));
+  if(S.rqSeen){for(const r of list){if(S.rqSeen.has(r.id+r.status)) continue;const m=member(r.mid);
+    if(r.status==='offen'&&iAmParent()&&r.by!==S.meId) nativeNotify('🎁 '+(m?m.name:'')+' möchte einlösen',r.title+' ('+r.cost+' ⭐)','rq-'+r.id);
+    if(r.status==='ok'&&r.mid===S.meId) nativeNotify('🎉 Wunsch erfüllt!',r.title,'rq-'+r.id)}}
+  S.rqSeen=ids}
+function renderAll(){applyAdmin();renderMe();renderCal();renderChat();renderShop();renderFam();renderMeals();renderBills();renderQuranProgress();renderBadges();renderChallenges();renderTree();renderPoints();if(S.ann) renderAnnounce()}
 
 /* ---------- Aktionen ---------- */
 const ACT={
@@ -2819,6 +2945,12 @@ const ACT={
   'ch-del':(t,id)=>chDel(id,t),
   'tree-new':(t,id)=>treeEdit(null,id),
   'tree-open':(t,id)=>treeOpen(id),
+  'rw-new':()=>rwEdit(null),
+  'rw-edit':(t,id)=>rwEdit(id),
+  'rw-redeem':(t,id)=>rwRedeem(id),
+  'rq-ok':(t,id)=>rqSet(id,'ok'),
+  'rq-no':(t,id)=>rqSet(id,'nein'),
+  'pts-bonus':(t,id)=>ptsBonus(+id),
   'clock':()=>clockModal(),
   'clock-toggle':(t,id)=>clockToggle(id),
   'clock-del':(t,id)=>clockDel(id),
@@ -2852,12 +2984,15 @@ function subscribe(){
   S.db.collection('devices').onSnapshot(s=>{S.devices=rows(s);renderDevices();renderPending();renderBadges();if(S.view==='familie') renderFam()},errX('devices'));
   S.db.collection('blocked').onSnapshot(s=>{S.blockedAcc=rows(s);renderDevices()},errX('blocked'));
   S.tasks=S.tasks||[];
-  S.db.collection('tasks').onSnapshot(s=>{S.tasks=rows(s);if(!s.metadata.fromCache) liveNotifyTasks(S.tasks);renderTasks();renderBadges();scheduleAlarms();scheduleIcsSync()},errX('tasks'));
+  S.db.collection('tasks').onSnapshot(s=>{S.tasks=rows(s);renderPoints();if(!s.metadata.fromCache) liveNotifyTasks(S.tasks);renderTasks();renderBadges();scheduleAlarms();scheduleIcsSync()},errX('tasks'));
   S.clocks=S.clocks||[];
   S.db.collection('clocks').onSnapshot(s=>{S.clocks=rows(s);renderClockHint();renderClockList();scheduleAlarms()},errX('clocks'));
   S.db.collection('announce').orderBy('ts','desc').limit(5).onSnapshot(s=>{if(!s.metadata.fromCache) onAnnounce(rows(s))},errX('announce'));
-  S.db.collection('challenges').onSnapshot(s=>{S.challenges=rows(s);renderChallenges()},errX('challenges'));
+  S.db.collection('challenges').onSnapshot(s=>{S.challenges=rows(s);renderChallenges();renderPoints()},errX('challenges'));
   S.db.collection('tree').onSnapshot(s=>{S.tree=rows(s);renderTree()},errX('tree'));
+  S.db.collection('rewards').onSnapshot(s=>{S.rewards=rows(s);renderPoints()},errX('rewards'));
+  S.db.collection('redeem').onSnapshot(s=>{S.redeem=rows(s);if(!s.metadata.fromCache) liveNotifyRedeem(S.redeem);renderPoints();renderBadges()},errX('redeem'));
+  S.db.collection('bonus').onSnapshot(s=>{S.bonus=rows(s);renderPoints()},errX('bonus'));
   S.db.doc('config/wifi').onSnapshot(s=>{S.wifi=s.exists?s.data():null},()=>{});
   S.db.collection('allowed').onSnapshot(s=>{S.allowed=rows(s);renderAccess()},()=>{});
   setInterval(()=>{if(S.view==='familie') renderDevices()},60000);
