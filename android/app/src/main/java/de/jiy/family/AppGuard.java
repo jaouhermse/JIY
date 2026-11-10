@@ -13,7 +13,13 @@ import android.provider.Settings;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -39,18 +45,24 @@ public final class AppGuard {
         return new HashSet<>(prefs(c).getStringSet("allowed", Collections.emptySet()));
     }
 
-    /** json: {"on":true,"allowed":["com.whatsapp", ...]} */
+    /** json: {"on":true,"allowed":["com.whatsapp", ...],"limits":{"com.google.android.youtube":30}} */
     static void apply(Context c, String json) {
         boolean on = false;
         Set<String> set = new HashSet<>();
+        String lim = "{}";
         try {
             JSONObject o = new JSONObject(json);
             on = o.optBoolean("on", false);
             JSONArray a = o.optJSONArray("allowed");
             if (a != null) for (int i = 0; i < a.length(); i++) set.add(a.getString(i));
+            JSONObject l = o.optJSONObject("limits");
+            if (l != null) lim = l.toString();
         } catch (Exception ignored) {
         }
-        prefs(c).edit().putBoolean("on", on).putStringSet("allowed", set).apply();
+        prefs(c).edit().putBoolean("on", on).putStringSet("allowed", set).putString("limits", lim).apply();
+        synchronized (AppGuard.class) {
+            limits = null;
+        }
         if (on && hasUsage(c)) start(c);
         else stop(c);
     }
@@ -109,6 +121,88 @@ public final class AppGuard {
             }
         }
         return out.toString();
+    }
+
+    // ---------- Tageslimit pro App ----------
+    private static Map<String, Integer> limits;
+    private static final Map<String, Long> use = new HashMap<>();
+    private static String useDay;
+    private static long lastFlush;
+
+    static synchronized int limitMin(Context c, String pkg) {
+        if (limits == null) {
+            limits = new HashMap<>();
+            try {
+                JSONObject o = new JSONObject(prefs(c).getString("limits", "{}"));
+                Iterator<String> it = o.keys();
+                while (it.hasNext()) {
+                    String k = it.next();
+                    limits.put(k, o.optInt(k, 0));
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        Integer v = limits.get(pkg);
+        return v == null ? 0 : v;
+    }
+
+    private static String today() {
+        return new SimpleDateFormat("yyyyMMdd", Locale.US).format(new Date());
+    }
+
+    private static void ensureDay(Context c) {
+        String t = today();
+        if (t.equals(useDay)) return;
+        if (useDay != null) flush(c);
+        use.clear();
+        useDay = t;
+        try {
+            JSONObject o = new JSONObject(prefs(c).getString("use_" + t, "{}"));
+            Iterator<String> it = o.keys();
+            while (it.hasNext()) {
+                String k = it.next();
+                use.put(k, o.optLong(k, 0));
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    private static void flush(Context c) {
+        try {
+            JSONObject o = new JSONObject();
+            for (Map.Entry<String, Long> e : use.entrySet()) o.put(e.getKey(), e.getValue());
+            prefs(c).edit().putString("use_" + useDay, o.toString()).apply();
+        } catch (Exception ignored) {
+        }
+        lastFlush = System.currentTimeMillis();
+    }
+
+    static synchronized void addUsage(Context c, String pkg, long ms) {
+        ensureDay(c);
+        Long old = use.get(pkg);
+        use.put(pkg, (old == null ? 0 : old) + ms);
+        if (System.currentTimeMillis() - lastFlush > 15000) flush(c);
+    }
+
+    static synchronized long usedSec(Context c, String pkg) {
+        ensureDay(c);
+        Long v = use.get(pkg);
+        return v == null ? 0 : v / 1000;
+    }
+
+    /** Heutige Nutzung in Minuten als JSON {"day":"20261110","m":{"paket":12}} */
+    static synchronized String usageJson(Context c) {
+        ensureDay(c);
+        try {
+            JSONObject m = new JSONObject();
+            for (Map.Entry<String, Long> e : use.entrySet()) {
+                long min = e.getValue() / 60000;
+                if (min > 0) m.put(e.getKey(), min);
+            }
+            return new JSONObject().put("day", useDay).put("m", m).toString();
+        } catch (Exception e) {
+            return "{}";
+        }
     }
 
     /** Apps, die immer erlaubt sind: JIY, Startbildschirm, Telefon/Notruf, System-Dialoge. */
