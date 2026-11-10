@@ -474,6 +474,7 @@ button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .m
         <h3>📅 Kalender-Abo für Gmail &amp; Outlook</h3>
         <p class="hint" style="margin-top:4px">Alle JIY-Termine und Geburtstage erscheinen automatisch als eigener Kalender „JIY Familie“. Google und Outlook holen Änderungen selbst alle paar Stunden ab.</p>
         <div class="row" style="align-items:center;margin-bottom:12px"><input id="aboUrl" readonly><button class="btn soft" data-act="copy-abo">Kopieren</button></div>
+        <details style="margin-bottom:10px"><summary class="hint" style="cursor:pointer"><b>👤 Eigener Kalender pro Person</b> (nur eigene Termine &amp; Aufgaben)</summary><div id="aboPer" style="margin-top:8px"></div></details>
         <ol class="abo-steps">
           <li><b>Google Kalender (Gmail, am PC):</b> calendar.google.com → links bei „Weitere Kalender“ auf <b>+</b> → <b>Per URL</b> → Link einfügen → <b>Kalender hinzufügen</b>.</li>
           <li><b>Outlook:</b> outlook.live.com/calendar → <b>Kalender hinzufügen</b> → <b>Aus dem Internet abonnieren</b> → Link einfügen → Name „JIY Familie“ → <b>Importieren</b>.</li>
@@ -558,6 +559,7 @@ button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .m
       <h2>☰ Mehr</h2>
       <div class="more-grid">
         <button class="more-btn" data-act="tab" data-id="aufgaben"><span class="mi">✅</span><b>Aufgaben &amp; Putzplan</b><small id="moreTaskHint">Wer macht was?</small></button>
+        <button class="more-btn" data-act="my-abo"><span class="mi">📅</span><b>Mein Kalender</b><small>in Gmail / Outlook / iPhone</small></button>
         <button class="more-btn" data-act="clock"><span class="mi">⏰</span><b>Wecker</b><small id="moreClockHint">Weckzeiten für alle</small></button>
         <button class="more-btn" data-act="announce"><span class="mi">📣</span><b>Durchsage</b><small>z. B. „Essen ist fertig!“</small></button>
         <button class="more-btn" data-act="tab" data-id="haushalt" id="hhTab"><span class="mi">💸</span><b>Haushalt</b><small id="moreBillHint">Rechnungen &amp; Fixkosten</small></button>
@@ -884,6 +886,7 @@ async function setMe(id){
 /* ---------- Familie ---------- */
 function lastSeenOf(m){let best=null;for(const d of S.devices||[]){if(d.member===m.id||(m.uid&&d.uid===m.uid&&!d.member)){if(!best||(d.lastSeen||0)>(best.lastSeen||0)) best=d}}return best}
 function lastSeenTxt(m){if(!amAdmin()) return '';const d=lastSeenOf(m);return `<small>🕒 ${d?'zuletzt aktiv '+agoTxt(d.lastSeen)+' · '+esc(d.name||d.model||'Gerät'):'noch nie angemeldet'}</small>`}
+function renderFamAbo(){try{renderAbo()}catch{}}
 function renderFam(){
   const list=$('#famList');
   if(!S.members.length){
@@ -1316,12 +1319,14 @@ function icsEsc(t){return String(t||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;'
 function icsFold(line){let out=[],cur='',n=0;for(const ch of line){const b=TE.encode(ch).length;if(n+b>73){out.push(cur);cur=' '+ch;n=1+b}else{cur+=ch;n+=b}}out.push(cur);return out.join('\r\n')}
 function ymd(d){return String(d).replace(/-/g,'')}
 const VTZ=['BEGIN:VTIMEZONE','TZID:Europe/Berlin','BEGIN:DAYLIGHT','TZOFFSETFROM:+0100','TZOFFSETTO:+0200','TZNAME:CEST','DTSTART:19700329T020000','RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU','END:DAYLIGHT','BEGIN:STANDARD','TZOFFSETFROM:+0200','TZOFFSETTO:+0100','TZNAME:CET','DTSTART:19701025T030000','RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU','END:STANDARD','END:VTIMEZONE'];
-function buildIcs(){
-  const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//JIY Family//DE','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:JIY Familie','X-WR-TIMEZONE:Europe/Berlin','REFRESH-INTERVAL;VALUE=DURATION:PT1H','X-PUBLISHED-TTL:PT1H',...VTZ];
+function buildIcs(mid){
+  const mm=mid?member(mid):null;
+  const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//JIY Family//DE','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:'+(mm?'JIY – '+mm.name:'JIY Familie'),'X-WR-TIMEZONE:Europe/Berlin','REFRESH-INTERVAL;VALUE=DURATION:PT1H','X-PUBLISHED-TTL:PT1H',...VTZ];
   const stamp='20250101T000000Z',cutoff=addDays(today(),-365);
   const evs=[...S.events].sort((a,b)=>String(a.id).localeCompare(String(b.id)));
   for(const e of evs){
     if(!e.start||(e.end||e.start)<cutoff) continue;
+    if(mid&&(e.who||[]).length&&!(e.who||[]).includes(mid)) continue;
     const c=CATS[e.cat]||CATS.termin,end=e.end||e.start;
     const who=(e.who||[]).map(member).filter(Boolean).map(m=>m.name).join(', ');
     L.push('BEGIN:VEVENT','UID:'+e.id+'@jiy-family','DTSTAMP:'+stamp);
@@ -1339,7 +1344,7 @@ function buildIcs(){
   }
   // Aufgaben & Putzplan mit Datum -> auch in Gmail/Outlook
   for(const t of [...(S.tasks||[])].sort((a,b)=>String(a.id).localeCompare(String(b.id)))){
-    if(t.done||!t.due||t.due<cutoff) continue;const who=member(t.who);
+    if(t.done||!t.due||t.due<cutoff) continue;if(mid&&t.who&&t.who!==mid) continue;const who=member(t.who);
     L.push('BEGIN:VEVENT','UID:task-'+t.id+'@jiy-family','DTSTAMP:'+stamp,'DTSTART;VALUE=DATE:'+ymd(t.due),'DTEND;VALUE=DATE:'+ymd(addDays(t.due,1)),
       'SUMMARY:'+icsEsc('✅ '+t.title+(who?' ('+who.name+')':'')),'DESCRIPTION:'+icsEsc('Aufgabe in JIY'+(t.repeat?' · wiederholt sich '+(REP_TXT[t.repeat]||''):'')+(t.note?'\n'+t.note:'')),'TRANSP:TRANSPARENT','CATEGORIES:Aufgabe','END:VEVENT');
   }
@@ -1356,20 +1361,36 @@ async function initIcs(){
       const tok=Array.from(crypto.getRandomValues(new Uint8Array(20)),b=>'abcdefghijkmnpqrstuvwxyz23456789'[b%32]).join('');
       await S.db.doc('config/ics').set({token:tok,ts:Date.now()});S.icsToken=tok;
     }
-    if(S.icsToken){const x=await S.db.doc('ics/'+S.icsToken).get();S.icsLast=x.exists?x.data().ics:null}
+    if(S.icsToken){const x=await S.db.doc('ics/'+S.icsToken).get();S.icsLast=x.exists?(x.data().ics||'')+JSON.stringify(x.data().per||{}):null}
   }catch(e){console.warn('ics',e)}
   renderFam();scheduleIcsSync();
 }
 function scheduleIcsSync(){
   if(!S.icsToken||!S.loaded||!S.db) return;
   clearTimeout(icsTimer);
-  icsTimer=setTimeout(async()=>{const ics=buildIcs();if(ics===S.icsLast) return;
-    try{await S.db.doc('ics/'+S.icsToken).set({ics,updated:Date.now()});S.icsLast=ics}catch(e){console.warn('ics write',e)}},4000);
+  icsTimer=setTimeout(async()=>{const ics=buildIcs();const per={};for(const m of S.members) per[m.id]=buildIcs(m.id);
+    const sig=ics+JSON.stringify(per);if(sig===S.icsLast) return;
+    try{await S.db.doc('ics/'+S.icsToken).set({ics,per,updated:Date.now()});S.icsLast=sig}catch(e){console.warn('ics write',e)}},4000);
 }
-function icsUrl(){return S.icsToken?PAGES_BASE+'cal/'+S.icsToken+'.ics':''}
+function icsUrl(mid){return S.icsToken?PAGES_BASE+'cal/'+S.icsToken+(mid?'-'+mid:'')+'.ics':''}
 function renderAbo(){
   const card=$('#aboCard');if(!card) return;card.hidden=!S.icsToken;
-  if(S.icsToken){$('#aboUrl').value=icsUrl();$('#aboToken').textContent=S.icsToken}
+  if(S.icsToken){$('#aboUrl').value=icsUrl();$('#aboToken').textContent=S.icsToken;
+    const pl=$('#aboPer');if(pl) pl.innerHTML=S.members.map(m=>`<div class="row" style="align-items:center;margin-bottom:6px"><b style="flex:0 0 90px">${esc(m.name)}</b><input readonly value="${esc(icsUrl(m.id))}" style="flex:1;font-size:12px"><button class="btn soft sm" data-act="copy-abo" data-id="${esc(m.id)}">Kopieren</button></div>`).join('')}
+}
+function calLinkFor(e){const em=String(S.email||'').toLowerCase();
+  return /@(outlook|hotmail|live|msn)\./.test(em)?outlookLink(e,'outlook.live.com'):gcalLink(e)}
+function myAboModal(){
+  const me=member(S.meId);
+  if(!S.icsToken) return modal(`<h3>📅 Mein Kalender</h3><p class="muted">Das Kalender-Abo ist noch nicht eingerichtet – Papa/Mama können es unter Familie aktivieren.</p>`);
+  const url=icsUrl(me?me.id:null);
+  modal(`<h3>📅 ${me?esc(me.name)+'s':'Mein'} Kalender</h3>
+    <p class="muted" style="margin-top:-6px">Alle Termine, bei denen ${me?esc(me.name):'du'} dabei bist, Familien-Termine, Geburtstage und ${me?'deine':'alle'} Aufgaben – automatisch in Gmail oder Outlook.</p>
+    <div class="row" style="align-items:center;margin-bottom:12px"><input readonly value="${esc(url)}" id="myAboUrl"><button class="btn soft" data-act="copy-abo" data-id="${esc(me?me.id:'')}">Kopieren</button></div>
+    <ol class="abo-steps"><li><b>Gmail:</b> calendar.google.com (am PC) → links „Weitere Kalender“ <b>+</b> → <b>Per URL</b> → Link einfügen.</li>
+    <li><b>Outlook:</b> outlook.live.com/calendar → <b>Kalender hinzufügen</b> → <b>Aus dem Internet abonnieren</b> → Link einfügen.</li>
+    <li><b>iPhone:</b> Einstellungen → Kalender → Accounts → Account hinzufügen → Andere → <b>Kalenderabo hinzufügen</b> → Link einfügen.</li></ol>
+    <p class="hint">Google/Outlook holen Änderungen selbst ab (meist innerhalb einiger Stunden). Sofort geht es mit dem 📅-Knopf bei jeder Aufgabe oder jedem Termin.</p>`);
 }
 
 /* =====================================================================
@@ -1600,7 +1621,7 @@ function renderTasks(){
   const row=t=>{const who=member(t.who),by=member(t.by),db=member(t.doneBy);
     return `<div class="task ${t.done?'done':''} ${taskLate(t)?'late':''}"><button class="task-chk" data-act="task-toggle" data-id="${esc(t.id)}" aria-label="Erledigt">${t.done?'✓':''}</button>
       <div class="task-main"><b>${esc(t.title)}</b><small>${(t.rot||[]).length?'🔄 ':''}${who?'👤 '+esc(who.name):'👨‍👩‍👦 Alle'}${t.repeat?' · 🔁 '+REP_TXT[t.repeat]:''} · ⭐ ${+t.pts||1}${t.due?' · 📅 '+(t.due===today()?'heute':fmtDay(t.due))+(taskLate(t)?' (überfällig)':''):''}${by?' · von '+esc(by.name):''}${t.done&&db?' · ✓ '+esc(db.name):''}</small>${t.note?`<small>${esc(t.note)}</small>`:''}</div>
-      <button class="icon-btn" data-act="task-edit" data-id="${esc(t.id)}" aria-label="Bearbeiten">✎</button></div>`};
+      ${!t.done&&t.due?`<button class="icon-btn" data-act="task-cal" data-id="${esc(t.id)}" aria-label="In meinen Kalender" title="In meinen Kalender">📅</button>`:''}<button class="icon-btn" data-act="task-edit" data-id="${esc(t.id)}" aria-label="Bearbeiten">✎</button></div>`};
   list.innerHTML=(open.length?open.map(row).join(''):'<div class="empty">Keine offenen Aufgaben 🎉</div>')
     +(done.length?`<div class="task-done-head"><span>Erledigt</span><button class="btn ghost sm" data-act="task-clear">Ältere löschen</button></div>`+done.map(row).join(''):'');
   const f=$('#taskForm');if(f&&!f.dataset.bound){f.dataset.bound='1';
@@ -2428,7 +2449,9 @@ const ACT={
   'guard-overlay':()=>{try{window.JIYNative.openOverlaySettings()}catch{}},
   'app-update':()=>updateModal(),
   'acc-block':(t,id)=>accBlock(id),
-  'copy-abo':async()=>{const u=icsUrl();try{await navigator.clipboard.writeText(u);toast('Link kopiert ✓')}catch{const i=$('#aboUrl');i.focus();i.select();toast('Link markiert – jetzt kopieren')}},
+  'my-abo':()=>myAboModal(),
+  'task-cal':(t,id)=>{const k=S.tasks.find(x=>x.id===id);if(!k) return;const who=member(k.who);window.open(calLinkFor({title:k.title+(who?' ('+who.name+')':''),cat:'aufgabe',allDay:true,start:k.due||today(),end:k.due||today(),note:'Aufgabe aus JIY'}),'_blank')},
+  'copy-abo':async(t,id)=>{const u=icsUrl(id||null);try{await navigator.clipboard.writeText(u);toast('Link kopiert ✓')}catch{const i=$('#aboUrl');i.focus();i.select();toast('Link markiert – jetzt kopieren')}},
   call:(t,id)=>startCall(id),
   finish:()=>finishShopping(),
   whatsapp:()=>openWhatsApp(),
