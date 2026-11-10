@@ -248,6 +248,13 @@ body.chat-mode .chat-wrap{height:calc(100dvh - 86px - 104px - env(safe-area-inse
 .sos-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .sos-btn{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:#FDECEC;color:#9B1C1C;font-weight:800;text-decoration:none;border:1px solid #F6C9C9}
 .sos-btn.p{background:#EAF6EE;color:#14532D;border-color:#C6E6D0}.sos-btn span{margin-left:auto;font-weight:600;font-size:13px;opacity:.8}
+.haus-seg{position:sticky;top:calc(env(safe-area-inset-top) + 70px);z-index:4;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:10px 12px 0;padding:4px;background:#fff;border-radius:18px;box-shadow:0 2px 10px rgba(22,49,59,.1)}.haus-seg[hidden]{display:none}
+.haus-seg button{position:relative;border:0;background:none;border-radius:14px;padding:6px 2px;font-size:19px;line-height:1.1;color:var(--muted)}.haus-seg button span{display:block;font-size:11.5px;font-weight:800;margin-top:2px}
+.haus-seg button.on{background:var(--pri);color:#fff}.hs-b{position:absolute;top:2px;right:8px;min-width:17px;height:17px;border-radius:9px;background:#E0524A;color:#fff;font-size:10.5px;font-style:normal;font-weight:800;line-height:17px;padding:0 4px}.hs-b[hidden]{display:none}
+body.ann-lock nav.tabs,body.ann-lock header.top,body.ann-lock .haus-seg{visibility:hidden}#annOverlay{z-index:10000!important}
+body.ramadan{--bg:#EEF0F8;--pri:#1F2C5C;--pri-soft:#DDE2F3;--saffron:#D8A93C;--accent:#D8A93C}
+body.ramadan header.top{background-color:#1B2550;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='70' viewBox='0 0 120 70'%3E%3Cg fill='%23D8A93C'%3E%3Cpath d='M30 14a12 12 0 1 0 9 20a10 10 0 1 1-9-20z' fill-opacity='.55'/%3E%3Ccircle cx='80' cy='18' r='1.6' fill-opacity='.7'/%3E%3Ccircle cx='100' cy='44' r='1.2' fill-opacity='.6'/%3E%3Ccircle cx='60' cy='52' r='1' fill-opacity='.5'/%3E%3Ccircle cx='12' cy='50' r='1.3' fill-opacity='.6'/%3E%3C/g%3E%3Cg stroke='%23D8A93C' stroke-opacity='.45' fill='none'%3E%3Cpath d='M95 0v8M91 8h8l-1 10h-6z M93 18h4'/%3E%3C/g%3E%3C/svg%3E");background-size:120px 70px}
+body.ramadan .prayer-card{background:linear-gradient(160deg,#26346B,#1B2550)}body.ramadan .needle{background:linear-gradient(#D8A93C,#B98A22)}body.ramadan nav.tabs .tab.on{color:var(--saffron)}body.ramadan .logo{background:var(--saffron);color:#1B2550}
 .ram-off{padding:12px 14px}.ram-mini{display:flex;align-items:center;gap:12px}.ram-mini>span{font-size:30px}.ram-mini b{display:block}
 .ram-card:not(.ram-off){background:linear-gradient(160deg,#173d5c,#0b2233);color:#fff}.ram-card:not(.ram-off) .muted,.ram-card:not(.ram-off) .lbl{color:rgba(255,255,255,.7)!important}
 .ram-top{display:flex;align-items:center;justify-content:space-between}.ram-top small{display:block;opacity:.75;font-weight:700}.ram-top b{font-family:var(--head);font-size:22px}
@@ -474,6 +481,12 @@ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
 
   <main>
     <!-- KALENDER -->
+    <div class="haus-seg" id="hausSeg" hidden>
+      <button data-act="tab" data-id="einkauf">🛒<span>Einkauf</span><i class="hs-b" id="hsShop" hidden></i></button>
+      <button data-act="tab" data-id="essen">🍽️<span>Essen</span></button>
+      <button data-act="tab" data-id="aufgaben">✅<span>Aufgaben</span><i class="hs-b" id="hsTask" hidden></i></button>
+      <button data-act="tab" data-id="challenge">🏆<span>Challenge</span></button>
+    </div>
     <section id="view-kalender" class="view">
       <div class="cal-head">
         <button class="icon-btn" data-act="prev" aria-label="Vorheriger Monat">‹</button>
@@ -712,13 +725,11 @@ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
     <section id="view-mehr" class="view" hidden>
       <h2>☰ Mehr</h2>
       <div class="more-grid">
-        <button class="more-btn" data-act="tab" data-id="aufgaben"><span class="mi">✅</span><b>Aufgaben &amp; Putzplan</b><small id="moreTaskHint">Wer macht was?</small></button>
         <button class="more-btn" data-act="clock"><span class="mi">⏰</span><b>Wecker</b><small id="moreClockHint">Weckzeiten für alle</small></button>
         <button class="more-btn" data-act="announce"><span class="mi">📣</span><b>Durchsage</b><small>z. B. „Essen ist fertig!“</small></button>
         <button class="more-btn" data-act="tab" data-id="haushalt" id="hhTab"><span class="mi">💸</span><b>Haushalt</b><small id="moreBillHint">Rechnungen &amp; Fixkosten</small></button>
         <button class="more-btn" data-act="tab" data-id="fristen" id="fristTab"><span class="mi">🚗</span><b>Auto &amp; Fristen</b><small id="moreFristHint">TÜV, Pass, Verträge</small></button>
         <button class="more-btn" data-act="tab" data-id="punkte"><span class="mi">🎁</span><b>Punkte &amp; Belohnungen</b><small id="morePtsHint">Pizza, Kino, Spielzeug …</small></button>
-        <button class="more-btn" data-act="tab" data-id="challenge"><span class="mi">🏆</span><b>Family Challenge</b><small id="moreChHint">Wer schafft es?</small></button>
         <button class="more-btn" data-act="tab" data-id="stammbaum"><span class="mi">🌳</span><b>Stammbaum</b><small>Opa, Oma &amp; alle</small></button>
         <button class="more-btn" data-act="guard-setup" id="guardBtn" hidden><span class="mi">📲</span><b>Kinderschutz einrichten</b><small id="guardHint">Berechtigungen prüfen</small></button>
         <button class="more-btn" data-act="wifi"><span class="mi">📶</span><b>WLAN</b><small>QR-Code für Gäste</small></button>
@@ -735,8 +746,7 @@ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
   <nav class="tabs"><div class="in">
     <button class="tab" data-act="tab" data-id="kalender"><span class="ic">📅</span>Kalender</button>
     <button class="tab" data-act="tab" data-id="chat"><span class="ic">💬</span>Chat<span class="badge" id="chatBadge" hidden></span></button>
-    <button class="tab" data-act="tab" data-id="einkauf"><span class="ic">🛒</span>Einkauf<span class="badge" id="shopBadge" hidden></span></button>
-    <button class="tab" data-act="tab" data-id="essen"><span class="ic">🍽️</span>Essen</button>
+    <button class="tab" data-act="tab" data-id="haus"><span class="ic">🏠</span>Haus<span class="badge" id="shopBadge" hidden></span></button>
     <button class="tab" data-act="tab" data-id="gebet"><span class="ic">🕌</span>Gebet</button>
     <button class="tab" data-act="tab" data-id="mehr"><span class="ic">☰</span>Mehr<span class="badge" id="moreBadge" hidden></span></button>
   </div></nav>
@@ -981,13 +991,17 @@ function confirmBtn(btn,label,fn){
 
 /* ---------- Navigation ---------- */
 const VIEWS=['kalender','chat','einkauf','essen','gebet','mehr','haushalt','familie','aufgaben','challenge','stammbaum','punkte','fristen'];
+const HAUS=['einkauf','essen','aufgaben','challenge'];
 function show(v){
+  if(v==='haus') v=HAUS.includes(ls('jiy-haus'))?ls('jiy-haus'):'einkauf';
   if(!VIEWS.includes(v)) v='kalender';
   if(v==='familie'&&!amAdmin()) v='kalender';
   if(v==='fristen'&&(isKid()||isGuest())) v='kalender';
   S.view=v;
   for(const x of VIEWS) $('#view-'+x).hidden=x!==v;
-  const tabOf=(v==='haushalt'||v==='familie'||v==='aufgaben'||v==='challenge'||v==='stammbaum'||v==='punkte'||v==='fristen')?'mehr':v;
+  const inHaus=HAUS.includes(v);if(inHaus) lsSet('jiy-haus',v);
+  const hs=$('#hausSeg');if(hs){hs.hidden=!inHaus;hs.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.id===v))}
+  const tabOf=inHaus?'haus':(v==='haushalt'||v==='familie'||v==='stammbaum'||v==='punkte'||v==='fristen')?'mehr':v;
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.id===tabOf));
   document.body.classList.toggle('chat-mode',v==='chat');
   if(location.hash!=='#'+v) history.replaceState(null,'','#'+v);
@@ -1025,6 +1039,10 @@ function renderMe(){
   $('#meBtn').innerHTML=m?`${av(m.id)}${esc(m.name)}`:`<span class="av ghost">?</span>Wer bin ich?`;
 }
 function openWhoAmI(){
+  if(S.meId&&!amAdmin()){const m=member(S.meId);
+    modal(`<div style="text-align:center">${av(S.meId,'lg')}<h3 style="margin:8px 0 2px">${esc(m?m.name:'')}</h3><p class="muted">Das bist du auf diesem Gerät.<br>Profil wechseln kann nur Mama oder Papa.</p></div>
+      ${S.members.filter(x=>roleOf(x)==='admin'&&x.pin).length?`<div class="lbl" style="text-align:center;margin-top:10px">🔒 Mama/Papa hier anmelden (mit PIN)</div><div class="who-grid">${S.members.filter(x=>roleOf(x)==='admin'&&x.pin).map(x=>`<button data-act="set-me" data-id="${esc(x.id)}">${av(x.id,'lg')}${esc(x.name)}<small>🔒</small></button>`).join('')}</div>`:''}
+      ${isKid()?'':'<div style="text-align:center"><button class="btn ghost sm" data-act="logout">Abmelden</button></div>'}`);return}
   if(!S.members.length){if(!amAdmin()){toast('Es sind noch keine Profile angelegt – bitte Mama oder Papa fragen');return}show('familie');toast('Lege zuerst die Familienmitglieder an');return}
   modal(`<h3>Wer bist du?</h3><p class="muted" style="margin-top:-6px">Dann sehen alle, wer was geschrieben oder eingetragen hat.</p>
     <div class="who-grid">${myProfiles().map(m=>`<button data-act="set-me" data-id="${esc(m.id)}">${av(m.id,'lg')}${esc(m.name)}${m.pin&&m.id!==S.meId?'<small>🔒</small>':''}</button>`).join('')}</div>
@@ -1799,16 +1817,17 @@ function renderTasks(){
   const rb=$('#taskRot');if(rb&&rb.dataset.n!==String(S.members.length)){const sel=new Set([...rb.querySelectorAll('input:checked')].map(x=>x.value));rb.innerHTML=S.members.map(m=>`<label class="pick"><input type="checkbox" name="rot" value="${esc(m.id)}" ${sel.has(m.id)?'checked':''}><span>${esc(m.name)}</span></label>`).join('');rb.dataset.n=String(S.members.length)}
   const tp=$('#taskTpl');if(tp&&!tp.dataset.bound){tp.dataset.bound='1';renderTaskTpl(0)}
   renderTaskScore();
-  const mine=!!S.taskMine;const mb=$('#taskMine');if(mb){mb.textContent=mine?'Alle zeigen':'Nur meine';mb.classList.toggle('on',mine)}
+  const kid=isKid()||isGuest(),tf=$('#taskForm');if(tf) tf.hidden=kid;
+  const mine=kid||!!S.taskMine;const mb=$('#taskMine');if(mb){mb.hidden=kid;mb.textContent=mine?'Alle zeigen':'Nur meine';mb.classList.toggle('on',mine)}
   let ts=S.tasks.filter(t=>!mine||!t.who||t.who===S.meId);
   const open=ts.filter(t=>!t.done).sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999')||(a.ts||0)-(b.ts||0));
   const done=ts.filter(t=>t.done).sort((a,b)=>(b.doneAt||0)-(a.doneAt||0)).slice(0,30);
   const row=t=>{const who=member(t.who),by=member(t.by),db=member(t.doneBy);
     return `<div class="task ${t.done?'done':''} ${taskLate(t)?'late':''}"><button class="task-chk" data-act="task-toggle" data-id="${esc(t.id)}" aria-label="Erledigt">${t.done?'✓':''}</button>
       <div class="task-main"><b>${esc(t.title)}</b><small>${(t.rot||[]).length?'🔄 ':''}${who?'👤 '+esc(who.name):'👨‍👩‍👦 Alle'}${t.repeat?' · 🔁 '+REP_TXT[t.repeat]:''} · ⭐ ${+t.pts||1}${t.due?' · 📅 '+(t.due===today()?'heute':fmtDay(t.due))+(taskLate(t)?' (überfällig)':''):''}${by?' · von '+esc(by.name):''}${t.done&&db?' · ✓ '+esc(db.name):''}</small>${t.note?`<small>${esc(t.note)}</small>`:''}</div>
-      ${!t.done&&t.due?`<button class="icon-btn" data-act="task-cal" data-id="${esc(t.id)}" aria-label="In meinen Kalender" title="In meinen Kalender">📅</button>`:''}<button class="icon-btn" data-act="task-edit" data-id="${esc(t.id)}" aria-label="Bearbeiten">✎</button></div>`};
+      ${!t.done&&t.due?`<button class="icon-btn" data-act="task-cal" data-id="${esc(t.id)}" aria-label="In meinen Kalender" title="In meinen Kalender">📅</button>`:''}${kid?'':`<button class="icon-btn" data-act="task-edit" data-id="${esc(t.id)}" aria-label="Bearbeiten">✎</button>`}</div>`};
   list.innerHTML=(open.length?open.map(row).join(''):'<div class="empty">Keine offenen Aufgaben 🎉</div>')
-    +(done.length?`<div class="task-done-head"><span>Erledigt</span><button class="btn ghost sm" data-act="task-clear">Ältere löschen</button></div>`+done.map(row).join(''):'');
+    +(done.length?`<div class="task-done-head"><span>Erledigt</span>${kid?'':'<button class="btn ghost sm" data-act="task-clear">Ältere löschen</button>'}</div>`+done.map(row).join(''):'');
   const f=$('#taskForm');if(f&&!f.dataset.bound){f.dataset.bound='1';
     f.who.onchange=()=>{$('#taskRotBox').hidden=f.who.value!=='__rot'};
     f.onsubmit=async e=>{e.preventDefault();const title=f.title.value.trim();if(!title) return;
@@ -1819,6 +1838,7 @@ function renderTasks(){
   if(mb&&!mb.dataset.bound){mb.dataset.bound='1';mb.onclick=()=>{S.taskMine=!S.taskMine;renderTasks()}}
 }
 async function taskToggle(id){const t=S.tasks.find(x=>x.id===id);if(!t) return;
+  if((isKid()||isGuest())&&((t.who&&t.who!==S.meId)||(t.done&&t.doneBy!==S.meId))) return toast('Das ist nicht deine Aufgabe 🙂');
   if(t.done){await w(()=>S.db.doc('tasks/'+id).update({done:false,doneBy:null,doneAt:null}));return}
   const ok=await w(()=>S.db.doc('tasks/'+id).update({done:true,doneBy:S.meId||null,doneAt:Date.now(),nextMade:!!t.repeat||!!t.nextMade}));
   if(!ok) return;
@@ -1890,7 +1910,7 @@ function clockAlarms(){
   const out=[];const now=Date.now();
   for(const c of S.clocks||[]){if(!c.on||!clockMine(c)||!c.time) continue;
     if(!(c.days||[]).length){if(c.date){const at=atMs(c.date,c.time);if(at>now) out.push({id:'clk-'+c.id+'-'+c.date,at,title:'⏰ '+c.time+(c.label?' – '+c.label:''),body:'Wecker',ring:true})}continue}
-    for(let i=0;i<8;i++){const ds=addDays(today(),i),dow=((parse(ds).getDay()+6)%7)+1;
+    for(let i=0;i<21;i++){const ds=addDays(today(),i),dow=((parse(ds).getDay()+6)%7)+1;
       if((c.days||[]).length&&!c.days.includes(dow)) continue;
       const at=atMs(ds,c.time);if(at<=now) continue;
       out.push({id:'clk-'+c.id+'-'+ds,at,title:'⏰ '+c.time+(c.label?' – '+c.label:''),body:'Wecker',ring:true});
@@ -1925,7 +1945,7 @@ function onAnnounce(list){
 function renderAnnounce(){
   let o=$('#annOverlay');if(!o){o=document.createElement('div');o.id='annOverlay';o.hidden=true;document.body.appendChild(o)}
   let bar=$('#annBar');if(!bar){bar=document.createElement('div');bar.id='annBar';bar.hidden=true;document.body.appendChild(bar)}
-  const x=annActive();if(!x){o.hidden=true;bar.hidden=true;return}
+  const x=annActive();if(!x){o.hidden=true;bar.hidden=true;if(document.body.classList.contains('ann-lock')){document.body.classList.remove('ann-lock');nativeUnlock('ann')}return}
   const by=member(x.by),acks=x.acks||{},mine=x.by&&x.by===S.meId,parent=iAmParent();
   const others=S.members.filter(m=>m.id!==x.by&&roleOf(m)!=='guest');
   const ackHtml=`<div class="ann-acks">${others.map(m=>`<span class="ann-ack ${acks[m.id]?'ok':''}">${acks[m.id]?'✓':'…'} ${esc(m.name)}</span>`).join('')}</div>`;
@@ -1935,7 +1955,7 @@ function renderAnnounce(){
     bar.hidden=false;$('#annEnd').onclick=()=>annEnd(x);return;
   }
   bar.hidden=true;
-  if(parent||isGuest()){ // Eltern/Gäste dürfen selbst schließen
+  if(parent){ // Eltern dürfen selbst schließen
     if(annSeen().includes(x.id)){o.hidden=true;return}
     o.innerHTML=`<div class="ann-box"><div class="ann-text">${esc(x.text)}</div>${by?`<div class="ann-from">— ${esc(by.name)}</div>`:''}${parent?ackHtml:''}
       <button class="btn primary" id="annOk">👍 OK</button>${parent?'<button class="linkbtn" id="annEndAll">✅ Für alle beenden</button>':''}</div>`;
@@ -1943,8 +1963,8 @@ function renderAnnounce(){
     $('#annOk').onclick=()=>{lsSet('jiy-ann-seen',JSON.stringify([...annSeen(),x.id].slice(-20)));annAck(x);o.hidden=true};
     const ea=$('#annEndAll');if(ea) ea.onclick=()=>annEnd(x);return;
   }
-  // Kinder: Fenster bleibt, bis Mama/Papa OK drückt
-  const acked=!!acks[S.meId];
+  // Kinder & Gäste: ganzer Bildschirm gesperrt, bis Mama/Papa OK drückt
+  const acked=!!acks[S.meId];nativeLock('ann',x.text,(x.ts||Date.now())+ANN_MAX);document.body.classList.add('ann-lock');
   o.innerHTML=`<div class="ann-box"><div class="ann-text">${esc(x.text)}</div>${by?`<div class="ann-from">— ${esc(by.name)}</div>`:''}
     ${acked?`<button class="btn soft" disabled>✓ Gesendet: „Ich komme!“</button><div class="ann-wait">⏳ Das Fenster geht zu, wenn ${esc(by?by.name:'Mama/Papa')} OK drückt.</div>`:`<button class="btn primary" id="annOk">✋ Ich komme!</button>`}</div>`;
   o.hidden=false;const ok=$('#annOk');if(ok) ok.onclick=()=>annAck(x);
@@ -2068,8 +2088,9 @@ function ramLen(start){let n=29;const h=hijriParts(addDays(start,29));if(h&&h.m=
 function nextRamadan(){let ds=today();for(let i=0;i<400;i++){const h=hijriParts(ds);if(h&&h.m===9&&h.d===1) return ds;ds=addDays(ds,1)}return null}
 function fastGet(mid,ds){return ((S.fasting||{})[mid]||{days:{}}).days?.[ds]||''}
 let ramTimer=null;
+function ramTheme(){const on=!!ramInfo();document.body.classList.toggle('ramadan',on);const mt=document.querySelector('meta[name=theme-color]');if(mt) mt.content=on?'#1B2550':'#0E5E66'}
 function renderRamadan(){
-  const card=$('#ramCard');if(!card) return;clearInterval(ramTimer);
+  ramTheme();const card=$('#ramCard');if(!card) return;clearInterval(ramTimer);
   const r=ramInfo();
   if(!r){const n=nextRamadan();const d=n?Math.round((parse(n)-parse(today()))/864e5):null;
     card.className='card ram-card ram-off';
@@ -2223,7 +2244,7 @@ function renderPoints(){
   hero.innerHTML=`${par?`<div class="pts-sel">${kids.map(m=>`<button class="${m.id===who.id?'on':''}" data-pf="${esc(m.id)}">${esc(m.name)} <b>${ptsBalance(m.id)}</b></button>`).join('')}</div>`:''}
     <div class="pts-big">${bal}<span>⭐</span></div><div class="pts-sub">${who.id===S.meId?'Deine Punkte':'Punkte von '+esc(who.name)}</div>
     <small class="muted">gesammelt ${ptsEarned(who.id)} · eingelöst ${ptsSpent(who.id)}</small>
-    ${par?`<div class="pts-bonus"><span>Bonus für ${esc(who.name)}:</span>${[1,5,10].map(n=>`<button class="btn soft sm" data-act="pts-bonus" data-id="${n}">+${n}</button>`).join('')}<button class="btn ghost sm" data-act="pts-bonus" data-id="-5">−5</button></div>`:''}`;
+    ${par?`<div class="pts-bonus"><span>Bonus für ${esc(who.name)}:</span>${[1,5,10].map(n=>`<button class="btn soft sm" data-act="pts-bonus" data-id="${n}">+${n}</button>`).join('')}<button class="btn ghost sm" data-act="pts-bonus" data-id="-5">−5</button><button class="btn primary sm" data-act="pts-bonus" data-id="0">✎ Sterne eingeben</button></div>`:''}`;
   hero.querySelectorAll('[data-pf]').forEach(b=>b.onclick=()=>{S.ptsFor=b.dataset.pf;renderPoints()});
   const nb=$('#rwNewBtn');if(nb) nb.hidden=!par;
   $('#rwList').innerHTML=rewards().map(r=>{const can=bal>=(+r.cost||0);
@@ -2250,6 +2271,11 @@ async function rwRedeem(id){
 }
 async function rqSet(id,st){if(!iAmParent()) return;if(await w(()=>S.db.doc('redeem/'+id).update({status:st,doneBy:S.meId||null,doneAt:Date.now()}))) toast(st==='ok'?'🎉 Erfüllt!':'Abgelehnt – Punkte zurück')}
 function ptsBonus(n){const who=ptsWho();if(!iAmParent()||!who) return;
+  if(!n){modal(`<h3>⭐ Sterne für ${esc(who.name)}</h3><p class="muted" style="margin-top:-6px">Plus zum Schenken, Minus zum Abziehen (z. B. -3).</p>
+    <form id="bonusForm" autocomplete="off"><div class="row"><input name="n" type="number" min="-999" max="999" step="1" required placeholder="z. B. 7" style="flex:0 0 110px;font-size:20px;text-align:center"><input name="why" maxlength="60" placeholder="Wofür? (optional)" style="flex:1"></div>
+    <button class="btn primary" style="width:100%;margin-top:10px">Speichern</button></form>`);
+    const f=$('#bonusForm');f.n.focus();f.onsubmit=async e=>{e.preventDefault();const k=Math.round(+f.n.value);if(!k) return toast('Bitte eine Zahl eingeben');
+      if(await w(()=>S.db.collection('bonus').add({mid:who.id,pts:k,why:f.why.value.trim().slice(0,60),by:S.meId||null,ts:Date.now()}))){closeModal();toast((k>0?'+':'')+k+' ⭐ für '+who.name)}};return}
   const ideas=n>0?['Super geholfen','Toll gelernt','Lieb zur Schwester/zum Bruder','Ohne Meckern']:['Nicht aufgeräumt','Gestritten'];
   modal(`<h3>${n>0?'🎁 +'+n:'➖ '+n} ⭐ für ${esc(who.name)}</h3><div class="ch-tpl">${ideas.map(t=>`<button type="button" data-why="${esc(t)}">${esc(t)}</button>`).join('')}</div>
     <form id="bonusForm" autocomplete="off"><input name="why" maxlength="60" placeholder="Wofür? (optional)"><button class="btn primary" style="width:100%;margin-top:10px">${n>0?'Schenken':'Abziehen'}</button></form>`);
@@ -2673,7 +2699,8 @@ function buildAlarms(){
   if(o.bills){for(const b of S.bills){const n=billNext(b);if(!n||n>t14) continue;
     if(n>t0) out.push({id:'b1-'+b.id+n,at:atMs(addDays(n,-1),'09:00'),title:`💸 Morgen fällig: ${b.title}`,body:eur(b.amount)});
     out.push({id:'b0-'+b.id+n,at:atMs(n<t0?t0:n,'09:00'),title:`💸 ${n<t0?'Überfällig':'Heute fällig'}: ${b.title}`,body:eur(b.amount)});}}
-  return out.filter(a=>a.at>now+30000).sort((a,b)=>a.at-b.at).slice(0,200);
+  const fut=out.filter(a=>a.at>now+30000).sort((a,b)=>a.at-b.at),loud=fut.filter(a=>a.ring||a.adhan),rest=fut.filter(a=>!a.ring&&!a.adhan);
+  return [...loud.slice(0,120),...rest.slice(0,200-Math.min(120,loud.length))];
 }
 let alarmT=null;
 function scheduleAlarms(){if(!NATIVE||!S.loaded) return;clearTimeout(alarmT);alarmT=setTimeout(()=>{try{window.JIYNative.schedule(JSON.stringify(buildAlarms()))}catch(e){console.warn(e)}},2500)}
@@ -2759,10 +2786,10 @@ async function registerDevice(){
   try{if(ex) await ref.update(base);else await ref.set({...base,first:Date.now(),blocked:false,until:0,name:'',limitMin:0,quietFrom:'',quietTo:'',trackLoc:false})}catch(e){console.warn('device',e)}
   ref.onSnapshot(s=>{const d=s.exists?s.data():null;S.myDev=d;
     if(isBlk(d)) return showBlocked('device',d.until);
-    if(S.blockedShown==='device') return location.reload();
+    if(S.blockedShown==='device'){nativeUnlock('device');return location.reload()}
     guardCheck();applyAppGuard();runDevCmd(d)},()=>{});
   uploadApps(ref);
-  S.db.doc('blocked/'+S.uid).onSnapshot(s=>{const d=s.exists?s.data():null;if(d&&(!d.until||d.until>Date.now())) showBlocked('account',d.until);else if(S.blockedShown==='account') location.reload()},()=>{});
+  S.db.doc('blocked/'+S.uid).onSnapshot(s=>{const d=s.exists?s.data():null;if(d&&(!d.until||d.until>Date.now())) showBlocked('account',d.until);else if(S.blockedShown==='account'){nativeUnlock('device');location.reload()}},()=>{});
   startGuard();
 }
 /* ---- Kinderschutz: Bildschirmzeit, Ruhezeit, Standort ---- */
@@ -2900,8 +2927,12 @@ async function checkAccountBlock(){
   try{const d=await S.db.doc('blocked/'+S.uid).get();if(d.exists){const x=d.data();if(!x.until||x.until>Date.now()){showBlocked('account',x.until);return true}}}catch{}
   return false;
 }
+function nativeLock(kind,text,until){if(!NATIVE||!window.JIYNative.setLock) return;try{window.JIYNative.setLock(kind,text||'',until||0)}catch(e){console.warn(e)}}
+function nativeUnlock(kind){if(!NATIVE||!window.JIYNative.clearLock) return;try{window.JIYNative.clearLock(kind)}catch{}}
 function showBlocked(kind,until){
   if(S.blockedShown) return;S.blockedShown=kind;
+  if(kind==='device'||kind==='account') nativeLock('device','gesperrt',until||0);
+  document.body.classList.add('locked');
   if(until){const ms=until-Date.now()+3000;if(ms>0&&ms<2e9) setTimeout(()=>location.reload(),ms)}
   $('#login').hidden=false;
   $('#loginCard').innerHTML=`<div class="logo">JIY</div><h2>${kind==='quiet'?'🌙 Ruhezeit':kind==='limit'?'⏳ Zeit um':'🔒 Gesperrt'}</h2>
@@ -3052,8 +3083,9 @@ function renderBadges(){
   const seen=chatSeen();
   const unread=S.view==='chat'?0:S.messages.filter(m=>(m.ts||0)>seen&&m.by!==S.meId).length;
   const cb=$('#chatBadge');cb.textContent=unread>9?'9+':unread;cb.hidden=!unread;
-  const open=S.shop.filter(i=>i.open&&!i.checked).length;const sb=$('#shopBadge');sb.textContent=open;sb.hidden=!open;
-  const bd=billsDue(),pa=pendingApps().length,td=myTasksDue();const mb=$('#moreBadge');mb.textContent=bd+pa+td;mb.hidden=!(bd+pa+td);
+  const open=S.shop.filter(i=>i.open&&!i.checked).length,td=myTasksDue();const sb=$('#shopBadge');sb.textContent=open+td;sb.hidden=!(open+td);
+  const hsS=$('#hsShop');if(hsS){hsS.textContent=open;hsS.hidden=!open}const hsT=$('#hsTask');if(hsT){hsT.textContent=td;hsT.hidden=!td}
+  const bd=billsDue(),pa=pendingApps().length;const mb=$('#moreBadge');mb.textContent=bd+pa;mb.hidden=!(bd+pa);
   const th=$('#moreTaskHint');if(th){const op=S.tasks.filter(t=>!t.done&&(!t.who||t.who===S.meId)).length;th.innerHTML=td?`<b class="late-txt">${td} fällig</b>`:op?`${op} offen für dich`:'Wer macht was?'}
   const mh=$('#moreBillHint');if(mh) mh.textContent=bd?`${bd} bald fällig`:'Rechnungen & Fixkosten';
 }
@@ -3062,7 +3094,7 @@ function liveNotifyRedeem(list){const ids=new Set(list.map(r=>r.id+r.status));
     if(r.status==='offen'&&iAmParent()&&r.by!==S.meId) nativeNotify('🎁 '+(m?m.name:'')+' möchte einlösen',r.title+' ('+r.cost+' ⭐)','rq-'+r.id);
     if(r.status==='ok'&&r.mid===S.meId) nativeNotify('🎉 Wunsch erfüllt!',r.title,'rq-'+r.id)}}
   S.rqSeen=ids}
-function renderAll(){applyAdmin();renderMe();renderCal();renderChat();renderShop();renderFam();renderMeals();renderBills();renderQuranProgress();renderBadges();renderChallenges();renderTree();renderPoints();renderDeadlines();if(S.view==='familie') renderBackups();if(S.ann) renderAnnounce()}
+function renderAll(){applyAdmin();renderMe();renderCal();renderChat();renderShop();renderFam();renderMeals();renderBills();renderQuranProgress();renderBadges();ramTheme();renderChallenges();renderTree();renderPoints();renderDeadlines();if(S.view==='familie') renderBackups();if(S.ann) renderAnnounce()}
 
 /* ---------- Aktionen ---------- */
 const ACT={
@@ -3115,8 +3147,8 @@ const ACT={
   'meal-shop':(t,id)=>mealShop(id),
   'new-bill':()=>openBillEdit(null),
   'task-toggle':(t,id)=>taskToggle(id),
-  'task-edit':(t,id)=>taskEdit(id),
-  'task-clear':()=>taskClear(),
+  'task-edit':(t,id)=>{if(isKid()||isGuest()) return;taskEdit(id)},
+  'task-clear':()=>{if(isKid()||isGuest()) return;taskClear()},
   'announce':()=>announceModal(),
   'ch-new':()=>chEdit(null),
   'ch-edit':(t,id)=>chEdit(id),
@@ -3162,7 +3194,7 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(
 function subscribe(){
   const got={members:false,events:false,chat:false,shop:false};
   const timer=setTimeout(()=>{if(!Object.values(got).every(Boolean)) banner('Die gemeinsamen Daten sind gerade nicht erreichbar – vielleicht offline. Es wird weiter versucht.')},10000);
-  const done=(k,snap)=>{if(!snap.metadata.fromCache&&!got[k]){got[k]=true;if(Object.values(got).every(Boolean)){clearTimeout(timer);banner('');S.loaded=true;resolveMe();renderAll();initIcs();billReminderOnce();scheduleAlarms();setTimeout(()=>winCheck(),1500);setTimeout(()=>bakAuto(),8000)}}};
+  const done=(k,snap)=>{if(!snap.metadata.fromCache&&!got[k]){got[k]=true;if(Object.values(got).every(Boolean)){clearTimeout(timer);banner('');S.loaded=true;resolveMe();renderAll();initIcs();billReminderOnce();scheduleAlarms();setTimeout(()=>winCheck(),1500);setTimeout(()=>bakAuto(),8000);setTimeout(()=>{if(!S.blockedShown) nativeUnlock('device')},6000)}}};
   const err=k=>e=>{got[k]=true;console.error(k,e);if(e&&e.code==='permission-denied') banner('Kein Zugriff auf die Daten – stimmen die E-Mails in firestore.rules?');else banner('Daten konnten nicht geladen werden. Bitte Seite später neu öffnen.')};
   const rows=s=>s.docs.map(d=>({id:d.id,...d.data()}));
   S.db.collection('members').onSnapshot(s=>{S.members=rows(s).sort((a,b)=>(a.order||0)-(b.order||0)||(a.ts||0)-(b.ts||0));resolveMe();cacheSos();renderAll();scheduleIcsSync();scheduleAlarms();done('members',s)},err('members'));
