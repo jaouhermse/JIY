@@ -261,6 +261,27 @@ body.chat-mode .chat-wrap{height:calc(100dvh - 86px - 104px - env(safe-area-inse
 .task-add input[name=title]{width:100%;margin-bottom:8px}.task-add .row{display:flex;gap:8px;flex-wrap:wrap}.task-add select,.task-add input[type=date]{flex:1;min-width:120px}
 #taskMine.on{background:var(--accent,#2F6F68);color:#fff}
 .ann-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.ann-btn{padding:14px 10px;border-radius:14px;border:1px solid var(--line);background:#FFF8EE;font-weight:800;font-size:15px;cursor:pointer}
+.ann-acks{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:0 0 14px}.ann-ack{padding:4px 10px;border-radius:99px;background:var(--bg);font-weight:700;font-size:13px}.ann-ack.ok{background:#DDF3E4;color:#1B6B3A}
+.ann-wait{color:var(--muted);font-weight:700;margin-top:10px;font-size:14px}.ann-box .linkbtn{margin-top:12px;font-size:14px}
+#annBar{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 8px);z-index:9000;background:var(--ink);color:#fff;border-radius:16px;padding:10px 12px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);font-size:14px}#annBar[hidden]{display:none}#annBar span{flex:1;line-height:1.3}#annBar .btn{flex:none}
+#winOverlay{position:fixed;inset:0;z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at 50% 30%,#1d7a83,#0b3f45 70%);color:#fff;text-align:center;overflow:hidden}#winOverlay[hidden]{display:none}
+.win-box{max-width:460px;width:100%;position:relative;z-index:2}.win-crown{font-size:88px;line-height:1;animation:annPop .5s ease}.win-t{font-family:var(--head);font-size:22px;opacity:.85;margin-top:6px}
+.win-name{font-family:var(--head);font-size:52px;line-height:1.05;margin:6px 0 2px;color:var(--saffron,#E3A33A)}.win-pts{font-size:22px;font-weight:800;margin-bottom:18px}
+.win-list{background:rgba(255,255,255,.12);border-radius:18px;padding:10px 14px;margin-bottom:18px;text-align:left}.win-list div{display:flex;gap:10px;font-size:19px;padding:5px 0}.win-list span{flex:1;font-weight:700}
+#winOverlay .win-box .btn{width:100%;font-size:18px;background:var(--saffron,#E3A33A)!important;color:var(--ink)!important;box-shadow:0 6px 18px rgba(0,0,0,.25)}.conf{position:absolute;top:-30px;font-size:26px;animation:confFall linear forwards;z-index:1}
+@keyframes confFall{to{transform:translateY(110vh) rotate(540deg)}}
+.ch{position:relative}.ch-top{display:flex;gap:12px;align-items:flex-start}.ch-ic{font-size:34px;line-height:1}.ch-top h3{margin:0 0 2px}.ch-meta{font-size:13px;color:var(--muted)}
+.ch-rew{margin:8px 0 4px;font-weight:700;font-size:14px}.ch-p{display:flex;align-items:center;gap:8px;margin-top:10px}.ch-p .nm{flex:0 0 84px;font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ch-bar{flex:1;height:12px;border-radius:9px;background:var(--bg);overflow:hidden}.ch-bar span{display:block;height:100%;background:var(--pri);border-radius:9px;transition:width .3s}.ch-p.fin .ch-bar span{background:var(--saffron,#E3A33A)}
+.ch-n{flex:0 0 52px;text-align:right;font-weight:800;font-size:14px}.ch-plus{flex:none;width:44px;height:38px;border-radius:12px;border:0;background:var(--pri);color:#fff;font-weight:900;font-size:16px}.ch-plus[disabled]{background:var(--line);color:var(--muted)}
+.ch-team{font-size:15px;font-weight:800;margin-top:10px}.ch-tools{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}.ch.old{opacity:.7}
+.ch-tpl{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.ch-tpl button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 10px;font-size:13px;font-weight:700}
+.tree{display:flex;flex-direction:column;gap:6px}.tree-gen{background:#fff;border-radius:20px;padding:12px;box-shadow:var(--shadow,0 2px 10px rgba(22,49,59,.08))}.tree-gen>.lbl{text-align:center;margin:0 0 8px}
+.tree-sides{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tree-side{background:var(--bg);border-radius:16px;padding:8px}.tree-side .lbl{font-size:12px;text-align:center;margin:0 0 6px}
+.tree-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.tree-link{width:3px;height:18px;background:var(--saffron,#E3A33A);margin:0 auto;border-radius:3px}
+.tp{border:0;background:#fff;border-radius:16px;padding:10px 8px;min-width:96px;max-width:140px;flex:1 1 96px;text-align:center;box-shadow:0 1px 5px rgba(22,49,59,.12);font:inherit;color:inherit}
+.tree-side .tp{min-width:0}.tp .te{font-size:30px;display:block;line-height:1.1}.tp b{display:block;font-size:14px;line-height:1.2;margin-top:4px}.tp small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}.tp.dead{opacity:.75}.tp.dead b:after{content:" 🤲"}
+.tp-add{background:none;border:2px dashed var(--line);box-shadow:none;color:var(--muted);font-weight:700;font-size:13px}
 #annOverlay{position:fixed;inset:0;background:rgba(20,30,28,.72);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px}#annOverlay[hidden]{display:none}
 .ann-box{background:#fff;border-radius:24px;padding:28px 22px;max-width:440px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35);animation:annPop .35s ease}
 .ann-text{font-size:30px;font-weight:900;line-height:1.25;margin-bottom:10px}.ann-from{color:var(--muted);font-weight:700;margin-bottom:18px}.ann-box .btn{width:100%;font-size:18px}
@@ -546,22 +567,7 @@ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
         <h3>📱 Geräte &amp; Zugriff</h3>
         <p class="hint" style="margin-top:4px">Hier siehst du, wo JIY benutzt wird. Ein gesperrtes Gerät oder Konto kommt nicht mehr in die App.</p>
         <div class="lbl">Geräte</div><div id="devList"></div>
-        <div class="lbl" style="margin-top:12px">Konten</div><div id="accList"></div>
-        <p class="hint">„Konto sperren“ wirkt auf allen Geräten dieser Person – auch wenn sie ein neues Handy nimmt.</p>
         <p class="hint">👶 Kinderschutz: Tippe bei einem Gerät auf ✎ für Tageslimit, Ruhezeit und Standort. Notrufe (112/110/Eltern) gehen auch im gesperrten Zustand. Für <b>andere Apps</b> (App-Freigaben, Inhaltsfilter, YouTube usw.) nutze zusätzlich die kostenlose <a href="https://families.google/familylink/" target="_blank" rel="noopener">Google Family Link</a> – das kann nur Android selbst.</p>
-      </div>
-      <div class="card" id="aboCard" hidden>
-        <h3>📅 Kalender-Abo für Gmail &amp; Outlook</h3>
-        <p class="hint" style="margin-top:4px">Alle JIY-Termine und Geburtstage erscheinen automatisch als eigener Kalender „JIY Familie“. Google und Outlook holen Änderungen selbst alle paar Stunden ab.</p>
-        <div class="row" style="align-items:center;margin-bottom:12px"><input id="aboUrl" readonly><button class="btn soft" data-act="copy-abo">Kopieren</button></div>
-        <details style="margin-bottom:10px"><summary class="hint" style="cursor:pointer"><b>👤 Eigener Kalender pro Person</b> (nur eigene Termine &amp; Aufgaben)</summary><div id="aboPer" style="margin-top:8px"></div></details>
-        <ol class="abo-steps">
-          <li><b>Google Kalender (Gmail, am PC):</b> calendar.google.com → links bei „Weitere Kalender“ auf <b>+</b> → <b>Per URL</b> → Link einfügen → <b>Kalender hinzufügen</b>.</li>
-          <li><b>Outlook:</b> outlook.live.com/calendar → <b>Kalender hinzufügen</b> → <b>Aus dem Internet abonnieren</b> → Link einfügen → Name „JIY Familie“ → <b>Importieren</b>.</li>
-        </ol>
-        <details><summary class="hint" style="cursor:pointer">Einrichtung auf GitHub (einmalig)</summary>
-          <p class="hint">GitHub → Repo → <b>Settings → Secrets and variables → Actions → New repository secret</b>.<br>Name: <b>ICS_TOKEN</b> · Wert: <code id="aboToken" style="user-select:all;font-weight:800"></code></p>
-        </details>
       </div>
     </section>
 
@@ -625,6 +631,19 @@ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
       <p class="hint">Fällige Rechnungen stehen auch im Kalender (💸) und es gibt beim Öffnen der App einen Hinweis.</p>
     </section>
 
+    <!-- FAMILY CHALLENGE -->
+    <section id="view-challenge" class="view" hidden>
+      <h2>🏆 Family Challenge <span class="sp"></span><button class="btn primary sm" data-act="ch-new" id="chNewBtn">+ Neu</button></h2>
+      <p class="hint" style="margin-top:-4px">Gemeinsame Ziele für die ganze Familie – jeder tippt bei sich auf <b>+1</b>, wenn er es geschafft hat.</p>
+      <div id="chList"></div>
+    </section>
+
+    <!-- STAMMBAUM -->
+    <section id="view-stammbaum" class="view" hidden>
+      <h2>🌳 Stammbaum <span class="sp"></span><button class="btn primary sm" data-act="tree-new" id="treeNewBtn">+ Person</button></h2>
+      <div id="treeBox"></div>
+    </section>
+
     <!-- AUFGABEN -->
     <section id="view-aufgaben" class="view" hidden>
       <h2>✅ Aufgaben <span class="sp"></span><button class="btn ghost sm" id="taskMine">Nur meine</button></h2>
@@ -649,7 +668,8 @@ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
         <button class="more-btn" data-act="clock"><span class="mi">⏰</span><b>Wecker</b><small id="moreClockHint">Weckzeiten für alle</small></button>
         <button class="more-btn" data-act="announce"><span class="mi">📣</span><b>Durchsage</b><small>z. B. „Essen ist fertig!“</small></button>
         <button class="more-btn" data-act="tab" data-id="haushalt" id="hhTab"><span class="mi">💸</span><b>Haushalt</b><small id="moreBillHint">Rechnungen &amp; Fixkosten</small></button>
-        <button class="more-btn" data-act="whatsapp"><span class="mi">🟢</span><b>WhatsApp</b><small>Chat &amp; Anruf</small></button>
+        <button class="more-btn" data-act="tab" data-id="challenge"><span class="mi">🏆</span><b>Family Challenge</b><small id="moreChHint">Wer schafft es?</small></button>
+        <button class="more-btn" data-act="tab" data-id="stammbaum"><span class="mi">🌳</span><b>Stammbaum</b><small>Opa, Oma &amp; alle</small></button>
         <button class="more-btn" data-act="guard-setup" id="guardBtn" hidden><span class="mi">📲</span><b>Kinderschutz einrichten</b><small id="guardHint">Berechtigungen prüfen</small></button>
         <button class="more-btn" data-act="wifi"><span class="mi">📶</span><b>WLAN</b><small>QR-Code für Gäste</small></button>
         <button class="more-btn" data-act="sos"><span class="mi">🆘</span><b>Notruf</b><small>112 · 110 · Eltern</small></button>
@@ -657,7 +677,7 @@ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
         <button class="more-btn" data-act="notif"><span class="mi">🔔</span><b>Benachrichtigungen</b><small>Gebet, Chat, Termine</small></button>
         <button class="more-btn" data-act="my-pin"><span class="mi">🔒</span><b>Meine PIN</b><small>festlegen / ändern</small></button>
         <button class="more-btn" data-act="who-am-i"><span class="mi">👤</span><b>Profil wechseln</b><small>mit PIN</small></button>
-        <button class="more-btn" data-act="tab" data-id="familie" id="famTab"><span class="mi">👨‍👩‍👦</span><b>Familie</b><small id="famHint">Profile &amp; Kalender-Abo</small></button>
+        <button class="more-btn" data-act="tab" data-id="familie" id="famTab"><span class="mi">👨‍👩‍👦</span><b>Familie</b><small id="famHint">Profile &amp; Geräte</small></button>
       </div>
     </section>
   </main>
@@ -910,18 +930,20 @@ function confirmBtn(btn,label,fn){
 }
 
 /* ---------- Navigation ---------- */
-const VIEWS=['kalender','chat','einkauf','essen','gebet','mehr','haushalt','familie','aufgaben'];
+const VIEWS=['kalender','chat','einkauf','essen','gebet','mehr','haushalt','familie','aufgaben','challenge','stammbaum'];
 function show(v){
   if(!VIEWS.includes(v)) v='kalender';
   if(v==='familie'&&!amAdmin()) v='kalender';
   S.view=v;
   for(const x of VIEWS) $('#view-'+x).hidden=x!==v;
-  const tabOf=(v==='haushalt'||v==='familie'||v==='aufgaben')?'mehr':v;
+  const tabOf=(v==='haushalt'||v==='familie'||v==='aufgaben'||v==='challenge'||v==='stammbaum')?'mehr':v;
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.id===tabOf));
   document.body.classList.toggle('chat-mode',v==='chat');
   if(location.hash!=='#'+v) history.replaceState(null,'','#'+v);
   if(v==='chat'){markChatSeen();renderChat(true)}
   if(v==='gebet'){initPrayer();renderAzkar()}
+  if(v==='challenge') renderChallenges();
+  if(v==='stammbaum') renderTree();
   if(v==='essen') renderMeals();
   if(v==='haushalt') renderBills();
   if(v==='aufgaben') renderTasks();
@@ -1815,21 +1837,191 @@ function announceModal(){
   $('#annForm').onsubmit=e=>{e.preventDefault();const t=e.target.text.value.trim();if(t) sendAnnounce(t)};
 }
 async function sendAnnounce(text){
-  if(await w(()=>S.db.collection('announce').add({text,by:S.meId||null,ts:Date.now()}))){closeModal();toast('📣 Gesendet: '+text)}
+  if(await w(()=>S.db.collection('announce').add({text,by:S.meId||null,ts:Date.now(),acks:{},done:false}))){closeModal();toast('📣 Gesendet: '+text)}
 }
+const ANN_MAX=60*60000;
+function annActive(){return (S.ann||[]).filter(x=>!x.done&&Date.now()-(x.ts||0)<ANN_MAX).sort((a,b)=>b.ts-a.ts)[0]||null}
+function annSeen(){try{return JSON.parse(ls('jiy-ann-seen')||'[]')}catch{return []}}
+function iAmParent(){const me=member(S.meId);return me?roleOf(me)==='admin':isParentAcc()}
 function onAnnounce(list){
-  const maxTs=list.reduce((a,x)=>Math.max(a,x.ts||0),0);
-  if(S.lastAnn==null){S.lastAnn=maxTs;return}
-  const fresh=list.filter(x=>(x.ts||0)>S.lastAnn&&x.by!==S.meId&&Date.now()-(x.ts||0)<15*60000).sort((a,b)=>a.ts-b.ts);S.lastAnn=Math.max(S.lastAnn,maxTs);
-  const x=fresh[fresh.length-1];if(!x) return;const by=member(x.by);
-  nativeNotify('📣 '+(by?by.name:'Durchsage'),x.text,'ann-'+x.ts);
-  try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch{}
-  showAnnounce(x.text,by?by.name:'');
+  S.ann=list;const maxTs=list.reduce((a,x)=>Math.max(a,x.ts||0),0);
+  if(S.lastAnn!=null){
+    const x=list.filter(x=>(x.ts||0)>S.lastAnn&&x.by!==S.meId&&!x.done&&Date.now()-(x.ts||0)<ANN_MAX).sort((a,b)=>a.ts-b.ts).pop();
+    if(x){const by=member(x.by);nativeNotify('📣 '+(by?by.name:'Durchsage'),x.text,'ann-'+x.ts);try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch{}}
+  }
+  S.lastAnn=Math.max(S.lastAnn||0,maxTs);renderAnnounce();
 }
-function showAnnounce(text,from){
-  let o=$('#annOverlay');if(!o){o=document.createElement('div');o.id='annOverlay';document.body.appendChild(o)}
-  o.innerHTML=`<div class="ann-box"><div class="ann-text">${esc(text)}</div>${from?`<div class="ann-from">— ${esc(from)}</div>`:''}<button class="btn primary" id="annOk">👍 OK</button></div>`;
-  o.hidden=false;$('#annOk').onclick=()=>{o.hidden=true};
+function renderAnnounce(){
+  let o=$('#annOverlay');if(!o){o=document.createElement('div');o.id='annOverlay';o.hidden=true;document.body.appendChild(o)}
+  let bar=$('#annBar');if(!bar){bar=document.createElement('div');bar.id='annBar';bar.hidden=true;document.body.appendChild(bar)}
+  const x=annActive();if(!x){o.hidden=true;bar.hidden=true;return}
+  const by=member(x.by),acks=x.acks||{},mine=x.by&&x.by===S.meId,parent=iAmParent();
+  const others=S.members.filter(m=>m.id!==x.by&&roleOf(m)!=='guest');
+  const ackHtml=`<div class="ann-acks">${others.map(m=>`<span class="ann-ack ${acks[m.id]?'ok':''}">${acks[m.id]?'✓':'…'} ${esc(m.name)}</span>`).join('')}</div>`;
+  if(mine){ // Absender (Eltern): kleine Leiste mit Status
+    o.hidden=true;const n=others.filter(m=>acks[m.id]).length;
+    bar.innerHTML=`<span>📣 <b>${esc(x.text)}</b><br><small>✋ ${n} von ${others.length} haben bestätigt</small></span><button class="btn soft sm" id="annEnd">✅ OK – beenden</button>`;
+    bar.hidden=false;$('#annEnd').onclick=()=>annEnd(x);return;
+  }
+  bar.hidden=true;
+  if(parent||isGuest()){ // Eltern/Gäste dürfen selbst schließen
+    if(annSeen().includes(x.id)){o.hidden=true;return}
+    o.innerHTML=`<div class="ann-box"><div class="ann-text">${esc(x.text)}</div>${by?`<div class="ann-from">— ${esc(by.name)}</div>`:''}${parent?ackHtml:''}
+      <button class="btn primary" id="annOk">👍 OK</button>${parent?'<button class="linkbtn" id="annEndAll">✅ Für alle beenden</button>':''}</div>`;
+    o.hidden=false;
+    $('#annOk').onclick=()=>{lsSet('jiy-ann-seen',JSON.stringify([...annSeen(),x.id].slice(-20)));annAck(x);o.hidden=true};
+    const ea=$('#annEndAll');if(ea) ea.onclick=()=>annEnd(x);return;
+  }
+  // Kinder: Fenster bleibt, bis Mama/Papa OK drückt
+  const acked=!!acks[S.meId];
+  o.innerHTML=`<div class="ann-box"><div class="ann-text">${esc(x.text)}</div>${by?`<div class="ann-from">— ${esc(by.name)}</div>`:''}
+    ${acked?`<button class="btn soft" disabled>✓ Gesendet: „Ich komme!“</button><div class="ann-wait">⏳ Das Fenster geht zu, wenn ${esc(by?by.name:'Mama/Papa')} OK drückt.</div>`:`<button class="btn primary" id="annOk">✋ Ich komme!</button>`}</div>`;
+  o.hidden=false;const ok=$('#annOk');if(ok) ok.onclick=()=>annAck(x);
+}
+async function annAck(x){if(!S.meId) return;try{await S.db.doc('announce/'+x.id).update({['acks.'+S.meId]:Date.now()})}catch(e){console.warn(e)}}
+async function annEnd(x){if(await w(()=>S.db.doc('announce/'+x.id).update({done:true,doneBy:S.meId||null,doneAt:Date.now()}))) toast('✅ Durchsage beendet')}
+setInterval(()=>{if(S.ann) renderAnnounce()},30000);
+
+/* ---------- Samstag 09:00: Wer hat die meisten Punkte? ---------- */
+function weekPoints(){const from=parse(taskWeekStart()).getTime(),pts={};
+  for(const t of S.tasks||[]) if(t.done&&t.doneBy&&(t.doneAt||0)>=from) pts[t.doneBy]=(pts[t.doneBy]||0)+(+t.pts||1);
+  return S.members.map(m=>({m,p:pts[m.id]||0})).filter(x=>x.p>0).sort((a,b)=>b.p-a.p)}
+function nextSaturdays(n){const out=[];let d=today();for(let i=0;i<14&&out.length<n;i++){const ds=addDays(d,i);if(parse(ds).getDay()===6) out.push(ds)}return out}
+function winCheck(force){
+  if(!S.loaded) return;const d=new Date();
+  if(!force&&(d.getDay()!==6||d.getHours()<9||ls('jiy-win-'+today()))) return;
+  lsSet('jiy-win-'+today(),'1');showWinner();
+}
+function showWinner(){
+  let o=$('#winOverlay');if(!o){o=document.createElement('div');o.id='winOverlay';document.body.appendChild(o)}
+  const rows=weekPoints(),top=rows[0],tie=rows.filter(x=>top&&x.p===top.p),medal=['🥇','🥈','🥉'];
+  o.innerHTML=`<div class="win-box"><div class="win-crown">👑</div><div class="win-t">Die meisten Punkte diese Woche</div>
+    ${top?`<div class="win-name">${tie.map(x=>esc(x.m.name)).join(' &amp; ')}</div><div class="win-pts">⭐ ${top.p} Punkte – māshā’Allāh!</div>
+      <div class="win-list">${rows.map((x,i)=>`<div>${medal[i]||'⭐'} <span>${esc(x.m.name)}</span><b>${x.p}</b></div>`).join('')}</div>`
+    :`<div class="win-name" style="font-size:34px">Noch keine Punkte</div><div class="win-pts">Erledigt Aufgaben – nächsten Samstag gibt’s die Krone! 👑</div>`}
+    <button class="btn primary" id="winOk">🎉 Super!</button></div>`;
+  o.hidden=false;$('#winOk').onclick=()=>{o.hidden=true};
+  if(top){const em=['🎉','⭐','✨','🎊','🏆'];for(let i=0;i<34;i++){const c=document.createElement('span');c.className='conf';c.textContent=em[i%em.length];c.style.left=Math.random()*100+'%';c.style.animationDuration=(2.5+Math.random()*2.5)+'s';c.style.animationDelay=(Math.random()*1.5)+'s';o.appendChild(c)}}
+  try{navigator.vibrate&&navigator.vibrate([80,60,80,60,200])}catch{}
+}
+setInterval(()=>winCheck(),60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){winCheck();if(S.ann) renderAnnounce()}});
+
+/* ---------- Family Challenge ---------- */
+const CH_TPL=[['🕌','Alle 5 Gebete pünktlich',7,'Tage'],['📖','Jeden Tag Quran lesen',7,'Tage'],['📵','Handyfreies Abendessen',7,'Abende'],['📚','Jeden Tag 20 Min. lesen',7,'Tage'],
+  ['🚶','Spazieren gehen',5,'Mal'],['💧','Genug Wasser trinken',7,'Tage'],['🧹','Zimmer ordentlich',7,'Tage'],['🥦','Gemüse essen',7,'Tage'],['😊','Jeden Tag ein Kompliment',7,'Tage'],['🛏️','Pünktlich ins Bett',7,'Tage']];
+function chWho(c){const ids=(c.who&&c.who.length)?c.who:S.members.filter(m=>roleOf(m)!=='guest').map(m=>m.id);return ids.map(member).filter(Boolean)}
+function chOver(c){return c.closed||(c.end&&c.end<today())}
+function renderChallenges(){
+  const box=$('#chList');if(!box) return;const nb=$('#chNewBtn');if(nb) nb.hidden=!iAmParent();
+  const list=[...(S.challenges||[])].sort((a,b)=>(chOver(a)-chOver(b))||(b.ts||0)-(a.ts||0));
+  const h=$('#moreChHint');if(h){const act=list.filter(c=>!chOver(c)).length;h.textContent=act?act+' laufend':'Wer schafft es?'}
+  if(!list.length){box.innerHTML=`<div class="card empty">Noch keine Challenge.${iAmParent()?' Tippe oben auf <b>+ Neu</b> – z. B. „Eine Woche handyfreies Abendessen“.':' Mama oder Papa können eine starten.'}</div>`;return}
+  box.innerHTML=list.map(c=>{const over=chOver(c),prog=c.prog||{},last=c.last||{},people=chWho(c),goal=+c.goal||1;
+    const left=c.end?Math.round((parse(c.end)-parse(today()))/864e5):null;
+    const meta=[c.end?(over?'beendet':left===0?'letzter Tag':'noch '+left+' Tag'+(left===1?'':'e')):'',c.daily?'1× pro Tag':'',c.team?'👥 Team':'🏁 Jeder für sich'].filter(Boolean).join(' · ');
+    let body='';
+    if(c.team){const sum=people.reduce((a,m)=>a+(prog[m.id]||0),0);
+      body=`<div class="ch-team">👥 Zusammen: ${sum} / ${goal} ${esc(c.unit||'')}${sum>=goal?' 🎉 Geschafft!':''}</div><div class="ch-p ${sum>=goal?'fin':''}"><div class="ch-bar"><span style="width:${Math.min(100,sum/goal*100)}%"></span></div></div>`}
+    const rows=people.map(m=>({m,n:prog[m.id]||0})).sort((a,b)=>c.team?0:(b.n-a.n));
+    body+=rows.map(({m,n})=>{const fin=!c.team&&n>=goal,canMe=m.id===S.meId||iAmParent(),todayDone=c.daily&&last[m.id]===today();
+      const dis=over||!canMe||fin||todayDone;
+      return `<div class="ch-p ${fin?'fin':''}"><span class="nm">${fin?'🏆 ':''}${esc(m.name)}</span>${c.team?'<span style="flex:1"></span>':`<div class="ch-bar"><span style="width:${Math.min(100,n/goal*100)}%"></span></div>`}
+        <span class="ch-n">${n}${c.team?'':' / '+goal}</span><button class="ch-plus" data-act="ch-plus" data-id="${esc(c.id)}|${esc(m.id)}" ${dis?'disabled':''} title="${todayDone?'Heute schon gezählt':'+1'}">${todayDone?'✓':'+1'}</button></div>`}).join('');
+    const winners=!c.team?rows.filter(x=>x.n>=goal).map(x=>x.m.name):[];
+    return `<div class="card ch ${over?'old':''}"><div class="ch-top"><span class="ch-ic">${esc(c.icon||'🏆')}</span><div style="flex:1"><h3>${esc(c.title)}</h3><div class="ch-meta">${esc(meta)}</div></div></div>
+      ${c.reward?`<div class="ch-rew">🎁 Belohnung: ${esc(c.reward)}</div>`:''}${body}
+      ${winners.length?`<div class="ch-rew" style="color:var(--pri)">🏆 Geschafft: ${winners.map(esc).join(', ')}</div>`:''}
+      ${iAmParent()?`<div class="ch-tools"><button class="btn ghost sm" data-act="ch-edit" data-id="${esc(c.id)}">✎ Bearbeiten</button>${over?'':`<button class="btn ghost sm" data-act="ch-close" data-id="${esc(c.id)}">🏁 Beenden</button>`}<button class="btn ghost danger sm" data-act="ch-del" data-id="${esc(c.id)}">Löschen</button></div>`:''}</div>`}).join('');
+}
+function chEdit(id){
+  if(!iAmParent()) return;const c=id?(S.challenges||[]).find(x=>x.id===id):null;const who=new Set(c?c.who||[]:[]);
+  modal(`<h3>🏆 ${c?'Challenge bearbeiten':'Neue Family Challenge'}</h3>
+    ${c?'':`<div class="ch-tpl">${CH_TPL.map(([i,t,g,u],k)=>`<button type="button" data-k="${k}">${i} ${esc(t)}</button>`).join('')}</div>`}
+    <form id="chForm" autocomplete="off">
+      <div class="row"><input name="icon" maxlength="4" value="${esc(c?c.icon:'🏆')}" style="flex:0 0 64px;text-align:center;font-size:22px"><input name="title" required maxlength="60" placeholder="z. B. Handyfreies Abendessen" value="${esc(c?c.title:'')}" style="flex:1"></div>
+      <div class="row"><label style="flex:1">Ziel<input name="goal" type="number" min="1" max="999" value="${esc(c?c.goal:7)}"></label><label style="flex:1">Einheit<input name="unit" maxlength="20" value="${esc(c?c.unit:'Tage')}"></label></div>
+      <div class="row"><label style="flex:1">Start<input name="start" type="date" value="${esc(c?c.start:today())}"></label><label style="flex:1">Ende<input name="end" type="date" value="${esc(c?c.end:addDays(today(),6))}"></label></div>
+      <label>🎁 Belohnung (optional)<input name="reward" maxlength="80" placeholder="z. B. Pizza-Abend, Ausflug, Eis" value="${esc(c?c.reward||'':'')}"></label>
+      <label>Modus<select name="team"><option value="">🏁 Jeder für sich – wer schafft das Ziel?</option><option value="1" ${c&&c.team?'selected':''}>👥 Alle zusammen – als Team</option></select></label>
+      <label class="pick" style="display:flex!important;margin:8px 0!important"><input type="checkbox" name="daily" ${!c||c.daily?'checked':''} style="display:inline-block!important;width:auto;margin-right:8px"> Nur 1× pro Tag zählbar</label>
+      <div class="lbl">Wer macht mit? (nichts gewählt = alle)</div>
+      <div class="chips" id="chWhoChips">${S.members.filter(m=>roleOf(m)!=='guest').map(m=>`<button type="button" class="chip ${who.has(m.id)?'on':''}" data-who="${esc(m.id)}" style="--c:${esc(m.color)}">${av(m.id,'sm')} ${esc(m.name)}</button>`).join('')}</div>
+      <button class="btn primary" style="width:100%;margin-top:12px">${c?'Speichern':'🚀 Challenge starten'}</button>
+    </form>`);
+  const sh=$('#sheet'),f=$('#chForm');
+  sh.querySelectorAll('.ch-tpl [data-k]').forEach(b=>b.onclick=()=>{const [i,t,g,u]=CH_TPL[+b.dataset.k];f.icon.value=i;f.title.value=t;f.goal.value=g;f.unit.value=u;f.end.value=addDays(f.start.value||today(),g>1&&u!=='Mal'?g-1:6)});
+  sh.querySelectorAll('#chWhoChips [data-who]').forEach(b=>b.onclick=()=>b.classList.toggle('on'));
+  f.onsubmit=async e=>{e.preventDefault();
+    const d={icon:f.icon.value.trim()||'🏆',title:f.title.value.trim(),goal:Math.max(1,+f.goal.value||1),unit:f.unit.value.trim(),start:f.start.value||today(),end:f.end.value||'',
+      reward:f.reward.value.trim(),team:!!f.team.value,daily:f.daily.checked,who:[...sh.querySelectorAll('#chWhoChips .chip.on')].map(b=>b.dataset.who)};
+    if(!d.title) return;
+    const ok=c?await w(()=>S.db.doc('challenges/'+c.id).update(d)):await w(()=>S.db.collection('challenges').add({...d,prog:{},last:{},by:S.meId||null,ts:Date.now()}));
+    if(ok){closeModal();toast(c?'Gespeichert ✓':'🚀 Challenge gestartet!');if(!c) sendAnnounceSilent('🏆 Neue Family Challenge: '+d.icon+' '+d.title)}};
+}
+function sendAnnounceSilent(text){try{S.db.collection('chat').add({text,by:S.meId||null,ts:Date.now()})}catch{}}
+async function chPlus(key){
+  const [cid,mid]=key.split('|');const c=(S.challenges||[]).find(x=>x.id===cid);if(!c||chOver(c)) return;
+  if(mid!==S.meId&&!iAmParent()) return toast('Nur für dich selbst zählen 🙂');
+  if(c.daily&&(c.last||{})[mid]===today()) return toast('Heute schon gezählt ✓');
+  const n=((c.prog||{})[mid]||0)+1;
+  if(await w(()=>S.db.doc('challenges/'+cid).update({['prog.'+mid]:n,['last.'+mid]:today()}))){
+    try{navigator.vibrate&&navigator.vibrate(n>=(+c.goal||1)?[60,50,60,50,160]:25)}catch{}
+    if(!c.team&&n>=(+c.goal||1)){const m=member(mid);toast('🏆 '+(m?m.name:'')+' hat es geschafft!')}}
+}
+async function chClose(id){if(await w(()=>S.db.doc('challenges/'+id).update({closed:true}))) toast('🏁 Challenge beendet')}
+async function chDel(id,btn){confirmBtn(btn,'Wirklich löschen?',async()=>{if(await w(()=>S.db.doc('challenges/'+id).delete())) toast('Gelöscht')})}
+
+/* ---------- Stammbaum ---------- */
+const TREE_REL={
+  v_opa:['👴','Opa','Papas Vater'],v_oma:['👵','Oma','Papas Mutter'],m_opa:['👴','Opa','Mamas Vater'],m_oma:['👵','Oma','Mamas Mutter'],
+  v_sib:['🧔','Onkel / Tante','Bruder oder Schwester von Papa'],papa:['👨','Papa','Vater'],mama:['👩','Mama','Mutter'],m_sib:['👱','Onkel / Tante','Bruder oder Schwester von Mama'],
+  kind:['🧒','Kind','Sohn oder Tochter'],v_cous:['🧑','Cousin / Cousine','Kind von Papas Geschwistern'],m_cous:['🧑','Cousin / Cousine','Kind von Mamas Geschwistern']};
+function treeYears(p){const y=d=>d?String(d).slice(0,4):'';return p.died?`${y(p.birth)?'* '+y(p.birth)+' ':''}† ${y(p.died)}`:p.birth?'* '+parse(p.birth).toLocaleDateString('de-DE',{day:'numeric',month:'numeric',year:'numeric'}):''}
+function renderTree(){
+  const box=$('#treeBox');if(!box) return;const nb=$('#treeNewBtn');if(nb) nb.hidden=!iAmParent();
+  const all=[...(S.tree||[])].sort((a,b)=>String(a.birth||'9999').localeCompare(String(b.birth||'9999'))||(a.ts||0)-(b.ts||0));
+  const of=r=>all.filter(p=>p.rel===r);
+  const card=p=>{const r=TREE_REL[p.rel]||['🙂','',''];const m=p.mid?member(p.mid):null;
+    return `<button class="tp ${p.died?'dead':''}" data-act="tree-open" data-id="${esc(p.id)}"><span class="te">${m?av(m.id):esc(p.emoji||r[0])}</span><b>${esc(p.name)}</b><small>${esc(p.label||r[1])}</small>${treeYears(p)?`<small>${esc(treeYears(p))}</small>`:''}</button>`};
+  const add=(r,txt)=>iAmParent()?`<button class="tp tp-add" data-act="tree-new" data-id="${r}">＋ ${txt}</button>`:'';
+  const side=(title,rels,miss)=>`<div class="tree-side"><div class="lbl">${title}</div><div class="tree-row">${rels.map(r=>of(r).map(card).join('')||add(r,TREE_REL[r][1])).join('')}${miss||''}</div></div>`;
+  box.innerHTML=`<div class="tree">
+    <div class="tree-gen"><div class="lbl">👴👵 Großeltern</div><div class="tree-sides">${side('Papas Seite',['v_opa','v_oma'])}${side('Mamas Seite',['m_opa','m_oma'])}</div></div>
+    <div class="tree-link"></div>
+    <div class="tree-gen"><div class="lbl">👨‍👩 Eltern, Onkel &amp; Tanten</div>
+      <div class="tree-row" style="margin-bottom:10px">${of('papa').map(card).join('')||add('papa','Papa')}${of('mama').map(card).join('')||add('mama','Mama')}</div>
+      <div class="tree-sides">${side('Geschwister von Papa',['v_sib'],of('v_sib').length?add('v_sib','weitere'):'')}${side('Geschwister von Mama',['m_sib'],of('m_sib').length?add('m_sib','weitere'):'')}</div></div>
+    <div class="tree-link"></div>
+    <div class="tree-gen"><div class="lbl">🧒 Unsere Kinder</div><div class="tree-row">${of('kind').map(card).join('')}${add('kind',of('kind').length?'weiteres Kind':'Kind')}</div>
+      ${(of('v_cous').length||of('m_cous').length||iAmParent())?`<div class="tree-sides" style="margin-top:10px">${side('Cousins – Papas Seite',['v_cous'],of('v_cous').length?add('v_cous','weitere'):'')}${side('Cousins – Mamas Seite',['m_cous'],of('m_cous').length?add('m_cous','weitere'):'')}</div>`:''}</div>
+  </div>${all.length?'':`<p class="hint" style="text-align:center;margin-top:10px">${iAmParent()?'Tippe auf ＋, um Opa, Oma und alle anderen einzutragen.':'Mama oder Papa können den Stammbaum ausfüllen.'}</p>`}`;
+}
+function treeOpen(id){
+  const p=(S.tree||[]).find(x=>x.id===id);if(!p) return;if(iAmParent()) return treeEdit(id);
+  const r=TREE_REL[p.rel]||['🙂','',''];
+  modal(`<div style="text-align:center"><div style="font-size:56px">${esc(p.emoji||r[0])}</div><h3>${esc(p.name)}</h3><p class="muted" style="margin-top:-6px">${esc(p.label||r[1])} · ${esc(r[2])}</p>
+    ${treeYears(p)?`<p><b>${esc(treeYears(p))}</b></p>`:''}${p.place?`<p>📍 ${esc(p.place)}</p>`:''}${p.note?`<p style="white-space:pre-wrap">${esc(p.note)}</p>`:''}</div>`);
+}
+function treeEdit(id,rel){
+  if(!iAmParent()) return;const p=id?(S.tree||[]).find(x=>x.id===id):null;const cur=p?p.rel:(rel||'kind');
+  modal(`<h3>🌳 ${p?'Person bearbeiten':'Person hinzufügen'}</h3>
+    <form id="treeForm" autocomplete="off">
+      <label>Wer ist das?<select name="rel">${Object.entries(TREE_REL).map(([k,[e,t,d]])=>`<option value="${k}" ${k===cur?'selected':''}>${e} ${esc(t)} – ${esc(d)}</option>`).join('')}</select></label>
+      <label>Name<input name="name" required maxlength="50" value="${esc(p?p.name:'')}" placeholder="Vorname Nachname"></label>
+      <div class="row"><label style="flex:1">Bezeichnung (optional)<input name="label" maxlength="30" value="${esc(p?p.label||'':'')}" placeholder="z. B. Onkel, Tante, Sohn, Tochter"></label><label style="flex:0 0 74px">Symbol<input name="emoji" maxlength="4" value="${esc(p?p.emoji||'':'')}" style="text-align:center"></label></div>
+      <div class="row"><label style="flex:1">Geboren<input name="birth" type="date" value="${esc(p?p.birth||'':'')}"></label><label style="flex:1">Verstorben (optional)<input name="died" type="date" value="${esc(p?p.died||'':'')}"></label></div>
+      <label>Ort (optional)<input name="place" maxlength="60" value="${esc(p?p.place||'':'')}" placeholder="z. B. Tunis, Regensburg"></label>
+      <label>JIY-Profil verknüpfen (optional)<select name="mid"><option value="">–</option>${S.members.map(m=>`<option value="${esc(m.id)}" ${p&&p.mid===m.id?'selected':''}>${esc(m.name)}</option>`).join('')}</select></label>
+      <label>Notiz (optional)<textarea name="note" maxlength="500" rows="2">${esc(p?p.note||'':'')}</textarea></label>
+      <button class="btn primary" style="width:100%">Speichern</button>
+      ${p?`<button type="button" class="btn ghost danger" style="width:100%;margin-top:8px" id="treeDel">Löschen</button>`:''}
+    </form>`);
+  const f=$('#treeForm');
+  f.mid.onchange=()=>{const m=member(f.mid.value);if(m){if(!f.name.value) f.name.value=m.name;if(!f.birth.value&&m.birth) f.birth.value=m.birth}};
+  f.onsubmit=async e=>{e.preventDefault();const d={rel:f.rel.value,name:f.name.value.trim(),label:f.label.value.trim(),emoji:f.emoji.value.trim(),birth:f.birth.value||'',died:f.died.value||'',place:f.place.value.trim(),mid:f.mid.value||'',note:f.note.value.trim()};
+    if(!d.name) return;const ok=p?await w(()=>S.db.doc('tree/'+p.id).update(d)):await w(()=>S.db.collection('tree').add({...d,ts:Date.now()}));if(ok){closeModal();toast('Gespeichert ✓')}};
+  const del=$('#treeDel');if(del) del.onclick=()=>confirmBtn(del,'Wirklich löschen?',async()=>{if(await w(()=>S.db.doc('tree/'+p.id).delete())){closeModal();toast('Gelöscht')}});
 }
 
 
@@ -2169,6 +2361,7 @@ function buildAlarms(){
           body:o.prayerMin?`In ${o.prayerMin} Minuten ist ${de}.`:`Zeit für ${de}${loc.def?'':' · '+(loc.name||'Mein Standort')}.`,adhan:!!o.adhan&&!o.prayerMin});
         if(o.adhan&&o.prayerMin) out.push({id:'ad-'+ds+'-'+k,at:atMs(ds,hm(t[k])),title:`🕌 ${de} – ${hm(t[k])}`,body:`Zeit für ${de}.`,adhan:true})}}}
   out.push(...clockAlarms());
+  for(const ds of nextSaturdays(2)) out.push({id:'win-'+ds,at:atMs(ds,'09:00'),title:'🏆 Wer hat diese Woche die meisten Punkte?',body:'Jetzt JIY öffnen – der Gewinner erscheint groß auf dem Bildschirm!'});
   for(const tk of S.tasks||[]){if(tk.done||!tk.due||tk.due<t0||tk.due>t14||(tk.who&&tk.who!==S.meId)) continue;
     out.push({id:'tk-'+tk.id,at:atMs(tk.due,'08:00'),title:'✅ Heute: '+tk.title,body:'Aufgabe für '+(tk.who?'dich':'alle')})}
   if(o.events){for(const e of S.events){if(!e.start||e.start<t0||e.start>t14) continue;
@@ -2433,7 +2626,7 @@ function renderDevices(){
     :'<div class="empty">Noch keine Geräte.</div>';
   const accs=new Map();for(const d of devs) if(d.uid&&!accs.has(d.uid)) accs.set(d.uid,d.email||d.uid);
   for(const b of S.blockedAcc||[]) if(!accs.has(b.id)) accs.set(b.id,b.email||b.id);
-  $('#accList').innerHTML=[...accs].map(([uid,email])=>{const me=uid===S.uid,bl=blocked.has(uid);
+  if($('#accList')) $('#accList').innerHTML=[...accs].map(([uid,email])=>{const me=uid===S.uid,bl=blocked.has(uid);
     return `<div class="dev ${bl?'blk':''}"><span class="dev-ic">👤</span><div class="dev-main"><b>${esc(email)}</b><small>${bl?'<b class="late-txt">🔒 Konto gesperrt '+esc(untilTxt(blocked.get(uid).until))+'</b>':'aktiv'}${me?' · du':''}</small></div>
       ${me?'':`<button class="btn ${bl?'soft':'ghost danger'} sm" data-act="acc-block" data-id="${esc(uid)}">${bl?'Entsperren':'Konto sperren'}</button>`}</div>`}).join('')||'<div class="muted">–</div>';
 }
@@ -2449,7 +2642,7 @@ function renderPending(){
   const keys=new Set(list.map(x=>x.key));
   if(S.knownPend&&NATIVE) for(const x of list) if(!S.knownPend.has(x.key)){const mm=member(x.d.member);nativeNotify('📲 Neue App wartet auf Freigabe',(mm?mm.name+': ':'')+x.a.l,'app-'+x.key)}
   S.knownPend=keys;
-  const h=$('#famHint');if(h) h.innerHTML=list.length?`<b class="late-txt">📲 ${list.length} App${list.length>1?'s':''} freigeben</b>`:'Profile &amp; Kalender-Abo';
+  const h=$('#famHint');if(h) h.innerHTML=list.length?`<b class="late-txt">📲 ${list.length} App${list.length>1?'s':''} freigeben</b>`:'Profile &amp; Geräte';
   if(!list.length){$('#pendList').innerHTML='';return}
   $('#pendList').innerHTML=list.map(x=>{const mm=member(x.d.member);return `<div class="dev"><span class="dev-ic">📲</span><div class="dev-main"><b>${esc(x.a.l)}</b><small>${mm?esc(mm.name)+' · ':''}${esc(x.d.name||x.d.model||'Gerät')}</small></div>
     <button class="btn primary sm" data-act="app-ok" data-id="${esc(x.key)}">Erlauben</button><button class="btn ghost danger sm" data-act="app-no" data-id="${esc(x.key)}">Nein</button></div>`}).join('');
@@ -2460,7 +2653,7 @@ async function appDecide(key,ok){
   if(ok){al.add(pkg);dn.delete(pkg)}else{dn.add(pkg);al.delete(pkg)}
   if(await w(()=>S.db.doc('devices/'+id).update({appsAllowed:[...al],appsDenied:[...dn]}))) toast(ok?'✅ App freigegeben':'🚫 App bleibt gesperrt');
 }
-const WIPE={chat:'Chat',shop:'Einkauf',events:'Termine',meals:'Essen',bills:'Haushalt',tasks:'Aufgaben',announce:'Durchsagen',quran:'Quran-Fortschritt',devices:'Geräteliste'};
+const WIPE={chat:'Chat',shop:'Einkauf',events:'Termine',meals:'Essen',bills:'Haushalt',tasks:'Aufgaben',announce:'Durchsagen',challenges:'Challenges',quran:'Quran-Fortschritt',devices:'Geräteliste'};
 async function wipeColl(name){
   let n=0;const snap=await S.db.collection(name).get();
   for(const d of snap.docs){if(name==='devices'&&d.id===S.devId) continue;try{await S.db.doc(name+'/'+d.id).delete();n++}catch{}}
@@ -2563,7 +2756,7 @@ function renderBadges(){
   const th=$('#moreTaskHint');if(th){const op=S.tasks.filter(t=>!t.done&&(!t.who||t.who===S.meId)).length;th.innerHTML=td?`<b class="late-txt">${td} fällig</b>`:op?`${op} offen für dich`:'Wer macht was?'}
   const mh=$('#moreBillHint');if(mh) mh.textContent=bd?`${bd} bald fällig`:'Rechnungen & Fixkosten';
 }
-function renderAll(){applyAdmin();renderMe();renderCal();renderChat();renderShop();renderFam();renderMeals();renderBills();renderQuranProgress();renderBadges()}
+function renderAll(){applyAdmin();renderMe();renderCal();renderChat();renderShop();renderFam();renderMeals();renderBills();renderQuranProgress();renderBadges();renderChallenges();renderTree();if(S.ann) renderAnnounce()}
 
 /* ---------- Aktionen ---------- */
 const ACT={
@@ -2619,6 +2812,13 @@ const ACT={
   'task-edit':(t,id)=>taskEdit(id),
   'task-clear':()=>taskClear(),
   'announce':()=>announceModal(),
+  'ch-new':()=>chEdit(null),
+  'ch-edit':(t,id)=>chEdit(id),
+  'ch-plus':(t,id)=>chPlus(id),
+  'ch-close':(t,id)=>chClose(id),
+  'ch-del':(t,id)=>chDel(id,t),
+  'tree-new':(t,id)=>treeEdit(null,id),
+  'tree-open':(t,id)=>treeOpen(id),
   'clock':()=>clockModal(),
   'clock-toggle':(t,id)=>clockToggle(id),
   'clock-del':(t,id)=>clockDel(id),
@@ -2640,7 +2840,7 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(
 function subscribe(){
   const got={members:false,events:false,chat:false,shop:false};
   const timer=setTimeout(()=>{if(!Object.values(got).every(Boolean)) banner('Die gemeinsamen Daten sind gerade nicht erreichbar – vielleicht offline. Es wird weiter versucht.')},10000);
-  const done=(k,snap)=>{if(!snap.metadata.fromCache&&!got[k]){got[k]=true;if(Object.values(got).every(Boolean)){clearTimeout(timer);banner('');S.loaded=true;resolveMe();renderAll();initIcs();billReminderOnce();scheduleAlarms()}}};
+  const done=(k,snap)=>{if(!snap.metadata.fromCache&&!got[k]){got[k]=true;if(Object.values(got).every(Boolean)){clearTimeout(timer);banner('');S.loaded=true;resolveMe();renderAll();initIcs();billReminderOnce();scheduleAlarms();setTimeout(()=>winCheck(),1500)}}};
   const err=k=>e=>{got[k]=true;console.error(k,e);if(e&&e.code==='permission-denied') banner('Kein Zugriff auf die Daten – stimmen die E-Mails in firestore.rules?');else banner('Daten konnten nicht geladen werden. Bitte Seite später neu öffnen.')};
   const rows=s=>s.docs.map(d=>({id:d.id,...d.data()}));
   S.db.collection('members').onSnapshot(s=>{S.members=rows(s).sort((a,b)=>(a.order||0)-(b.order||0)||(a.ts||0)-(b.ts||0));resolveMe();cacheSos();renderAll();scheduleIcsSync();scheduleAlarms();done('members',s)},err('members'));
@@ -2656,6 +2856,8 @@ function subscribe(){
   S.clocks=S.clocks||[];
   S.db.collection('clocks').onSnapshot(s=>{S.clocks=rows(s);renderClockHint();renderClockList();scheduleAlarms()},errX('clocks'));
   S.db.collection('announce').orderBy('ts','desc').limit(5).onSnapshot(s=>{if(!s.metadata.fromCache) onAnnounce(rows(s))},errX('announce'));
+  S.db.collection('challenges').onSnapshot(s=>{S.challenges=rows(s);renderChallenges()},errX('challenges'));
+  S.db.collection('tree').onSnapshot(s=>{S.tree=rows(s);renderTree()},errX('tree'));
   S.db.doc('config/wifi').onSnapshot(s=>{S.wifi=s.exists?s.data():null},()=>{});
   S.db.collection('allowed').onSnapshot(s=>{S.allowed=rows(s);renderAccess()},()=>{});
   setInterval(()=>{if(S.view==='familie') renderDevices()},60000);
