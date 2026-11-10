@@ -63,8 +63,48 @@ public final class AppGuard {
         synchronized (AppGuard.class) {
             limits = null;
         }
-        if (on && hasUsage(c)) start(c);
+        if ((on || isLocked(c)) && hasUsage(c)) start(c);
         else stop(c);
+    }
+
+    /* ---- Komplettsperre (Gerät gesperrt / Durchsage): nur JIY und Telefon/Notruf ---- */
+    private static final String[] LOCK_KINDS = {"device", "ann"};
+
+    static void setLock(Context c, String kind, String text, long until) {
+        prefs(c).edit().putString("lock_" + kind, text == null ? "" : text).putLong("lockU_" + kind, until).apply();
+        if (hasUsage(c)) start(c);
+    }
+
+    static void clearLock(Context c, String kind) {
+        prefs(c).edit().remove("lock_" + kind).remove("lockU_" + kind).apply();
+        if (!isOn(c) && !isLocked(c)) stop(c);
+    }
+
+    static boolean isLocked(Context c) {
+        long now = System.currentTimeMillis();
+        SharedPreferences p = prefs(c);
+        for (String k : LOCK_KINDS) {
+            if (p.contains("lock_" + k)) {
+                long u = p.getLong("lockU_" + k, 0);
+                if (u == 0 || u > now) return true;
+            }
+        }
+        return false;
+    }
+
+    /** Apps, die auch bei Komplettsperre gehen: Telefon, Notruf, Systemoberfläche. */
+    static boolean lockAllowed(Context c, String pkg) {
+        if (pkg == null) return true;
+        if (pkg.equals(c.getPackageName())) return true;
+        switch (pkg) {
+            case "android": case "com.android.systemui": case "com.android.phone": case "com.android.server.telecom":
+            case "com.android.emergency": case "com.google.android.dialer": case "com.samsung.android.dialer":
+            case "com.android.dialer": case "com.android.incallui": case "com.android.contacts":
+            case "com.samsung.android.incallui": case "com.miui.voiceassist":
+                return true;
+            default:
+                return false;
+        }
     }
 
     static void start(Context c) {
