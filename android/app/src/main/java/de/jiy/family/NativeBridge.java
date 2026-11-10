@@ -12,6 +12,34 @@ public class NativeBridge {
         ctx = c.getApplicationContext();
     }
 
+    /** Speichert eine Textdatei (z. B. Datensicherung) im Download-Ordner. Gibt den Ort zurück oder "" bei Fehler. */
+    @JavascriptInterface
+    public String saveFile(String name, String text) {
+        try {
+            String safe = (name == null ? "jiy.json" : name).replaceAll("[^A-Za-z0-9._-]", "_");
+            byte[] data = (text == null ? "" : text).getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            if (android.os.Build.VERSION.SDK_INT >= 29) {
+                android.content.ContentValues v = new android.content.ContentValues();
+                v.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, safe);
+                v.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "application/json");
+                v.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS + "/JIY");
+                android.net.Uri uri = ctx.getContentResolver().insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, v);
+                if (uri == null) return "";
+                try (java.io.OutputStream os = ctx.getContentResolver().openOutputStream(uri)) { os.write(data); }
+                return "Downloads/JIY/" + safe;
+            } else {
+                java.io.File dir = ctx.getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS);
+                if (dir == null) return "";
+                dir.mkdirs();
+                java.io.File f = new java.io.File(dir, safe);
+                try (java.io.FileOutputStream os = new java.io.FileOutputStream(f)) { os.write(data); }
+                return f.getAbsolutePath();
+            }
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
     @JavascriptInterface
     public boolean available() {
         return true;
@@ -42,6 +70,22 @@ public class NativeBridge {
     @JavascriptInterface
     public String listApps() {
         return AppGuard.listApps(ctx);
+    }
+
+    /** Komplettsperre an (kind = "device" oder "ann"), until = Zeitpunkt in ms (0 = bis aufgehoben). */
+    @JavascriptInterface
+    public void setLock(String kind, String text, double until) {
+        AppGuard.setLock(ctx, kind, text, (long) until);
+    }
+
+    @JavascriptInterface
+    public void clearLock(String kind) {
+        AppGuard.clearLock(ctx, kind);
+    }
+
+    @JavascriptInterface
+    public boolean lockReady() {
+        return AppGuard.hasUsage(ctx) && (android.os.Build.VERSION.SDK_INT < 23 || android.provider.Settings.canDrawOverlays(ctx));
     }
 
     @JavascriptInterface
