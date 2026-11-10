@@ -151,6 +151,7 @@ label.check input{width:20px;height:20px;accent-color:var(--pri)}
 
 /* chat */
 .chat-wrap{display:flex;flex-direction:column;height:calc(100dvh - 62px - 74px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
+body.chat-mode .chat-wrap{height:calc(100dvh - 86px - 104px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
 .chat-list{flex:1;overflow-y:auto;padding:8px 2px 12px;display:flex;flex-direction:column;gap:6px}
 .sep{align-self:center;font-size:12px;font-weight:800;color:var(--muted);background:#EFE9E0;border-radius:999px;padding:3px 10px;margin:10px 0 4px}
 .msg{display:flex;align-items:flex-end;gap:8px;max-width:84%}
@@ -267,6 +268,17 @@ label.check input{width:20px;height:20px;accent-color:var(--pri)}
 .bill-chk{width:22px!important;height:22px;flex:0 0 auto}.bill-multi{display:flex;align-items:center;gap:8px;margin-top:8px}
 .wd-row{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 10px}.pick{display:inline-flex!important;margin:0!important}.pick input{display:none}
 .pick span{display:inline-block;padding:7px 10px;border-radius:999px;border:1px solid var(--line);font-weight:800;font-size:13px;background:#fff}.pick input:checked+span{background:var(--accent,#2F6F68);color:#fff;border-color:transparent}
+.seg{display:flex;gap:4px;background:var(--bg);border-radius:14px;padding:4px;margin:4px 0 10px}
+.seg button{flex:1;border:0;background:none;border-radius:11px;padding:8px 4px;font-weight:800;font-size:13px;color:var(--muted)}
+.seg button.on{background:#fff;color:var(--pri);box-shadow:0 1px 4px rgba(22,49,59,.12)}
+.az-bar{height:8px;border-radius:9px;background:var(--bg);overflow:hidden;margin-bottom:4px}.az-bar span{display:block;height:100%;background:var(--saffron,#E3A33A);border-radius:9px;transition:width .3s}
+.az-prog{margin-bottom:8px}
+.az{border-top:1px solid var(--line);padding:12px 0}.az:first-child{border-top:0}
+.az-ar{font-family:Amiri,serif;font-size:22px;line-height:1.9;text-align:right;color:var(--ink)}
+.az-row{display:flex;align-items:center;gap:10px;margin-top:6px}.az-row small{flex:1;line-height:1.35}
+.az-cnt{flex:none;min-width:76px;height:44px;border-radius:14px;border:0;background:var(--pri);color:#fff;font-weight:900;font-size:15px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.15)}
+.az-cnt:active{transform:scale(.96)}
+.az.fin .az-ar{opacity:.45}.az.fin .az-cnt{background:var(--saffron,#E3A33A);color:var(--ink)}
 .big-links{display:flex;flex-direction:column;gap:8px;margin:12px 0}.big-link{width:100%;padding:14px 16px!important;font-size:16px!important}
 .steps{padding-left:20px;line-height:1.5}.steps li{margin-bottom:6px}
 .wipe-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
@@ -586,6 +598,13 @@ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
         <p id="qInfo" class="q-info"></p>
         <button class="btn soft" data-act="compass" style="width:100%">🧭 Kompass starten</button>
       </div>
+      <div class="card azkar-card">
+        <h3>📿 Azkar</h3>
+        <div class="seg" id="azSeg"><button data-az="morgen">🌅 Morgen</button><button data-az="abend">🌙 Abend</button><button data-az="gebet">🕌 Nach dem Gebet</button></div>
+        <div id="azProg" class="az-prog"></div>
+        <div id="azList"></div>
+        <button class="btn ghost sm" id="azReset" style="margin-top:8px">↺ Zähler zurücksetzen</button>
+      </div>
       <div class="card quran-card">
         <h3>📖 Quran</h3>
         <div id="qrProgress" class="qr-progress"></div>
@@ -902,7 +921,7 @@ function show(v){
   document.body.classList.toggle('chat-mode',v==='chat');
   if(location.hash!=='#'+v) history.replaceState(null,'','#'+v);
   if(v==='chat'){markChatSeen();renderChat(true)}
-  if(v==='gebet') initPrayer();
+  if(v==='gebet'){initPrayer();renderAzkar()}
   if(v==='essen') renderMeals();
   if(v==='haushalt') renderBills();
   if(v==='aufgaben') renderTasks();
@@ -1811,6 +1830,66 @@ function showAnnounce(text,from){
   let o=$('#annOverlay');if(!o){o=document.createElement('div');o.id='annOverlay';document.body.appendChild(o)}
   o.innerHTML=`<div class="ann-box"><div class="ann-text">${esc(text)}</div>${from?`<div class="ann-from">— ${esc(from)}</div>`:''}<button class="btn primary" id="annOk">👍 OK</button></div>`;
   o.hidden=false;$('#annOk').onclick=()=>{o.hidden=true};
+}
+
+
+/* ---------- Azkar ---------- */
+const AZ_Q={kursi:{u:'https://api.alquran.cloud/v1/ayah/2:255/quran-uthmani',k:'jiy-az-kursi',de:'Ayat al-Kursi (2:255)'},
+  ikhlas:{s:112,de:'Sure Al-Ikhlas (112)'},falaq:{s:113,de:'Sure Al-Falaq (113)'},nas:{s:114,de:'Sure An-Nas (114)'}};
+const AZ={
+ morgen:[
+  {q:'kursi',n:1},{q:'ikhlas',n:3},{q:'falaq',n:3},{q:'nas',n:3},
+  {a:'أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ',de:'Wir sind in den Morgen eingetreten, und die Herrschaft gehört Allah …',n:1},
+  {a:'اللَّهُمَّ بِكَ أَصْبَحْنَا، وَبِكَ أَمْسَيْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ النُّشُورُ',de:'O Allah, durch Dich erreichen wir den Morgen und den Abend, durch Dich leben und sterben wir, und zu Dir ist die Auferstehung.',n:1},
+  {a:'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَٰهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَىٰ عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي، فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ',de:'Sayyid al-Istighfar – das beste Bitten um Vergebung.',n:1},
+  {a:'بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ',de:'Im Namen Allahs, mit Dessen Namen nichts auf der Erde und im Himmel schaden kann …',n:3},
+  {a:'رَضِيتُ بِاللَّهِ رَبًّا، وَبِالْإِسْلَامِ دِينًا، وَبِمُحَمَّدٍ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ نَبِيًّا',de:'Ich bin zufrieden mit Allah als Herrn, dem Islam als Religion und Muhammad ﷺ als Propheten.',n:3},
+  {a:'حَسْبِيَ اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ، عَلَيْهِ تَوَكَّلْتُ، وَهُوَ رَبُّ الْعَرْشِ الْعَظِيمِ',de:'Allah genügt mir, es gibt keinen Gott außer Ihm, auf Ihn vertraue ich …',n:7},
+  {a:'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ',de:'Gepriesen sei Allah und Ihm gebührt das Lob.',n:100}
+ ],
+ abend:[
+  {q:'kursi',n:1},{q:'ikhlas',n:3},{q:'falaq',n:3},{q:'nas',n:3},
+  {a:'أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ',de:'Wir sind in den Abend eingetreten, und die Herrschaft gehört Allah …',n:1},
+  {a:'اللَّهُمَّ بِكَ أَمْسَيْنَا، وَبِكَ أَصْبَحْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ الْمَصِيرُ',de:'O Allah, durch Dich erreichen wir den Abend und den Morgen, durch Dich leben und sterben wir, und zu Dir ist die Rückkehr.',n:1},
+  {a:'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَٰهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَىٰ عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي، فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ',de:'Sayyid al-Istighfar – das beste Bitten um Vergebung.',n:1},
+  {a:'أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ',de:'Ich nehme Zuflucht bei den vollkommenen Worten Allahs vor dem Übel dessen, was Er erschaffen hat.',n:3},
+  {a:'بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ',de:'Im Namen Allahs, mit Dessen Namen nichts auf der Erde und im Himmel schaden kann …',n:3},
+  {a:'رَضِيتُ بِاللَّهِ رَبًّا، وَبِالْإِسْلَامِ دِينًا، وَبِمُحَمَّدٍ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ نَبِيًّا',de:'Ich bin zufrieden mit Allah als Herrn, dem Islam als Religion und Muhammad ﷺ als Propheten.',n:3},
+  {a:'حَسْبِيَ اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ، عَلَيْهِ تَوَكَّلْتُ، وَهُوَ رَبُّ الْعَرْشِ الْعَظِيمِ',de:'Allah genügt mir, es gibt keinen Gott außer Ihm, auf Ihn vertraue ich …',n:7},
+  {a:'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ',de:'Gepriesen sei Allah und Ihm gebührt das Lob.',n:100}
+ ],
+ gebet:[
+  {a:'أَسْتَغْفِرُ اللَّهَ',de:'Ich bitte Allah um Vergebung.',n:3},
+  {a:'اللَّهُمَّ أَنْتَ السَّلَامُ وَمِنْكَ السَّلَامُ، تَبَارَكْتَ يَا ذَا الْجَلَالِ وَالْإِكْرَامِ',de:'O Allah, Du bist der Friede und von Dir kommt der Friede …',n:1},
+  {a:'سُبْحَانَ اللَّهِ',de:'Gepriesen sei Allah.',n:33},
+  {a:'الْحَمْدُ لِلَّهِ',de:'Alles Lob gebührt Allah.',n:33},
+  {a:'اللَّهُ أَكْبَرُ',de:'Allah ist größer.',n:33},
+  {a:'لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ',de:'Es gibt keinen Gott außer Allah, allein, ohne Partner … (zum Abschluss, 100 voll)',n:1},
+  {q:'kursi',n:1},{q:'ikhlas',n:1},{q:'falaq',n:1},{q:'nas',n:1}
+ ]};
+function azDefault(){const h=new Date().getHours();return h<12?'morgen':h>=15?'abend':'gebet'}
+function azKey(){return 'jiy-az-'+today()+'-'+S.azSet}
+function azCounts(){try{return JSON.parse(ls(azKey())||'{}')}catch{return {}}}
+async function azQText(q){
+  const d=AZ_Q[q];if(!d) return '';if(S.azQ&&S.azQ[q]) return S.azQ[q];S.azQ=S.azQ||{};
+  try{if(d.u){const j=await cachedJson(d.k,d.u);S.azQ[q]=j.data.text}
+    else{const j=await cachedJson('jiy-qr-s'+d.s,`https://api.alquran.cloud/v1/surah/${d.s}/quran-uthmani`);S.azQ[q]=j.data.ayahs.map(a=>a.text).join(' ۝ ')}}catch{S.azQ[q]=''}
+  return S.azQ[q];
+}
+async function renderAzkar(){
+  const list=$('#azList');if(!list) return;S.azSet=S.azSet||azDefault();
+  $('#azSeg').querySelectorAll('[data-az]').forEach(b=>{b.classList.toggle('on',b.dataset.az===S.azSet);b.onclick=()=>{S.azSet=b.dataset.az;renderAzkar()}});
+  const items=AZ[S.azSet],cnt=azCounts();
+  const done=items.filter((it,i)=>(cnt[i]||0)>=it.n).length;
+  $('#azProg').innerHTML=`<div class="az-bar"><span style="width:${Math.round(done/items.length*100)}%"></span></div><small class="muted">${done} von ${items.length} erledigt${done===items.length?' – māshā’Allāh! ✨':''}</small>`;
+  list.innerHTML=items.map((it,i)=>{const c=cnt[i]||0,fin=c>=it.n;return `<div class="az ${fin?'fin':''}" data-i="${i}">
+    <div class="az-ar" lang="ar" dir="rtl">${it.q?`<span class="az-q" data-q="${it.q}">…</span>`:esc(it.a)}</div>
+    <div class="az-row"><small class="muted">${esc(it.q?AZ_Q[it.q].de:it.de)}</small><button class="az-cnt" data-i="${i}" aria-label="Zählen">${fin?'✓':c+' / '+it.n}</button></div></div>`}).join('');
+  list.querySelectorAll('.az-cnt').forEach(b=>b.onclick=()=>{const i=+b.dataset.i,it=items[i],c=azCounts();if((c[i]||0)>=it.n) return;
+    c[i]=(c[i]||0)+1;lsSet(azKey(),JSON.stringify(c));try{navigator.vibrate&&navigator.vibrate(c[i]>=it.n?[40,60,40]:15)}catch{}
+    if(c[i]>=it.n) renderAzkar();else b.textContent=c[i]+' / '+it.n});
+  for(const el of list.querySelectorAll('.az-q')){const t=await azQText(el.dataset.q);el.textContent=t||'(Text braucht Internet)'}
+  const rs=$('#azReset');if(rs) rs.onclick=()=>{lsSet(azKey(),'{}');renderAzkar()};
 }
 
 /* ---------- Haushalt & Rechnungen ---------- */
