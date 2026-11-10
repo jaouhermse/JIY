@@ -240,6 +240,22 @@ label.check input{width:20px;height:20px;accent-color:var(--pri)}
 .sos-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .sos-btn{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:#FDECEC;color:#9B1C1C;font-weight:800;text-decoration:none;border:1px solid #F6C9C9}
 .sos-btn.p{background:#EAF6EE;color:#14532D;border-color:#C6E6D0}.sos-btn span{margin-left:auto;font-weight:600;font-size:13px;opacity:.8}
+.task{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px}
+.task-chk{width:30px;height:30px;border-radius:50%;border:2px solid var(--accent,#2F6F68);background:#fff;font-weight:900;color:#fff;flex:0 0 auto;cursor:pointer}
+.task.done .task-chk{background:var(--accent,#2F6F68)}.task.done b{text-decoration:line-through;opacity:.55}.task.late{border-color:#F3C4B0;background:#FFF6F2}
+.task-main{flex:1;min-width:0;display:flex;flex-direction:column}.task-main small{color:var(--muted);font-weight:600;font-size:12px}
+.task-done-head{display:flex;align-items:center;margin:16px 0 8px;font-weight:800;color:var(--muted)}.task-done-head span{flex:1}
+.task-add input[name=title]{width:100%;margin-bottom:8px}.task-add .row{display:flex;gap:8px;flex-wrap:wrap}.task-add select,.task-add input[type=date]{flex:1;min-width:120px}
+#taskMine.on{background:var(--accent,#2F6F68);color:#fff}
+.ann-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.ann-btn{padding:14px 10px;border-radius:14px;border:1px solid var(--line);background:#FFF8EE;font-weight:800;font-size:15px;cursor:pointer}
+#annOverlay{position:fixed;inset:0;background:rgba(20,30,28,.72);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px}#annOverlay[hidden]{display:none}
+.ann-box{background:#fff;border-radius:24px;padding:28px 22px;max-width:440px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35);animation:annPop .35s ease}
+.ann-text{font-size:30px;font-weight:900;line-height:1.25;margin-bottom:10px}.ann-from{color:var(--muted);font-weight:700;margin-bottom:18px}.ann-box .btn{width:100%;font-size:18px}
+@keyframes annPop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.bill-chk{width:22px!important;height:22px;flex:0 0 auto}.bill-multi{display:flex;align-items:center;gap:8px;margin-top:8px}
+.wd-row{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 10px}.wd{display:inline-flex!important;margin:0!important}.wd input{display:none}
+.wd span{display:inline-block;padding:7px 10px;border-radius:999px;border:1px solid var(--line);font-weight:800;font-size:13px;background:#fff}.wd input:checked+span{background:var(--accent,#2F6F68);color:#fff;border-color:transparent}
+.steps{padding-left:20px;line-height:1.5}.steps li{margin-bottom:6px}
 .wipe-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .btn.wipe-all{background:#C2410C;color:#fff;border-color:#C2410C}
 .app-list{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:6px 10px;background:#fff}
@@ -422,6 +438,7 @@ button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .m
           <button class="btn ghost danger sm" data-wipe="events">📅 Termine</button>
           <button class="btn ghost danger sm" data-wipe="meals">🍽️ Essen</button>
           <button class="btn ghost danger sm" data-wipe="bills">💸 Haushalt</button>
+          <button class="btn ghost danger sm" data-wipe="tasks">✅ Aufgaben</button>
           <button class="btn ghost danger sm" data-wipe="quran">📖 Quran-Fortschritt</button>
           <button class="btn ghost danger sm" data-wipe="devices">📱 Geräteliste</button>
         </div>
@@ -457,6 +474,7 @@ button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .m
 
     <!-- ESSEN -->
     <section id="view-essen" class="view" hidden>
+      <button class="btn soft" style="width:100%;margin-bottom:10px" data-act="announce-food">📣 Essen ist fertig! – allen Bescheid sagen</button>
       <div class="cal-head">
         <button class="icon-btn" data-act="meal-prev" aria-label="Vorherige Woche">‹</button>
         <h2 id="mealTitle"></h2>
@@ -500,16 +518,30 @@ button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .m
 
     <!-- HAUSHALT -->
     <section id="view-haushalt" class="view" hidden>
-      <h2>💸 Haushalt <span class="sp"></span><button class="btn primary sm" data-act="new-bill">+ Neu</button></h2>
+      <h2>💸 Haushalt <span class="sp"></span><button class="btn ghost sm" id="billMultiBtn">☑️ Mehrere</button><button class="btn primary sm" data-act="new-bill">+ Neu</button></h2>
+      <div class="card bill-multi" id="billMultiBar" hidden><span id="billMultiTxt">0 ausgewählt</span><span class="sp"></span><button class="btn ghost sm" id="billMultiAll">Alle fälligen</button><button class="btn primary sm" id="billMultiPay">✓ Bezahlt</button></div>
       <div class="card" id="billSum"></div>
       <div id="billList" style="margin-top:12px"></div>
       <p class="hint">Fällige Rechnungen stehen auch im Kalender (💸) und es gibt beim Öffnen der App einen Hinweis.</p>
+    </section>
+
+    <!-- AUFGABEN -->
+    <section id="view-aufgaben" class="view" hidden>
+      <h2>✅ Aufgaben <span class="sp"></span><button class="btn ghost sm" id="taskMine">Nur meine</button></h2>
+      <form id="taskForm" class="card task-add" autocomplete="off">
+        <input name="title" required maxlength="80" placeholder="Neue Aufgabe, z. B. Müll rausbringen">
+        <div class="row"><select name="who" id="taskWho"></select><input name="due" type="date"><button class="btn primary">+ Hinzufügen</button></div>
+      </form>
+      <div id="taskList" style="margin-top:12px"></div>
     </section>
 
     <!-- MEHR -->
     <section id="view-mehr" class="view" hidden>
       <h2>☰ Mehr</h2>
       <div class="more-grid">
+        <button class="more-btn" data-act="tab" data-id="aufgaben"><span class="mi">✅</span><b>Aufgaben</b><small id="moreTaskHint">Wer macht was?</small></button>
+        <button class="more-btn" data-act="clock"><span class="mi">⏰</span><b>Wecker</b><small id="moreClockHint">Weckzeiten für alle</small></button>
+        <button class="more-btn" data-act="announce"><span class="mi">📣</span><b>Durchsage</b><small>z. B. „Essen ist fertig!“</small></button>
         <button class="more-btn" data-act="tab" data-id="haushalt" id="hhTab"><span class="mi">💸</span><b>Haushalt</b><small id="moreBillHint">Rechnungen &amp; Fixkosten</small></button>
         <button class="more-btn" data-act="whatsapp"><span class="mi">🟢</span><b>WhatsApp</b><small>Chat &amp; Anruf</small></button>
         <button class="more-btn" data-act="guard-setup" id="guardBtn" hidden><span class="mi">📲</span><b>Kinderschutz einrichten</b><small id="guardHint">Berechtigungen prüfen</small></button>
@@ -657,7 +689,7 @@ const CAT_INDEX=new Map();
 for(const [cat,items] of Object.entries(CATALOG)) for(const [name,emoji] of items) CAT_INDEX.set(norm(name),{name,emoji,cat});
 
 /* ---------- Zustand ---------- */
-const S={isOwner:null,meals:{},bills:[],quran:{},mealWeek:null,qrIdx:-1,heading:null,db:null,user:null,assets:null,sample:null,uid:null,canWrite:true,
+const S={isOwner:null,meals:{},bills:[],tasks:[],clocks:[],quran:{},mealWeek:null,qrIdx:-1,heading:null,db:null,user:null,assets:null,sample:null,uid:null,canWrite:true,
   members:[],events:[],messages:[],shop:[],meId:null,askedMe:false,
   view:'kalender',cal:null,catTab:Object.keys(CATALOG)[0],aiItems:[],newColor:COLORS[0],
   chatPhoto:null,loaded:false};
@@ -772,13 +804,13 @@ function confirmBtn(btn,label,fn){
 }
 
 /* ---------- Navigation ---------- */
-const VIEWS=['kalender','chat','einkauf','essen','gebet','mehr','haushalt','familie'];
+const VIEWS=['kalender','chat','einkauf','essen','gebet','mehr','haushalt','familie','aufgaben'];
 function show(v){
   if(!VIEWS.includes(v)) v='kalender';
   if(v==='familie'&&!amAdmin()) v='kalender';
   S.view=v;
   for(const x of VIEWS) $('#view-'+x).hidden=x!==v;
-  const tabOf=(v==='haushalt'||v==='familie')?'mehr':v;
+  const tabOf=(v==='haushalt'||v==='familie'||v==='aufgaben')?'mehr':v;
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.id===tabOf));
   document.body.classList.toggle('chat-mode',v==='chat');
   if(location.hash!=='#'+v) history.replaceState(null,'','#'+v);
@@ -786,6 +818,7 @@ function show(v){
   if(v==='gebet') initPrayer();
   if(v==='essen') renderMeals();
   if(v==='haushalt') renderBills();
+  if(v==='aufgaben') renderTasks();
   window.scrollTo(0,0);
 }
 window.addEventListener('hashchange',()=>show(location.hash.slice(1)));
@@ -1515,6 +1548,118 @@ async function mealShop(ds,ingrText){
   toast(n?`🛒 ${n} Zutat${n===1?'':'en'} auf die Einkaufsliste`:'Alles steht schon auf der Liste');
 }
 
+/* ---------- Aufgaben ---------- */
+function taskLate(t){return !t.done&&t.due&&t.due<today()}
+function myTasksDue(){return S.tasks.filter(t=>!t.done&&(!t.who||t.who===S.meId)&&t.due&&t.due<=today()).length}
+function renderTasks(){
+  const list=$('#taskList');if(!list) return;
+  const ws=$('#taskWho');if(ws){const cur=ws.value;ws.innerHTML=`<option value="">👨‍👩‍👦 Alle</option>`+S.members.map(m=>`<option value="${esc(m.id)}">${esc(m.name)}</option>`).join('');ws.value=cur||''}
+  const mine=!!S.taskMine;const mb=$('#taskMine');if(mb){mb.textContent=mine?'Alle zeigen':'Nur meine';mb.classList.toggle('on',mine)}
+  let ts=S.tasks.filter(t=>!mine||!t.who||t.who===S.meId);
+  const open=ts.filter(t=>!t.done).sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999')||(a.ts||0)-(b.ts||0));
+  const done=ts.filter(t=>t.done).sort((a,b)=>(b.doneAt||0)-(a.doneAt||0)).slice(0,30);
+  const row=t=>{const who=member(t.who),by=member(t.by),db=member(t.doneBy);
+    return `<div class="task ${t.done?'done':''} ${taskLate(t)?'late':''}"><button class="task-chk" data-act="task-toggle" data-id="${esc(t.id)}" aria-label="Erledigt">${t.done?'✓':''}</button>
+      <div class="task-main"><b>${esc(t.title)}</b><small>${who?'👤 '+esc(who.name):'👨‍👩‍👦 Alle'}${t.due?' · 📅 '+(t.due===today()?'heute':fmtDay(t.due))+(taskLate(t)?' (überfällig)':''):''}${by?' · von '+esc(by.name):''}${t.done&&db?' · ✓ '+esc(db.name):''}</small>${t.note?`<small>${esc(t.note)}</small>`:''}</div>
+      <button class="icon-btn" data-act="task-edit" data-id="${esc(t.id)}" aria-label="Bearbeiten">✎</button></div>`};
+  list.innerHTML=(open.length?open.map(row).join(''):'<div class="empty">Keine offenen Aufgaben 🎉</div>')
+    +(done.length?`<div class="task-done-head"><span>Erledigt</span><button class="btn ghost sm" data-act="task-clear">Erledigte löschen</button></div>`+done.map(row).join(''):'');
+  const f=$('#taskForm');if(f&&!f.dataset.bound){f.dataset.bound='1';f.onsubmit=async e=>{e.preventDefault();const title=f.title.value.trim();if(!title) return;
+    if(await w(()=>S.db.collection('tasks').add({title,who:f.who.value||'',due:f.due.value||'',note:'',done:false,by:S.meId||null,ts:Date.now()}))){f.title.value='';f.due.value='';toast('✅ Aufgabe eingetragen')}}}
+  if(mb&&!mb.dataset.bound){mb.dataset.bound='1';mb.onclick=()=>{S.taskMine=!S.taskMine;renderTasks()}}
+}
+async function taskToggle(id){const t=S.tasks.find(x=>x.id===id);if(!t) return;
+  await w(()=>S.db.doc('tasks/'+id).update(t.done?{done:false,doneBy:null,doneAt:null}:{done:true,doneBy:S.meId||null,doneAt:Date.now()}))}
+function taskEdit(id){
+  const t=S.tasks.find(x=>x.id===id);if(!t) return;
+  modal(`<h3>✅ Aufgabe</h3><form id="taskEditForm" autocomplete="off">
+    <label>Was?<input name="title" required maxlength="80" value="${esc(t.title)}"></label>
+    <div class="row"><label>Wer?<select name="who"><option value="">👨‍👩‍👦 Alle</option>${S.members.map(m=>`<option value="${esc(m.id)}" ${m.id===t.who?'selected':''}>${esc(m.name)}</option>`).join('')}</select></label>
+      <label>Bis wann?<input name="due" type="date" value="${esc(t.due||'')}"></label></div>
+    <label>Notiz<input name="note" maxlength="140" value="${esc(t.note||'')}"></label>
+    <div class="actions"><button type="button" class="btn ghost danger" id="taskDel">Löschen</button><span class="sp"></span><button class="btn primary">Speichern</button></div></form>`);
+  const f=$('#taskEditForm');
+  f.onsubmit=async e=>{e.preventDefault();if(await w(()=>S.db.doc('tasks/'+id).update({title:f.title.value.trim(),who:f.who.value||'',due:f.due.value||'',note:f.note.value.trim()}))){closeModal();toast('Gespeichert')}};
+  $('#taskDel').onclick=e=>confirmBtn(e.currentTarget,'Wirklich löschen?',async()=>{if(await w(()=>S.db.doc('tasks/'+id).delete())){closeModal();toast('Gelöscht')}});
+}
+async function taskClear(){const d=S.tasks.filter(t=>t.done);for(const t of d){try{await S.db.doc('tasks/'+t.id).delete()}catch{}}toast(d.length+' erledigte Aufgaben gelöscht')}
+function liveNotifyTasks(ts){
+  const ids=new Set(ts.map(t=>t.id));if(!S.knownTasks){S.knownTasks=ids;return}
+  const fresh=ts.filter(t=>!S.knownTasks.has(t.id)&&t.by!==S.meId&&(!t.who||t.who===S.meId));S.knownTasks=ids;
+  if(!NATIVE) return;for(const t of fresh){const by=member(t.by);nativeNotify('✅ Neue Aufgabe'+(by?' von '+by.name:''),t.title+(t.due?' · bis '+fmtDay(t.due):''),'task-'+t.id)}
+}
+
+/* ---------- Wecker ---------- */
+const WD=['Mo','Di','Mi','Do','Fr','Sa','So'];
+function clockMine(c){return !c.who||c.who===S.meId}
+function clockDaysTxt(c){const d=c.days||[];if(!d.length) return 'einmalig'+(c.date?' am '+fmtDay(c.date):'');if(d.length===7) return 'täglich';if(d.join()==='1,2,3,4,5') return 'Mo–Fr';if(d.join()==='6,7') return 'Wochenende';return d.map(x=>WD[x-1]).join(', ')}
+function renderClockHint(){const h=$('#moreClockHint');if(!h) return;const m=(S.clocks||[]).filter(c=>c.on&&clockMine(c)).sort((a,b)=>a.time.localeCompare(b.time));h.textContent=m.length?'⏰ '+m.map(c=>c.time).slice(0,3).join(' · '):'Weckzeiten für alle'}
+function renderClockList(){
+  const el=$('#clockList');if(!el) return;
+  const list=[...(S.clocks||[])].sort((a,b)=>a.time.localeCompare(b.time));
+  el.innerHTML=list.length?list.map(c=>{const who=member(c.who);return `<div class="dev ${c.on?'':'blk'}" style="${c.on?'':'opacity:.6'}"><span class="dev-ic" style="font-size:26px;font-weight:900">${esc(c.time)}</span>
+    <div class="dev-main"><b>${esc(c.label||'Wecker')}</b><small>${clockDaysTxt(c)} · ${who?'für '+esc(who.name):'für alle'}</small></div>
+    <button class="btn ${c.on?'soft':'ghost'} sm" data-act="clock-toggle" data-id="${esc(c.id)}">${c.on?'An':'Aus'}</button><button class="icon-btn" data-act="clock-del" data-id="${esc(c.id)}" aria-label="Löschen">🗑</button></div>`}).join('')
+    :'<div class="empty">Noch kein Wecker.</div>';
+}
+function clockModal(){
+  modal(`<h3>⏰ Wecker</h3>
+    <div id="clockList"></div>
+    <form id="clockForm" class="card" style="margin-top:10px" autocomplete="off">
+      <div class="row"><label style="flex:0 0 120px">Uhrzeit<input name="time" type="time" required value="07:00"></label><label>Name<input name="label" maxlength="40" placeholder="z. B. Schule, Fajr"></label></div>
+      <div class="wd-row">${WD.map((d,i)=>`<label class="wd"><input type="checkbox" name="d" value="${i+1}" ${i<5?'checked':''}><span>${d}</span></label>`).join('')}</div>
+      <label>Für wen?<select name="who"><option value="">👨‍👩‍👦 Alle</option>${S.members.map(m=>`<option value="${esc(m.id)}" ${m.id===S.meId?'selected':''}>${esc(m.name)}</option>`).join('')}</select></label>
+      <p class="hint">Klingelt auf jedem Gerät mit der JIY-App, auf dem dieses Profil gewählt ist – auch wenn die App geschlossen ist. Keine Tage = einmalig.</p>
+      <div class="actions">${NATIVE&&window.JIYNative.ringTest?'<button type="button" class="btn ghost" id="clockTest">🔔 Ton testen</button>':''}<span class="sp"></span><button class="btn primary">+ Wecker speichern</button></div>
+    </form>`);
+  renderClockList();
+  const f=$('#clockForm');
+  f.onsubmit=async e=>{e.preventDefault();const days=[...f.querySelectorAll('[name=d]:checked')].map(x=>+x.value);
+    const date=days.length?'':(atMs(today(),f.time.value)>Date.now()?today():addDays(today(),1));
+    if(await w(()=>S.db.collection('clocks').add({time:f.time.value,label:f.label.value.trim(),days,date,who:f.who.value||'',on:true,by:S.meId||null,ts:Date.now()}))){f.label.value='';toast('⏰ Wecker '+f.time.value+' gespeichert')}};
+  const tb=$('#clockTest');if(tb) tb.onclick=()=>{try{window.JIYNative.ringTest()}catch{}};
+}
+async function clockToggle(id){const c=S.clocks.find(x=>x.id===id);if(c) await w(()=>S.db.doc('clocks/'+id).update({on:!c.on}))}
+async function clockDel(id){if(await w(()=>S.db.doc('clocks/'+id).delete())) toast('Wecker gelöscht')}
+function clockAlarms(){
+  const out=[];const now=Date.now();
+  for(const c of S.clocks||[]){if(!c.on||!clockMine(c)||!c.time) continue;
+    if(!(c.days||[]).length){if(c.date){const at=atMs(c.date,c.time);if(at>now) out.push({id:'clk-'+c.id+'-'+c.date,at,title:'⏰ '+c.time+(c.label?' – '+c.label:''),body:'Wecker',ring:true})}continue}
+    for(let i=0;i<8;i++){const ds=addDays(today(),i),dow=((parse(ds).getDay()+6)%7)+1;
+      if((c.days||[]).length&&!c.days.includes(dow)) continue;
+      const at=atMs(ds,c.time);if(at<=now) continue;
+      out.push({id:'clk-'+c.id+'-'+ds,at,title:'⏰ '+c.time+(c.label?' – '+c.label:''),body:'Wecker',ring:true});
+      if(!(c.days||[]).length) break;}}
+  return out;
+}
+
+/* ---------- Durchsage ---------- */
+const ANN_PRESETS=['🍽️ Essen ist fertig!','🕌 Gebet – kommt bitte!','🚗 Wir fahren gleich los!','🛏️ Schlafenszeit!','🧹 Bitte aufräumen!','📞 Bitte melde dich!'];
+function announceModal(){
+  modal(`<h3>📣 Durchsage an alle</h3><p class="muted" style="margin-top:-6px">Erscheint sofort groß auf allen Bildschirmen, auf denen JIY offen ist oder im Hintergrund läuft.</p>
+    <div class="ann-grid">${ANN_PRESETS.map(t=>`<button type="button" class="ann-btn" data-ann="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+    <form id="annForm" class="row" style="margin-top:10px" autocomplete="off"><input name="text" maxlength="100" placeholder="Eigener Text …" style="flex:1"><button class="btn primary">Senden</button></form>`);
+  $('#sheet').querySelectorAll('[data-ann]').forEach(b=>b.onclick=()=>sendAnnounce(b.dataset.ann));
+  $('#annForm').onsubmit=e=>{e.preventDefault();const t=e.target.text.value.trim();if(t) sendAnnounce(t)};
+}
+async function sendAnnounce(text){
+  if(await w(()=>S.db.collection('announce').add({text,by:S.meId||null,ts:Date.now()}))){closeModal();toast('📣 Gesendet: '+text)}
+}
+function onAnnounce(list){
+  const maxTs=list.reduce((a,x)=>Math.max(a,x.ts||0),0);
+  if(S.lastAnn==null){S.lastAnn=maxTs;return}
+  const fresh=list.filter(x=>(x.ts||0)>S.lastAnn&&x.by!==S.meId&&Date.now()-(x.ts||0)<15*60000).sort((a,b)=>a.ts-b.ts);S.lastAnn=Math.max(S.lastAnn,maxTs);
+  const x=fresh[fresh.length-1];if(!x) return;const by=member(x.by);
+  nativeNotify('📣 '+(by?by.name:'Durchsage'),x.text,'ann-'+x.ts);
+  try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch{}
+  showAnnounce(x.text,by?by.name:'');
+}
+function showAnnounce(text,from){
+  let o=$('#annOverlay');if(!o){o=document.createElement('div');o.id='annOverlay';document.body.appendChild(o)}
+  o.innerHTML=`<div class="ann-box"><div class="ann-text">${esc(text)}</div>${from?`<div class="ann-from">— ${esc(from)}</div>`:''}<button class="btn primary" id="annOk">👍 OK</button></div>`;
+  o.hidden=false;$('#annOk').onclick=()=>{o.hidden=true};
+}
+
 /* ---------- Haushalt & Rechnungen ---------- */
 const INTV={monat:{label:'monatlich',m:1},quartal:{label:'vierteljährlich',m:3},halbjahr:{label:'halbjährlich',m:6},jahr:{label:'jährlich',m:12},einmal:{label:'einmalig',m:0}};
 function addMonths(ds,n){const [y,m,d]=ds.split('-').map(Number);const t=new Date(y,m-1+n,1);const last=new Date(t.getFullYear(),t.getMonth()+1,0).getDate();t.setDate(Math.min(d,last));return iso(t)}
@@ -1538,11 +1683,24 @@ function renderBills(){
   $('#billSum').innerHTML=`<div class="bill-sum-row"><div><small class="muted">Fixkosten pro Monat (ca.)</small><b>${eur(monthly)}</b></div><div><small class="muted">Bald fällig</small><b class="${due?'late-txt':''}">${due}</b></div></div>`;
   const list=[...S.bills].sort((a,b)=>billStatus(a).diff-billStatus(b).diff);
   $('#billList').innerHTML=list.length?list.map(b=>{const s=billStatus(b);const resp=member(b.who);
-    return `<div class="bill ${s.cls}"><div class="bill-ic">${esc(b.icon||'💸')}</div>
+    return `<div class="bill ${s.cls}">${S.billMulti&&s.n?`<input type="checkbox" class="bill-chk" data-id="${esc(b.id)}" ${S.billSel.has(b.id)?'checked':''}>`:''}<div class="bill-ic">${esc(b.icon||'💸')}</div>
       <div class="bill-main"><b>${esc(b.title)}</b><small>${eur(b.amount)} · ${(INTV[b.interval]||INTV.monat).label}${resp?' · '+esc(resp.name):''}</small><small class="bill-st">${s.txt}</small></div>
       ${s.n?`<button class="btn soft sm" data-act="bill-paid" data-id="${esc(b.id)}">✓ Bezahlt</button>`:''}
       <button class="icon-btn" data-act="edit-bill" data-id="${esc(b.id)}" aria-label="Bearbeiten">✎</button></div>`}).join('')
     :`<div class="empty">Noch keine Ausgaben. Trag Miete, Strom, Internet, Versicherungen usw. ein – sie erscheinen dann auch im Kalender.</div>`;
+  bindBillMulti();
+}
+function bindBillMulti(){
+  S.billSel=S.billSel||new Set();
+  const mb=$('#billMultiBtn'),bar=$('#billMultiBar');if(!mb) return;
+  mb.textContent=S.billMulti?'Fertig':'☑️ Mehrere';bar.hidden=!S.billMulti;
+  mb.onclick=()=>{S.billMulti=!S.billMulti;S.billSel.clear();renderBills()};
+  $('#billList').querySelectorAll('.bill-chk').forEach(c=>c.onchange=()=>{c.checked?S.billSel.add(c.dataset.id):S.billSel.delete(c.dataset.id);$('#billMultiTxt').textContent=S.billSel.size+' ausgewählt'});
+  $('#billMultiTxt').textContent=S.billSel.size+' ausgewählt';
+  $('#billMultiAll').onclick=()=>{for(const b of S.bills){const st=billStatus(b);if(st.n&&st.diff<=3) S.billSel.add(b.id)}renderBills()};
+  $('#billMultiPay').onclick=async()=>{const ids=[...S.billSel];if(!ids.length) return toast('Bitte zuerst Rechnungen anhaken');let n=0;
+    for(const id of ids){const b=S.bills.find(x=>x.id===id);const nx=b&&billNext(b);if(!nx) continue;if(await w(()=>S.db.doc('bills/'+id).update({['paid.'+pkey(nx)]:Date.now()}))) n++}
+    S.billMulti=false;S.billSel.clear();renderBills();toast(`✓ ${n} Rechnung${n===1?'':'en'} als bezahlt markiert`)};
 }
 function billEvents(){
   const ys=new Set([S.cal.y,new Date().getFullYear(),new Date().getFullYear()+1]);const out=[];
@@ -1765,7 +1923,7 @@ function qrToggle(){
 
 /* ---------- Benachrichtigungen (kostenlos, über die Android-App) ---------- */
 const NATIVE=typeof window.JIYNative!=='undefined';
-const NOTIF_DEF={chat:true,events:true,remind:60,prayer:true,prayerMin:0,bills:true,days:true};
+const NOTIF_DEF={chat:true,events:true,remind:60,prayer:true,prayerMin:0,bills:true,days:true,adhan:false};
 function nset(){try{return {...NOTIF_DEF,...JSON.parse(ls('jiy-notif')||'{}')}}catch{return {...NOTIF_DEF}}}
 function nativeNotify(title,body,tag){if(!NATIVE) return;try{window.JIYNative.notify(String(title),String(body||''),String(tag||Date.now()))}catch(e){console.warn(e)}}
 function atMs(ds,hhmm){const [y,m,d]=ds.split('-').map(Number);const [h,mi]=String(hhmm).split(':').map(Number);return new Date(y,m-1,d,h,mi).getTime()}
@@ -1776,7 +1934,11 @@ function buildAlarms(){
     for(let i=0;i<7;i++){const ds=addDays(t0,i),t=prayerTimes(parse(ds),loc.lat,loc.lng);
       for(const [k,de] of PRAYERS){if(k==='sunrise') continue;
         out.push({id:'pr-'+ds+'-'+k,at:atMs(ds,hm(t[k]))-o.prayerMin*60000,title:`🕌 ${de} – ${hm(t[k])}`,
-          body:o.prayerMin?`In ${o.prayerMin} Minuten ist ${de}.`:`Zeit für ${de}${loc.def?'':' · '+(loc.name||'Mein Standort')}.`})}}}
+          body:o.prayerMin?`In ${o.prayerMin} Minuten ist ${de}.`:`Zeit für ${de}${loc.def?'':' · '+(loc.name||'Mein Standort')}.`,adhan:!!o.adhan&&!o.prayerMin});
+        if(o.adhan&&o.prayerMin) out.push({id:'ad-'+ds+'-'+k,at:atMs(ds,hm(t[k])),title:`🕌 ${de} – ${hm(t[k])}`,body:`Zeit für ${de}.`,adhan:true})}}}
+  out.push(...clockAlarms());
+  for(const tk of S.tasks||[]){if(tk.done||!tk.due||tk.due<t0||tk.due>t14||(tk.who&&tk.who!==S.meId)) continue;
+    out.push({id:'tk-'+tk.id,at:atMs(tk.due,'08:00'),title:'✅ Heute: '+tk.title,body:'Aufgabe für '+(tk.who?'dich':'alle')})}
   if(o.events){for(const e of S.events){if(!e.start||e.start<t0||e.start>t14) continue;
     if(e.allDay||!e.from) out.push({id:'ev-'+e.id,at:atMs(e.start,'08:00'),title:`📅 Heute: ${e.title}`,body:[e.loc?'📍 '+e.loc:'',e.note||''].filter(Boolean).join(' · ')||'Ganztägig'});
     else out.push({id:'ev-'+e.id,at:atMs(e.start,e.from)-Number(o.remind)*60000,title:`📅 ${e.title} um ${e.from}`,body:remindTxt(Number(o.remind))+(e.loc?' · 📍 '+e.loc:'')});}}
@@ -1804,6 +1966,17 @@ function liveNotifyEvents(evs){
   if(!NATIVE||!nset().events) return;
   for(const e of fresh){const mm=member(e.by);nativeNotify('📅 Neuer Termin'+(mm?' von '+mm.name:''),e.title+' · '+rangeText(e)+(e.allDay?'':' · '+e.from+' Uhr'),'evnew-'+e.id)}
 }
+function adhanOk(){return NATIVE&&!!window.JIYNative.adhanTest}
+function adhanState(){if(!adhanOk()) return 'Für den Adhan bitte die App aktualisieren (Mehr → App &amp; Update).';try{return window.JIYNative.hasAdhan()?'✅ Eigener Adhan-Ton gespeichert':'Noch kein Adhan-Ton – bitte eine MP3-Datei wählen (sonst normaler Ton).'}catch{return ''}}
+function bindAdhan(){
+  const pk=$('#adhanPick'),fi=$('#adhanFile'),te=$('#adhanTest'),st=$('#adhanStop');if(!pk) return;
+  if(!adhanOk()){pk.disabled=te.disabled=st.disabled=true;return}
+  pk.onclick=()=>fi.click();
+  fi.onchange=()=>{const f=fi.files&&fi.files[0];if(!f) return;if(f.size>15e6) return toast('Datei zu groß (max. 15 MB)');
+    const r=new FileReader();r.onload=()=>{const b64=String(r.result).split(',')[1]||'';try{const ok=window.JIYNative.saveAdhan(b64);toast(ok?'🔊 Adhan-Ton gespeichert':'Speichern hat nicht geklappt');$('#adhanSt').innerHTML=adhanState()}catch(e){toast('Fehler: '+e)}};r.readAsDataURL(f)};
+  te.onclick=()=>{try{window.JIYNative.adhanTest()}catch{}};
+  st.onclick=()=>{try{window.JIYNative.adhanStop()}catch{}};
+}
 function openNotifSettings(){
   const o=nset();
   const sel=(name,opts,val)=>`<select name="${name}">${opts.map(([v,t])=>`<option value="${v}" ${Number(val)===v?'selected':''}>${t}</option>`).join('')}</select>`;
@@ -1815,6 +1988,10 @@ function openNotifSettings(){
       <label>Erinnerung vor Terminen${sel('remind',[[15,'15 Minuten vorher'],[30,'30 Minuten vorher'],[60,'1 Stunde vorher'],[120,'2 Stunden vorher'],[1440,'1 Tag vorher']],o.remind)}</label>
       <label class="check"><input type="checkbox" name="prayer" ${o.prayer?'checked':''}> 🕌 Gebetszeiten</label>
       <label>Gebets-Erinnerung${sel('prayerMin',[[0,'zur Gebetszeit'],[5,'5 Minuten vorher'],[10,'10 Minuten vorher'],[15,'15 Minuten vorher']],o.prayerMin)}</label>
+      <label class="check"><input type="checkbox" name="adhan" ${o.adhan?'checked':''}> 🔊 Adhan abspielen (zur Gebetszeit)</label>
+      ${NATIVE?`<div class="row" style="align-items:center;margin:-4px 0 10px;flex-wrap:wrap"><small class="muted" style="flex:1" id="adhanSt">${adhanState()}</small>
+        <button type="button" class="btn ghost sm" id="adhanPick">🎵 Ton wählen</button><button type="button" class="btn ghost sm" id="adhanTest">▶ Test</button><button type="button" class="btn ghost sm" id="adhanStop">■</button></div>
+        <input type="file" id="adhanFile" accept="audio/*" hidden>`:''}
       <label class="check"><input type="checkbox" name="bills" ${o.bills?'checked':''}> 💸 Rechnungen (Tag vorher &amp; am Fälligkeitstag)</label>
       <label class="check"><input type="checkbox" name="days" ${o.days?'checked':''}> 🎂 Geburtstage &amp; 🌙 islamische Feiertage</label>
       <p class="hint">Erinnerungen für Gebet, Termine und Rechnungen kommen auch, wenn die App geschlossen ist. Chat-Nachrichten und neue Termine von anderen kommen, solange die App im Hintergrund läuft.</p>
@@ -1822,8 +1999,9 @@ function openNotifSettings(){
     </form>`);
   const f=$('#notifForm');
   const t=$('#notifTest');if(t) t.onclick=()=>{nativeNotify('🔔 JIY Family','So sehen eure Benachrichtigungen aus.','test');toast('Test gesendet')};
+  bindAdhan();
   f.onsubmit=e=>{e.preventDefault();
-    const v={chat:f.chat.checked,events:f.events.checked,remind:Number(f.remind.value),prayer:f.prayer.checked,prayerMin:Number(f.prayerMin.value),bills:f.bills.checked,days:f.days.checked};
+    const v={chat:f.chat.checked,events:f.events.checked,remind:Number(f.remind.value),prayer:f.prayer.checked,prayerMin:Number(f.prayerMin.value),adhan:f.adhan.checked,bills:f.bills.checked,days:f.days.checked};
     lsSet('jiy-notif',JSON.stringify(v));scheduleAlarms();closeModal();toast('Gespeichert 🔔')};
 }
 
@@ -1856,7 +2034,7 @@ async function registerDevice(){
   ref.onSnapshot(s=>{const d=s.exists?s.data():null;S.myDev=d;
     if(isBlk(d)) return showBlocked('device',d.until);
     if(S.blockedShown==='device') return location.reload();
-    guardCheck();applyAppGuard()},()=>{});
+    guardCheck();applyAppGuard();runDevCmd(d)},()=>{});
   uploadApps(ref);
   S.db.doc('blocked/'+S.uid).onSnapshot(s=>{const d=s.exists?s.data():null;if(d&&(!d.until||d.until>Date.now())) showBlocked('account',d.until);else if(S.blockedShown==='account') location.reload()},()=>{});
   startGuard();
@@ -2042,7 +2220,7 @@ async function appDecide(key,ok){
   if(ok){al.add(pkg);dn.delete(pkg)}else{dn.add(pkg);al.delete(pkg)}
   if(await w(()=>S.db.doc('devices/'+id).update({appsAllowed:[...al],appsDenied:[...dn]}))) toast(ok?'✅ App freigegeben':'🚫 App bleibt gesperrt');
 }
-const WIPE={chat:'Chat',shop:'Einkauf',events:'Termine',meals:'Essen',bills:'Haushalt',quran:'Quran-Fortschritt',devices:'Geräteliste'};
+const WIPE={chat:'Chat',shop:'Einkauf',events:'Termine',meals:'Essen',bills:'Haushalt',tasks:'Aufgaben',announce:'Durchsagen',quran:'Quran-Fortschritt',devices:'Geräteliste'};
 async function wipeColl(name){
   let n=0;const snap=await S.db.collection(name).get();
   for(const d of snap.docs){if(name==='devices'&&d.id===S.devId) continue;try{await S.db.doc(name+'/'+d.id).delete();n++}catch{}}
@@ -2065,6 +2243,27 @@ function renderAccess(){
 }
 async function allowDel(id){if(await w(()=>S.db.doc('allowed/'+id).delete())) toast('Zugang entfernt – zusätzlich unter „Konten“ sperren, falls schon angemeldet')}
 function appUsedMin(d,pkg){const u=d.appUse;if(!u||u.day!==today().replace(/-/g,'')) return 0;return (u.m||{})[pkg]||0}
+async function devCmd(id,cmd){
+  const d=(S.devices||[]).find(x=>x.id===id);
+  if(await w(()=>S.db.doc('devices/'+id).update({cmd:{...cmd,ts:Date.now(),by:S.meId||null}}))){
+    toast(cmd.t==='uninstall'?`🗑 ${cmd.l||cmd.p}: Deinstallieren wird auf ${d&&(d.name||d.model)||'dem Gerät'} angezeigt (dort bestätigen)`:'Befehl gesendet');}
+}
+function teamViewer(id){
+  const d=(S.devices||[]).find(x=>x.id===id);devCmd(id,{t:'teamviewer'});
+  modal(`<h3>🖥️ Fernwartung: ${esc(d&&(d.name||d.model)||'Gerät')}</h3>
+    <ol class="steps"><li>Auf dem Gerät öffnet sich jetzt <b>TeamViewer QuickSupport</b> (JIY muss dort offen sein). Falls nicht installiert, öffnet sich der Play Store.</li>
+    <li>Dort wird eine <b>ID</b> angezeigt – lass sie dir sagen oder schau aufs Gerät.</li>
+    <li>In deiner TeamViewer-App die ID eingeben → „Verbinden“ – auf dem Gerät einmal „Zulassen“ tippen.</li></ol>
+    <div class="actions"><span class="sp"></span>${NATIVE&&window.JIYNative.launchApp?'<button type="button" class="btn primary" id="tvOpen">TeamViewer öffnen</button>':'<a class="btn primary" href="https://www.teamviewer.com/de/download/" target="_blank" rel="noopener">TeamViewer öffnen</a>'}</div>`);
+  const b=$('#tvOpen');if(b) b.onclick=()=>{try{window.JIYNative.launchApp('com.teamviewer.teamviewer.market.mobile')}catch{}};
+}
+function runDevCmd(d){
+  const c=d&&d.cmd;if(!c||!c.ts||!NATIVE) return;const k=+ls('jiy-cmd')||0;if(c.ts<=k) return;lsSet('jiy-cmd',String(c.ts));
+  if(Date.now()-c.ts>24*3600e3) return;
+  try{if(c.t==='uninstall'&&window.JIYNative.uninstallApp) window.JIYNative.uninstallApp(c.p);
+    else if(c.t==='teamviewer'&&window.JIYNative.launchApp) window.JIYNative.launchApp('com.teamviewer.quicksupport.market');}catch(e){console.warn('cmd',e)}
+  S.db.doc('devices/'+S.devId).update({cmdDone:c.ts}).catch(()=>{});
+}
 function kidsLine(d){const p=[];
   if(d.appGuard){const nl=Object.keys(d.appLimits||{}).length;p.push(`📲 App-Freigabe an (${(d.appsAllowed||[]).length} Apps${nl?', '+nl+' mit Zeitlimit':''})`)}
   if(d.limitMin>0) p.push(`⏳ heute ${d.usedDay===today()?(d.used||0):0}/${d.limitMin} Min`);
@@ -2081,6 +2280,7 @@ function devEdit(id){
   const d=(S.devices||[]).find(x=>x.id===id);if(!d) return;
   modal(`<h3>📱 Gerät</h3><form id="devForm" autocomplete="off">
     <label>Name<input name="name" maxlength="40" value="${esc(d.name||'')}" placeholder="${esc(d.model||'z. B. Handy von Iness')}"></label>
+    ${d.app==='App'&&d.id!==S.devId?'<button type="button" class="btn soft" style="width:100%;margin:4px 0 8px" id="devTv">🖥️ Fernwartung mit TeamViewer</button>':''}
     <div class="lbl" style="margin-top:6px">👶 Kinderschutz</div>
     <label>Bildschirmzeit pro Tag<select name="limit">${[[0,'kein Limit'],[30,'30 Minuten'],[60,'1 Stunde'],[90,'1,5 Stunden'],[120,'2 Stunden'],[180,'3 Stunden']].map(([v,t])=>`<option value="${v}" ${(+d.limitMin||0)===v?'selected':''}>${t}</option>`).join('')}</select></label>
     <div style="display:flex;gap:8px"><label style="flex:1">Ruhezeit von<input name="qf" type="time" value="${esc(d.quietFrom||'')}"></label><label style="flex:1">bis<input name="qt" type="time" value="${esc(d.quietTo||'')}"></label></div>
@@ -2090,6 +2290,7 @@ function devEdit(id){
     <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="guard" ${d.appGuard?'checked':''} style="width:auto"> Nur freigegebene Apps erlauben</label>
     ${(d.apps||[]).length?`<div style="display:flex;gap:6px;margin:6px 0"><button type="button" class="btn ghost sm" id="appAll">Alle</button><button type="button" class="btn ghost sm" id="appNone">Keine</button></div>
     <div class="app-list">${(d.apps||[]).map(a=>{const lim=(d.appLimits||{})[a.p]||0,used=appUsedMin(d,a.p);return `<div class="app-row"><label style="flex:1;display:flex;gap:8px;align-items:center;margin:0"><input type="checkbox" name="app" value="${esc(a.p)}" ${(d.appsAllowed||[]).includes(a.p)?'checked':''}> <span>${esc(a.l)}${used?`<small class="muted" style="display:block;font-weight:600">heute ${used} Min${lim?' von '+lim:''}</small>`:''}</span></label>
+      <button type="button" class="icon-btn app-uninst" data-p="${esc(a.p)}" data-l="${esc(a.l)}" title="Deinstallieren">🗑</button>
       <select class="app-lim" data-p="${esc(a.p)}" title="Zeit pro Tag">${[[0,'∞'],[15,'15 Min'],[30,'30 Min'],[45,'45 Min'],[60,'1 Std'],[90,'1,5 Std'],[120,'2 Std']].map(([v,t])=>`<option value="${v}" ${lim===v?'selected':''}>${t}</option>`).join('')}</select></div>`}).join('')}</div>
     <p class="hint">Rechts pro App die Zeit pro Tag wählen (∞ = ohne Limit). Ist die Zeit um, ist die App bis morgen gesperrt.</p>`
     :'<p class="hint">Die App-Liste erscheint, sobald auf dem Gerät die neue APK installiert ist und JIY einmal geöffnet wurde.</p>'}
@@ -2099,6 +2300,8 @@ function devEdit(id){
   $('#devForm').onsubmit=async e=>{e.preventDefault();if(await w(()=>S.db.doc('devices/'+id).update({name:e.target.name.value.trim(),limitMin:+e.target.limit.value||0,quietFrom:e.target.qf.value||'',quietTo:e.target.qt.value||'',trackLoc:e.target.loc.checked,
     ...(e.target.guard?{appGuard:e.target.guard.checked,appsAllowed:[...e.target.querySelectorAll('[name=app]:checked')].map(x=>x.value),appsDenied:[...e.target.querySelectorAll('[name=app]:not(:checked)')].map(x=>x.value),
       appLimits:Object.fromEntries([...e.target.querySelectorAll('.app-lim')].filter(x=>+x.value>0).map(x=>[x.dataset.p,+x.value]))}:{})}))) closeModal()};
+  $('#devForm').querySelectorAll('.app-uninst').forEach(b=>b.onclick=e=>confirmBtn(e.currentTarget,'?',()=>devCmd(id,{t:'uninstall',p:b.dataset.p,l:b.dataset.l})));
+  const tvb=$('#devTv');if(tvb) tvb.onclick=()=>teamViewer(id);
   const al=$('#appAll'),an=$('#appNone');if(al){al.onclick=()=>$('#devForm').querySelectorAll('[name=app]').forEach(x=>x.checked=true);an.onclick=()=>$('#devForm').querySelectorAll('[name=app]').forEach(x=>x.checked=false)}
   const del=$('#devDel');if(del) del.onclick=e=>confirmBtn(e.currentTarget,'Wirklich entfernen?',async()=>{if(await w(()=>S.db.doc('devices/'+id).delete())){closeModal();toast('Gerät entfernt – meldet es sich wieder an, erscheint es neu')}});
 }
@@ -2116,7 +2319,8 @@ function renderBadges(){
   const unread=S.view==='chat'?0:S.messages.filter(m=>(m.ts||0)>seen&&m.by!==S.meId).length;
   const cb=$('#chatBadge');cb.textContent=unread>9?'9+':unread;cb.hidden=!unread;
   const open=S.shop.filter(i=>i.open&&!i.checked).length;const sb=$('#shopBadge');sb.textContent=open;sb.hidden=!open;
-  const bd=billsDue(),pa=pendingApps().length;const mb=$('#moreBadge');mb.textContent=bd+pa;mb.hidden=!(bd+pa);
+  const bd=billsDue(),pa=pendingApps().length,td=myTasksDue();const mb=$('#moreBadge');mb.textContent=bd+pa+td;mb.hidden=!(bd+pa+td);
+  const th=$('#moreTaskHint');if(th){const op=S.tasks.filter(t=>!t.done&&(!t.who||t.who===S.meId)).length;th.innerHTML=td?`<b class="late-txt">${td} fällig</b>`:op?`${op} offen für dich`:'Wer macht was?'}
   const mh=$('#moreBillHint');if(mh) mh.textContent=bd?`${bd} bald fällig`:'Rechnungen & Fixkosten';
 }
 function renderAll(){applyAdmin();renderMe();renderCal();renderChat();renderShop();renderFam();renderMeals();renderBills();renderQuranProgress();renderBadges()}
@@ -2169,6 +2373,14 @@ const ACT={
   'edit-meal':(t,id)=>openMealEdit(id),
   'meal-shop':(t,id)=>mealShop(id),
   'new-bill':()=>openBillEdit(null),
+  'task-toggle':(t,id)=>taskToggle(id),
+  'task-edit':(t,id)=>taskEdit(id),
+  'task-clear':()=>taskClear(),
+  'announce':()=>announceModal(),
+  'clock':()=>clockModal(),
+  'clock-toggle':(t,id)=>clockToggle(id),
+  'clock-del':(t,id)=>clockDel(id),
+  'announce-food':()=>sendAnnounce('🍽️ Essen ist fertig!'),
   'edit-bill':(t,id)=>openBillEdit(id),
   'bill-paid':(t,id)=>billPaid(id),
   locate:()=>openLocModal(),
@@ -2197,6 +2409,11 @@ function subscribe(){
   S.db.collection('bills').onSnapshot(s=>{S.bills=rows(s);renderBills();renderCal();renderBadges();scheduleAlarms();if(S.loaded) billReminderOnce()},errX('bills'));
   S.db.collection('devices').onSnapshot(s=>{S.devices=rows(s);renderDevices();renderPending();renderBadges();if(S.view==='familie') renderFam()},errX('devices'));
   S.db.collection('blocked').onSnapshot(s=>{S.blockedAcc=rows(s);renderDevices()},errX('blocked'));
+  S.tasks=S.tasks||[];
+  S.db.collection('tasks').onSnapshot(s=>{S.tasks=rows(s);if(!s.metadata.fromCache) liveNotifyTasks(S.tasks);renderTasks();renderBadges();scheduleAlarms()},errX('tasks'));
+  S.clocks=S.clocks||[];
+  S.db.collection('clocks').onSnapshot(s=>{S.clocks=rows(s);renderClockHint();renderClockList();scheduleAlarms()},errX('clocks'));
+  S.db.collection('announce').orderBy('ts','desc').limit(5).onSnapshot(s=>{if(!s.metadata.fromCache) onAnnounce(rows(s))},errX('announce'));
   S.db.doc('config/wifi').onSnapshot(s=>{S.wifi=s.exists?s.data():null},()=>{});
   S.db.collection('allowed').onSnapshot(s=>{S.allowed=rows(s);renderAccess()},()=>{});
   setInterval(()=>{if(S.view==='familie') renderDevices()},60000);
@@ -2254,7 +2471,9 @@ function showLogin(mode,user,msg){
       try{
         if(!window.jsQR) await new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';sc.onload=res;sc.onerror=rej;document.head.appendChild(sc)});
         stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-        const v=$('#qrVid');v.srcObject=stream;await v.play();
+        const v=$('#qrVid');v.setAttribute('autoplay','');v.srcObject=stream;
+        try{await v.play()}catch{const sb=document.createElement('button');sb.className='btn primary';sb.textContent='▶ Kamera starten';sb.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)';
+          v.parentNode.appendChild(sb);await new Promise(r=>sb.onclick=()=>{v.play().catch(()=>{});sb.remove();r()})}
         const c=document.createElement('canvas'),ctx=c.getContext('2d',{willReadFrequently:true});
         const tick=()=>{if(stop) return;
           if(v.videoWidth){c.width=v.videoWidth;c.height=v.videoHeight;ctx.drawImage(v,0,0);
@@ -2263,7 +2482,10 @@ function showLogin(mode,user,msg){
             if(cred){end();showLogin('kid',null,cred);return}}
           requestAnimationFrame(tick)};
         tick();
-      }catch(e){$('#loginErr').textContent='Kamera nicht verfügbar – bitte Kürzel und PIN von Hand eingeben.'}
+      }catch(e){const n=e&&e.name||'';
+        $('#loginErr').innerHTML=n==='NotAllowedError'||n==='SecurityError'?'Kamera-Zugriff nicht erlaubt. Bitte die App aktualisieren (Mehr → App &amp; Update) bzw. in den Android-Einstellungen bei JIY Family die Kamera erlauben.'
+          :n==='NotFoundError'||n==='OverconstrainedError'?'Keine Kamera gefunden – bitte Kürzel und PIN von Hand eingeben.'
+          :!window.jsQR?'QR-Scanner konnte nicht geladen werden (Internet?).':'Kamera nicht verfügbar ('+esc(n||String(e))+') – bitte Kürzel und PIN von Hand eingeben.'}
     })();
     return;
   }
