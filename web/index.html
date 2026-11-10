@@ -243,7 +243,7 @@ label.check input{width:20px;height:20px;accent-color:var(--pri)}
 .wipe-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .btn.wipe-all{background:#C2410C;color:#fff;border-color:#C2410C}
 .app-list{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:6px 10px;background:#fff}
-.app-row{display:flex!important;gap:8px;align-items:center;padding:6px 0;font-weight:600;border-bottom:1px solid var(--line)}.app-row:last-child{border-bottom:0}.app-row input{width:auto!important}
+.app-row{display:flex!important;gap:8px;align-items:center;padding:6px 0;font-weight:600;border-bottom:1px solid var(--line)}.app-row:last-child{border-bottom:0}.app-row input{width:auto!important}.app-lim{width:auto!important;padding:4px 6px!important;font-size:13px!important;margin:0!important}
 .dev-kids{font-size:12px;color:var(--muted);font-weight:600}.dev-kids a{color:var(--accent,#2563eb)}
 .dev.blk{background:#FFF6F2;border-color:#F3D3C4}.dev-ic{font-size:24px}.dev-main{flex:1;min-width:0;display:flex;flex-direction:column}
 .dev-main small{color:var(--muted);font-weight:600;font-size:12px}.dev-act{display:flex;gap:6px;align-items:center}
@@ -1889,7 +1889,8 @@ function startGuard(){
     if(document.visibilityState==='visible'&&!S.blockedShown) lsSet(useKey(),String((+ls(useKey())||0)+dt));
     guardCheck();applyAppGuard();
     const ref=S.db.doc('devices/'+S.devId);
-    if(now-lastPush>180000){lastPush=now;ref.update({lastSeen:now,used:usedMin(),usedDay:today()}).catch(()=>{})}
+    if(now-lastPush>180000){lastPush=now;let appUse=null;try{if(NATIVE&&window.JIYNative.appUsage) appUse=JSON.parse(window.JIYNative.appUsage())}catch{}
+      ref.update({lastSeen:now,used:usedMin(),usedDay:today(),...(appUse?{appUse}:{})}).catch(()=>{})}
     if(S.myDev?.trackLoc&&now-lastLoc>600000&&navigator.geolocation&&document.visibilityState==='visible'){lastLoc=now;
       navigator.geolocation.getCurrentPosition(p=>ref.update({loc:{lat:+p.coords.latitude.toFixed(5),lng:+p.coords.longitude.toFixed(5),acc:Math.round(p.coords.accuracy),ts:Date.now()}}).catch(()=>{}),()=>{},{enableHighAccuracy:true,timeout:20000,maximumAge:120000})}
   },20000);
@@ -1938,7 +1939,7 @@ function applyAppGuard(){
   try{if(!NATIVE||!window.JIYNative.setAppGuard) return;
     const d=S.myDev||{},exempt=!isKid();
     const on=!!d.appGuard&&!exempt,allowed=quietUntil(d)?[]:(d.appsAllowed||[]);
-    const cfg=JSON.stringify({on,allowed});if(cfg!==S.guardCfg){S.guardCfg=cfg;window.JIYNative.setAppGuard(cfg)}
+    const cfg=JSON.stringify({on,allowed,limits:d.appLimits||{}});if(cfg!==S.guardCfg){S.guardCfg=cfg;window.JIYNative.setAppGuard(cfg)}
     const gb=$('#guardBtn');
     if(on){const pm=JSON.parse(window.JIYNative.guardPerms());const ok=pm.usage&&pm.overlay;
       if(gb){gb.hidden=false;$('#guardHint').innerHTML=ok?'✅ aktiv':'<b class="late-txt">⚠️ Berechtigungen fehlen</b>'}
@@ -2063,8 +2064,9 @@ function renderAccess(){
     if(await w(()=>S.db.doc('allowed/'+em).set({email:em,by:S.uid,ts:Date.now()}))){f.reset();toast('✅ '+em+' freigeschaltet – jetzt kann ein Konto erstellt werden')}}}
 }
 async function allowDel(id){if(await w(()=>S.db.doc('allowed/'+id).delete())) toast('Zugang entfernt – zusätzlich unter „Konten“ sperren, falls schon angemeldet')}
+function appUsedMin(d,pkg){const u=d.appUse;if(!u||u.day!==today().replace(/-/g,'')) return 0;return (u.m||{})[pkg]||0}
 function kidsLine(d){const p=[];
-  if(d.appGuard) p.push(`📲 App-Freigabe an (${(d.appsAllowed||[]).length} Apps)`);
+  if(d.appGuard){const nl=Object.keys(d.appLimits||{}).length;p.push(`📲 App-Freigabe an (${(d.appsAllowed||[]).length} Apps${nl?', '+nl+' mit Zeitlimit':''})`)}
   if(d.limitMin>0) p.push(`⏳ heute ${d.usedDay===today()?(d.used||0):0}/${d.limitMin} Min`);
   if(d.quietFrom&&d.quietTo) p.push(`🌙 ${esc(d.quietFrom)}–${esc(d.quietTo)}`);
   if(d.trackLoc) p.push(d.loc?`<a href="https://www.google.com/maps?q=${d.loc.lat},${d.loc.lng}" target="_blank" rel="noopener">📍 Standort (${agoTxt(d.loc.ts)})</a>`:'📍 wartet auf Standort');
@@ -2087,13 +2089,16 @@ function devEdit(id){
     ${d.app==='App'?`<div class="lbl" style="margin-top:6px">📲 App-Freigabe</div>
     <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="guard" ${d.appGuard?'checked':''} style="width:auto"> Nur freigegebene Apps erlauben</label>
     ${(d.apps||[]).length?`<div style="display:flex;gap:6px;margin:6px 0"><button type="button" class="btn ghost sm" id="appAll">Alle</button><button type="button" class="btn ghost sm" id="appNone">Keine</button></div>
-    <div class="app-list">${(d.apps||[]).map(a=>`<label class="app-row"><input type="checkbox" name="app" value="${esc(a.p)}" ${(d.appsAllowed||[]).includes(a.p)?'checked':''}> ${esc(a.l)}</label>`).join('')}</div>`
+    <div class="app-list">${(d.apps||[]).map(a=>{const lim=(d.appLimits||{})[a.p]||0,used=appUsedMin(d,a.p);return `<div class="app-row"><label style="flex:1;display:flex;gap:8px;align-items:center;margin:0"><input type="checkbox" name="app" value="${esc(a.p)}" ${(d.appsAllowed||[]).includes(a.p)?'checked':''}> <span>${esc(a.l)}${used?`<small class="muted" style="display:block;font-weight:600">heute ${used} Min${lim?' von '+lim:''}</small>`:''}</span></label>
+      <select class="app-lim" data-p="${esc(a.p)}" title="Zeit pro Tag">${[[0,'∞'],[15,'15 Min'],[30,'30 Min'],[45,'45 Min'],[60,'1 Std'],[90,'1,5 Std'],[120,'2 Std']].map(([v,t])=>`<option value="${v}" ${lim===v?'selected':''}>${t}</option>`).join('')}</select></div>`}).join('')}</div>
+    <p class="hint">Rechts pro App die Zeit pro Tag wählen (∞ = ohne Limit). Ist die Zeit um, ist die App bis morgen gesperrt.</p>`
     :'<p class="hint">Die App-Liste erscheint, sobald auf dem Gerät die neue APK installiert ist und JIY einmal geöffnet wurde.</p>'}
     <p class="hint">Telefon, Notruf und JIY sind immer erlaubt. In der Ruhezeit sind alle anderen Apps gesperrt. Neu installierte Apps bleiben gesperrt, bis ihr sie bestätigt – ihr bekommt eine Meldung. Gilt nur für Kinder – nie für Eltern oder Gäste.</p>`:''}
     <p class="hint">${esc(d.model||'')} · ${d.app==='App'?'App':'Browser'} · zuerst gesehen ${d.first?new Date(d.first).toLocaleDateString('de-DE'):'–'}</p>
     <div class="actions">${d.id===S.devId?'':'<button type="button" class="btn ghost danger" id="devDel">Entfernen</button>'}<span class="sp"></span><button class="btn primary">Speichern</button></div></form>`);
   $('#devForm').onsubmit=async e=>{e.preventDefault();if(await w(()=>S.db.doc('devices/'+id).update({name:e.target.name.value.trim(),limitMin:+e.target.limit.value||0,quietFrom:e.target.qf.value||'',quietTo:e.target.qt.value||'',trackLoc:e.target.loc.checked,
-    ...(e.target.guard?{appGuard:e.target.guard.checked,appsAllowed:[...e.target.querySelectorAll('[name=app]:checked')].map(x=>x.value),appsDenied:[...e.target.querySelectorAll('[name=app]:not(:checked)')].map(x=>x.value)}:{})}))) closeModal()};
+    ...(e.target.guard?{appGuard:e.target.guard.checked,appsAllowed:[...e.target.querySelectorAll('[name=app]:checked')].map(x=>x.value),appsDenied:[...e.target.querySelectorAll('[name=app]:not(:checked)')].map(x=>x.value),
+      appLimits:Object.fromEntries([...e.target.querySelectorAll('.app-lim')].filter(x=>+x.value>0).map(x=>[x.dataset.p,+x.value]))}:{})}))) closeModal()};
   const al=$('#appAll'),an=$('#appNone');if(al){al.onclick=()=>$('#devForm').querySelectorAll('[name=app]').forEach(x=>x.checked=true);an.onclick=()=>$('#devForm').querySelectorAll('[name=app]').forEach(x=>x.checked=false)}
   const del=$('#devDel');if(del) del.onclick=e=>confirmBtn(e.currentTarget,'Wirklich entfernen?',async()=>{if(await w(()=>S.db.doc('devices/'+id).delete())){closeModal();toast('Gerät entfernt – meldet es sich wieder an, erscheint es neu')}});
 }
