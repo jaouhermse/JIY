@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.PowerManager;
 
 import java.util.Set;
 
@@ -22,6 +23,8 @@ public class GuardService extends Service {
     private String current = null;
     private long lastBlock = 0;
     private Set<String> always;
+    private String lastPkg = null;
+    private long lastTick = 0;
 
     private final Runnable tick = new Runnable() {
         @Override
@@ -77,12 +80,29 @@ public class GuardService extends Service {
                 ev.getNextEvent(e);
                 if (e.getEventType() == UsageEvents.Event.MOVE_TO_FOREGROUND) current = e.getPackageName();
             }
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            boolean screenOn = pm == null || pm.isInteractive();
+            if (screenOn && current != null && current.equals(lastPkg) && now - lastTick < 5000) {
+                AppGuard.addUsage(this, current, now - lastTick);
+            }
+            lastPkg = screenOn ? current : null;
+            lastTick = now;
             if (current == null || always.contains(current)) return;
-            if (AppGuard.allowed(this).contains(current)) return;
+            String reason = null;
+            int lim = 0;
+            if (!AppGuard.allowed(this).contains(current)) {
+                reason = "deny";
+            } else {
+                lim = AppGuard.limitMin(this, current);
+                if (lim > 0 && AppGuard.usedSec(this, current) >= lim * 60L) reason = "time";
+            }
+            if (reason == null) return;
             if (now - lastBlock < 1500) return;
             lastBlock = now;
             Intent b = new Intent(this, BlockActivity.class);
             b.putExtra("pkg", current);
+            b.putExtra("reason", reason);
+            b.putExtra("limit", lim);
             b.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_ANIMATION);
             startActivity(b);
             current = getPackageName();
