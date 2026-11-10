@@ -247,6 +247,11 @@ label.check input{width:20px;height:20px;accent-color:var(--pri)}
 .sos-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .sos-btn{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:#FDECEC;color:#9B1C1C;font-weight:800;text-decoration:none;border:1px solid #F6C9C9}
 .sos-btn.p{background:#EAF6EE;color:#14532D;border-color:#C6E6D0}.sos-btn span{margin-left:auto;font-weight:600;font-size:13px;opacity:.8}
+.tpl-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px;-webkit-overflow-scrolling:touch}
+.tpl{flex:0 0 auto;padding:7px 10px;border-radius:999px;border:1px solid var(--line);background:#FFF8EE;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap}
+.score-head{display:flex;align-items:baseline;gap:8px;justify-content:space-between}.score-list{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+.score-row{display:flex;align-items:center;gap:8px;font-size:16px}.score-row span{flex:1;font-weight:700}.score-row b{font-size:18px}
+.rot-box{margin-bottom:8px}
 .task{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px}
 .task-chk{width:30px;height:30px;border-radius:50%;border:2px solid var(--accent,#2F6F68);background:#fff;font-weight:900;color:#fff;flex:0 0 auto;cursor:pointer}
 .task.done .task-chk{background:var(--accent,#2F6F68)}.task.done b{text-decoration:line-through;opacity:.55}.task.late{border-color:#F3C4B0;background:#FFF6F2}
@@ -535,9 +540,15 @@ button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .m
     <!-- AUFGABEN -->
     <section id="view-aufgaben" class="view" hidden>
       <h2>✅ Aufgaben <span class="sp"></span><button class="btn ghost sm" id="taskMine">Nur meine</button></h2>
+      <div class="card" id="taskScore"></div>
       <form id="taskForm" class="card task-add" autocomplete="off">
+        <div class="tpl-row" id="taskTpl"></div>
         <input name="title" required maxlength="80" placeholder="Neue Aufgabe, z. B. Müll rausbringen">
-        <div class="row"><select name="who" id="taskWho"></select><input name="due" type="date"><button class="btn primary">+ Hinzufügen</button></div>
+        <div class="row"><select name="who" id="taskWho"></select><input name="due" type="date"></div>
+        <div class="row"><select name="repeat" title="Wiederholen"><option value="">🔁 einmalig</option><option value="daily">🔁 täglich</option><option value="weekly">🔁 wöchentlich</option><option value="2weekly">🔁 alle 2 Wochen</option><option value="monthly">🔁 monatlich</option></select>
+          <select name="pts" title="Punkte"><option value="1">⭐ 1 Punkt</option><option value="2">⭐ 2 Punkte</option><option value="3">⭐ 3 Punkte</option><option value="5">⭐ 5 Punkte</option></select></div>
+        <div class="rot-box" id="taskRotBox" hidden><div class="lbl">🔄 Abwechselnd (reihum, wer dran ist)</div><div class="wd-row" id="taskRot"></div></div>
+        <button class="btn primary" style="width:100%">+ Hinzufügen</button>
       </form>
       <div id="taskList" style="margin-top:12px"></div>
     </section>
@@ -546,7 +557,7 @@ button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .m
     <section id="view-mehr" class="view" hidden>
       <h2>☰ Mehr</h2>
       <div class="more-grid">
-        <button class="more-btn" data-act="tab" data-id="aufgaben"><span class="mi">✅</span><b>Aufgaben</b><small id="moreTaskHint">Wer macht was?</small></button>
+        <button class="more-btn" data-act="tab" data-id="aufgaben"><span class="mi">✅</span><b>Aufgaben &amp; Putzplan</b><small id="moreTaskHint">Wer macht was?</small></button>
         <button class="more-btn" data-act="clock"><span class="mi">⏰</span><b>Wecker</b><small id="moreClockHint">Weckzeiten für alle</small></button>
         <button class="more-btn" data-act="announce"><span class="mi">📣</span><b>Durchsage</b><small>z. B. „Essen ist fertig!“</small></button>
         <button class="more-btn" data-act="tab" data-id="haushalt" id="hhTab"><span class="mi">💸</span><b>Haushalt</b><small id="moreBillHint">Rechnungen &amp; Fixkosten</small></button>
@@ -1326,6 +1337,12 @@ function buildIcs(){
     if(!m.birth) continue;
     L.push('BEGIN:VEVENT','UID:bday-'+m.id+'@jiy-family','DTSTAMP:'+stamp,'DTSTART;VALUE=DATE:'+ymd(m.birth),'DTEND;VALUE=DATE:'+ymd(addDays(m.birth,1)),'RRULE:FREQ=YEARLY','SUMMARY:'+icsEsc('🎂 Geburtstag '+m.name),'TRANSP:TRANSPARENT','END:VEVENT');
   }
+  // Aufgaben & Putzplan mit Datum -> auch in Gmail/Outlook
+  for(const t of [...(S.tasks||[])].sort((a,b)=>String(a.id).localeCompare(String(b.id)))){
+    if(t.done||!t.due||t.due<cutoff) continue;const who=member(t.who);
+    L.push('BEGIN:VEVENT','UID:task-'+t.id+'@jiy-family','DTSTAMP:'+stamp,'DTSTART;VALUE=DATE:'+ymd(t.due),'DTEND;VALUE=DATE:'+ymd(addDays(t.due,1)),
+      'SUMMARY:'+icsEsc('✅ '+t.title+(who?' ('+who.name+')':'')),'DESCRIPTION:'+icsEsc('Aufgabe in JIY'+(t.repeat?' · wiederholt sich '+(REP_TXT[t.repeat]||''):'')+(t.note?'\n'+t.note:'')),'TRANSP:TRANSPARENT','CATEGORIES:Aufgabe','END:VEVENT');
+  }
   L.push('END:VCALENDAR');
   return L.map(icsFold).join('\r\n')+'\r\n';
 }
@@ -1556,40 +1573,73 @@ async function mealShop(ds,ingrText){
 }
 
 /* ---------- Aufgaben ---------- */
+const TASK_TPL=[['🧹','Staubsaugen'],['🗑️','Müll rausbringen'],['🍽️','Spülmaschine ausräumen'],['🛏️','Zimmer aufräumen'],['👕','Wäsche aufhängen'],['🧽','Bad putzen'],['🪴','Blumen gießen'],['🍳','Tisch decken']];
+const REP_TXT={daily:'täglich',weekly:'wöchentlich','2weekly':'alle 2 Wochen',monthly:'monatlich'};
+function nextDue(ds,rep){const d=ds||today();if(rep==='daily') return addDays(d,1);if(rep==='weekly') return addDays(d,7);if(rep==='2weekly') return addDays(d,14);if(rep==='monthly') return addMonths(d,1);return ''}
+function taskWeekStart(){const d=parse(today());const w=(d.getDay()+6)%7;return addDays(today(),-w)}
+function renderTaskScore(){
+  const el=$('#taskScore');if(!el) return;const ws=taskWeekStart(),from=parse(ws).getTime();
+  const pts={};for(const t of S.tasks) if(t.done&&t.doneBy&&(t.doneAt||0)>=from) pts[t.doneBy]=(pts[t.doneBy]||0)+(+t.pts||1);
+  const rows=S.members.map(m=>({m,p:pts[m.id]||0})).filter(x=>x.p>0).sort((a,b)=>b.p-a.p);
+  const medal=['🥇','🥈','🥉'];
+  el.innerHTML=`<div class="score-head"><b>🏆 Punkte diese Woche</b><small class="muted">seit Montag</small></div>`+(rows.length?`<div class="score-list">${rows.map((x,i)=>`<div class="score-row">${medal[i]||'⭐'} <span>${esc(x.m.name)}</span><b>${x.p}</b></div>`).join('')}</div>`:'<small class="muted">Noch keine Punkte – erledigte Aufgaben bringen ⭐</small>');
+}
 function taskLate(t){return !t.done&&t.due&&t.due<today()}
 function myTasksDue(){return S.tasks.filter(t=>!t.done&&(!t.who||t.who===S.meId)&&t.due&&t.due<=today()).length}
 function renderTasks(){
   const list=$('#taskList');if(!list) return;
-  const ws=$('#taskWho');if(ws){const cur=ws.value;ws.innerHTML=`<option value="">👨‍👩‍👦 Alle</option>`+S.members.map(m=>`<option value="${esc(m.id)}">${esc(m.name)}</option>`).join('');ws.value=cur||''}
+  const ws=$('#taskWho');if(ws){const cur=ws.value;ws.innerHTML=`<option value="">👨‍👩‍👦 Alle</option>`+S.members.map(m=>`<option value="${esc(m.id)}">${esc(m.name)}</option>`).join('')+`<option value="__rot">🔄 Abwechselnd …</option>`;ws.value=cur||''}
+  const rb=$('#taskRot');if(rb&&rb.dataset.n!==String(S.members.length)){const sel=new Set([...rb.querySelectorAll('input:checked')].map(x=>x.value));rb.innerHTML=S.members.map(m=>`<label class="wd"><input type="checkbox" name="rot" value="${esc(m.id)}" ${sel.has(m.id)?'checked':''}><span>${esc(m.name)}</span></label>`).join('');rb.dataset.n=String(S.members.length)}
+  const tp=$('#taskTpl');if(tp&&!tp.dataset.bound){tp.dataset.bound='1';tp.innerHTML=TASK_TPL.map(([i,t])=>`<button type="button" class="tpl" data-t="${esc(t)}">${i} ${esc(t)}</button>`).join('');
+    tp.querySelectorAll('.tpl').forEach(b=>b.onclick=()=>{const f=$('#taskForm');f.title.value=b.dataset.t;f.title.focus()})}
+  renderTaskScore();
   const mine=!!S.taskMine;const mb=$('#taskMine');if(mb){mb.textContent=mine?'Alle zeigen':'Nur meine';mb.classList.toggle('on',mine)}
   let ts=S.tasks.filter(t=>!mine||!t.who||t.who===S.meId);
   const open=ts.filter(t=>!t.done).sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999')||(a.ts||0)-(b.ts||0));
   const done=ts.filter(t=>t.done).sort((a,b)=>(b.doneAt||0)-(a.doneAt||0)).slice(0,30);
   const row=t=>{const who=member(t.who),by=member(t.by),db=member(t.doneBy);
     return `<div class="task ${t.done?'done':''} ${taskLate(t)?'late':''}"><button class="task-chk" data-act="task-toggle" data-id="${esc(t.id)}" aria-label="Erledigt">${t.done?'✓':''}</button>
-      <div class="task-main"><b>${esc(t.title)}</b><small>${who?'👤 '+esc(who.name):'👨‍👩‍👦 Alle'}${t.due?' · 📅 '+(t.due===today()?'heute':fmtDay(t.due))+(taskLate(t)?' (überfällig)':''):''}${by?' · von '+esc(by.name):''}${t.done&&db?' · ✓ '+esc(db.name):''}</small>${t.note?`<small>${esc(t.note)}</small>`:''}</div>
+      <div class="task-main"><b>${esc(t.title)}</b><small>${(t.rot||[]).length?'🔄 ':''}${who?'👤 '+esc(who.name):'👨‍👩‍👦 Alle'}${t.repeat?' · 🔁 '+REP_TXT[t.repeat]:''} · ⭐ ${+t.pts||1}${t.due?' · 📅 '+(t.due===today()?'heute':fmtDay(t.due))+(taskLate(t)?' (überfällig)':''):''}${by?' · von '+esc(by.name):''}${t.done&&db?' · ✓ '+esc(db.name):''}</small>${t.note?`<small>${esc(t.note)}</small>`:''}</div>
       <button class="icon-btn" data-act="task-edit" data-id="${esc(t.id)}" aria-label="Bearbeiten">✎</button></div>`};
   list.innerHTML=(open.length?open.map(row).join(''):'<div class="empty">Keine offenen Aufgaben 🎉</div>')
-    +(done.length?`<div class="task-done-head"><span>Erledigt</span><button class="btn ghost sm" data-act="task-clear">Erledigte löschen</button></div>`+done.map(row).join(''):'');
-  const f=$('#taskForm');if(f&&!f.dataset.bound){f.dataset.bound='1';f.onsubmit=async e=>{e.preventDefault();const title=f.title.value.trim();if(!title) return;
-    if(await w(()=>S.db.collection('tasks').add({title,who:f.who.value||'',due:f.due.value||'',note:'',done:false,by:S.meId||null,ts:Date.now()}))){f.title.value='';f.due.value='';toast('✅ Aufgabe eingetragen')}}}
+    +(done.length?`<div class="task-done-head"><span>Erledigt</span><button class="btn ghost sm" data-act="task-clear">Ältere löschen</button></div>`+done.map(row).join(''):'');
+  const f=$('#taskForm');if(f&&!f.dataset.bound){f.dataset.bound='1';
+    f.who.onchange=()=>{$('#taskRotBox').hidden=f.who.value!=='__rot'};
+    f.onsubmit=async e=>{e.preventDefault();const title=f.title.value.trim();if(!title) return;
+    const rot=f.who.value==='__rot'?[...f.querySelectorAll('[name=rot]:checked')].map(x=>x.value):[];
+    if(f.who.value==='__rot'&&rot.length<2) return toast('Für „Abwechselnd“ bitte mindestens 2 Personen anhaken');
+    const repeat=f.repeat.value,due=f.due.value||(repeat?today():'');
+    if(await w(()=>S.db.collection('tasks').add({title,who:rot.length?rot[0]:(f.who.value||''),rot,repeat,pts:+f.pts.value||1,due,note:'',done:false,by:S.meId||null,ts:Date.now()}))){f.title.value='';f.due.value='';toast('✅ Aufgabe eingetragen'+(repeat?' – wiederholt sich '+REP_TXT[repeat]:''))}}}
   if(mb&&!mb.dataset.bound){mb.dataset.bound='1';mb.onclick=()=>{S.taskMine=!S.taskMine;renderTasks()}}
 }
 async function taskToggle(id){const t=S.tasks.find(x=>x.id===id);if(!t) return;
-  await w(()=>S.db.doc('tasks/'+id).update(t.done?{done:false,doneBy:null,doneAt:null}:{done:true,doneBy:S.meId||null,doneAt:Date.now()}))}
+  if(t.done){await w(()=>S.db.doc('tasks/'+id).update({done:false,doneBy:null,doneAt:null}));return}
+  const ok=await w(()=>S.db.doc('tasks/'+id).update({done:true,doneBy:S.meId||null,doneAt:Date.now(),nextMade:!!t.repeat||!!t.nextMade}));
+  if(!ok) return;
+  const me=member(S.meId);toast(`⭐ +${+t.pts||1} für ${me?me.name:'dich'}!`);
+  if(t.repeat&&!t.nextMade){
+    let d=nextDue(t.due,t.repeat);while(d&&d<today()) d=nextDue(d,t.repeat);
+    const rot=t.rot||[];let who=t.who||'';if(rot.length){const i=rot.indexOf(t.who);who=rot[(i+1)%rot.length]}
+    await w(()=>S.db.collection('tasks').add({title:t.title,who,rot,repeat:t.repeat,pts:+t.pts||1,due:d,note:t.note||'',done:false,by:t.by||null,ts:Date.now()}));
+    const nm=member(who);toast(`🔁 Nächstes Mal: ${fmtDay(d)}${nm?' – '+nm.name+' ist dran':''}`);
+  }
+}
 function taskEdit(id){
   const t=S.tasks.find(x=>x.id===id);if(!t) return;
   modal(`<h3>✅ Aufgabe</h3><form id="taskEditForm" autocomplete="off">
     <label>Was?<input name="title" required maxlength="80" value="${esc(t.title)}"></label>
     <div class="row"><label>Wer?<select name="who"><option value="">👨‍👩‍👦 Alle</option>${S.members.map(m=>`<option value="${esc(m.id)}" ${m.id===t.who?'selected':''}>${esc(m.name)}</option>`).join('')}</select></label>
       <label>Bis wann?<input name="due" type="date" value="${esc(t.due||'')}"></label></div>
+    <div class="row"><label>Wiederholen<select name="repeat"><option value="">einmalig</option>${Object.entries(REP_TXT).map(([k,v])=>`<option value="${k}" ${t.repeat===k?'selected':''}>${v}</option>`).join('')}</select></label>
+      <label>Punkte<select name="pts">${[1,2,3,5].map(n=>`<option value="${n}" ${(+t.pts||1)===n?'selected':''}>⭐ ${n}</option>`).join('')}</select></label></div>
+    ${(t.rot||[]).length?`<p class="hint">🔄 Abwechselnd: ${t.rot.map(member).filter(Boolean).map(m=>esc(m.name)).join(' → ')}</p>`:''}
     <label>Notiz<input name="note" maxlength="140" value="${esc(t.note||'')}"></label>
     <div class="actions"><button type="button" class="btn ghost danger" id="taskDel">Löschen</button><span class="sp"></span><button class="btn primary">Speichern</button></div></form>`);
   const f=$('#taskEditForm');
-  f.onsubmit=async e=>{e.preventDefault();if(await w(()=>S.db.doc('tasks/'+id).update({title:f.title.value.trim(),who:f.who.value||'',due:f.due.value||'',note:f.note.value.trim()}))){closeModal();toast('Gespeichert')}};
+  f.onsubmit=async e=>{e.preventDefault();if(await w(()=>S.db.doc('tasks/'+id).update({title:f.title.value.trim(),who:f.who.value||'',due:f.due.value||'',note:f.note.value.trim(),repeat:f.repeat.value,pts:+f.pts.value||1}))){closeModal();toast('Gespeichert')}};
   $('#taskDel').onclick=e=>confirmBtn(e.currentTarget,'Wirklich löschen?',async()=>{if(await w(()=>S.db.doc('tasks/'+id).delete())){closeModal();toast('Gelöscht')}});
 }
-async function taskClear(){const d=S.tasks.filter(t=>t.done);for(const t of d){try{await S.db.doc('tasks/'+t.id).delete()}catch{}}toast(d.length+' erledigte Aufgaben gelöscht')}
+async function taskClear(){const from=parse(taskWeekStart()).getTime();const d=S.tasks.filter(t=>t.done&&(t.doneAt||0)<from);if(!d.length) return toast('Erledigte dieser Woche bleiben für die Punkte – ältere gibt es keine');for(const t of d){try{await S.db.doc('tasks/'+t.id).delete()}catch{}}toast(d.length+' erledigte Aufgaben gelöscht')}
 function liveNotifyTasks(ts){
   const ids=new Set(ts.map(t=>t.id));if(!S.knownTasks){S.knownTasks=ids;return}
   const fresh=ts.filter(t=>!S.knownTasks.has(t.id)&&t.by!==S.meId&&(!t.who||t.who===S.meId));S.knownTasks=ids;
@@ -2427,7 +2477,7 @@ function subscribe(){
   S.db.collection('devices').onSnapshot(s=>{S.devices=rows(s);renderDevices();renderPending();renderBadges();if(S.view==='familie') renderFam()},errX('devices'));
   S.db.collection('blocked').onSnapshot(s=>{S.blockedAcc=rows(s);renderDevices()},errX('blocked'));
   S.tasks=S.tasks||[];
-  S.db.collection('tasks').onSnapshot(s=>{S.tasks=rows(s);if(!s.metadata.fromCache) liveNotifyTasks(S.tasks);renderTasks();renderBadges();scheduleAlarms()},errX('tasks'));
+  S.db.collection('tasks').onSnapshot(s=>{S.tasks=rows(s);if(!s.metadata.fromCache) liveNotifyTasks(S.tasks);renderTasks();renderBadges();scheduleAlarms();scheduleIcsSync()},errX('tasks'));
   S.clocks=S.clocks||[];
   S.db.collection('clocks').onSnapshot(s=>{S.clocks=rows(s);renderClockHint();renderClockList();scheduleAlarms()},errX('clocks'));
   S.db.collection('announce').orderBy('ts','desc').limit(5).onSnapshot(s=>{if(!s.metadata.fromCache) onAnnounce(rows(s))},errX('announce'));
