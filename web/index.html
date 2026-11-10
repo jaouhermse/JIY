@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#FAF6F0">
+<meta name="theme-color" content="#0E5E66">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -14,7 +14,7 @@
 <title>JIY Family</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+Bhaijaan+2:wght@600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#FAF6F0;--card:#fff;--ink:#2B2A33;--muted:#7A7685;--line:#ECE5DA;
@@ -337,12 +337,79 @@ button.wa-row{width:100%;background:#fff;text-align:left;font:inherit}.wa-row .m
 .login-err{color:var(--danger);font-weight:700;min-height:20px;margin:6px 0}
 .linkbtn{background:none;border:0;color:var(--pri);font-weight:800;padding:8px;font-size:14px}
 .login-links{display:flex;justify-content:space-between;margin-top:8px}
+
+/* ================= Design: Zellige-Nacht & Safran ================= */
+:root{
+  --bg:#EDF2F1;--card:#fff;--ink:#16313B;--muted:#5D747D;--line:#D9E4E2;
+  --pri:#0E5E66;--pri-ink:#fff;--pri-soft:#D5EBE8;--accent:#E3A33A;--saffron:#E3A33A;--danger:#B4442E;
+  --r:18px;--shadow:0 1px 0 rgba(22,49,59,.04),0 6px 18px -10px rgba(22,49,59,.25);
+  --head:"Baloo Bhaijaan 2",Nunito,system-ui,sans-serif;
+}
+body{background:var(--bg)}
+h2,.sheet h3,.brand,.cal-head h2,.ann-text,.score-head b{font-family:var(--head);letter-spacing:0}
+h2{font-size:21px;font-weight:800}
+.sheet h3{font-size:22px;font-weight:800}
+/* Kopfzeile als Kachel-Band */
+header.top{background:var(--pri) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.09' stroke-width='1.2'%3E%3Cpath d='M28 6l6.4 15.6L50 28l-15.6 6.4L28 50l-6.4-15.6L6 28l15.6-6.4z'/%3E%3Crect x='14' y='14' width='28' height='28' transform='rotate(45 28 28)'/%3E%3Crect x='14' y='14' width='28' height='28'/%3E%3C/g%3E%3C/svg%3E") repeat;background-size:56px;color:#fff;padding:calc(14px + env(safe-area-inset-top)) 16px 16px;
+  border-radius:0 0 26px 26px;box-shadow:0 10px 24px -14px rgba(14,94,102,.7);backdrop-filter:none}
+.brand{font-size:22px;font-weight:800;color:#fff}
+.brand small{color:rgba(255,255,255,.78);font-family:Nunito,sans-serif;font-weight:700;font-size:12.5px}
+.logo{background:var(--saffron);color:var(--ink);border-radius:14px;font-family:var(--head);font-size:15px;font-weight:800;box-shadow:inset 0 -3px 0 rgba(0,0,0,.12)}
+.me-chip{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.25);color:#fff}
+.me-chip{white-space:nowrap;flex:none}.brand{min-width:0}.brand small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#brandTitle{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.av.ghost{background:rgba(255,255,255,.35)}
+main{padding-top:10px}
+/* Karten & Knöpfe */
+.card{border-color:transparent;box-shadow:var(--shadow);border-radius:var(--r)}
+.btn{border-radius:14px}
+.btn.primary{background:var(--pri);box-shadow:inset 0 -3px 0 rgba(0,0,0,.14)}
+.btn.primary:active{transform:translateY(1px);box-shadow:none}
+.btn.soft{background:var(--pri-soft);color:var(--pri)}
+.btn.ghost{border-color:var(--line);background:#fff}
+input:not([type=checkbox]):not([type=file]),textarea,select{border-color:var(--line);border-radius:14px;background:#fff}
+input:focus,textarea:focus,select:focus{border-color:var(--pri);box-shadow:0 0 0 3px rgba(14,94,102,.14)}
+:focus-visible{outline:3px solid var(--saffron);outline-offset:2px}
+/* Kalender */
+.day{border-color:transparent;border-radius:14px;box-shadow:0 1px 0 rgba(22,49,59,.05)}
+.day.we{background:#F6F9F8}
+.day.today .dn{background:var(--saffron);color:var(--ink)}
+.day.sel{border-color:var(--pri);box-shadow:inset 0 0 0 2px var(--pri)}
+/* Untere Leiste schwebend */
+nav.tabs{left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));border:0;border-radius:22px;background:rgba(255,255,255,.96);
+  box-shadow:0 12px 30px -12px rgba(22,49,59,.45);padding:4px;backdrop-filter:blur(10px)}
+nav.tabs .in{gap:2px}
+.tab{border-radius:16px;padding:7px 2px 8px;color:var(--muted)}
+.tab.on{background:var(--pri-soft);color:var(--pri)}
+.tab.on .ic{filter:none;opacity:1}
+.tab .badge{background:var(--saffron);color:var(--ink);font-weight:900}
+main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
+#toast{bottom:calc(96px + env(safe-area-inset-bottom));border-radius:14px;background:var(--ink)}
+/* Mehr-Kacheln */
+.more-btn{border-color:transparent;border-radius:20px;padding:14px 12px 14px}
+.more-btn .mi{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;background:var(--pri-soft);font-size:24px;margin-bottom:4px}
+.more-btn:nth-child(3n+2) .mi{background:#FBEBCB}
+.more-btn:nth-child(3n) .mi{background:#E6E3F3}
+.more-btn b{font-family:var(--head);font-size:16px;font-weight:700}
+/* Dialoge */
+.modal{background:rgba(22,49,59,.45)}
+.sheet{border-radius:26px 26px 0 0}
+.sheet::before{content:"";display:block;width:44px;height:5px;border-radius:9px;background:var(--line);margin:-8px auto 12px}
+/* Aufgaben & Punkte */
+.task{border-color:transparent;box-shadow:var(--shadow);border-radius:16px}
+.task-chk{border-color:var(--pri)}.task.done .task-chk{background:var(--pri)}
+#taskScore{background:var(--pri) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.09' stroke-width='1.2'%3E%3Cpath d='M28 6l6.4 15.6L50 28l-15.6 6.4L28 50l-6.4-15.6L6 28l15.6-6.4z'/%3E%3Crect x='14' y='14' width='28' height='28' transform='rotate(45 28 28)'/%3E%3Crect x='14' y='14' width='28' height='28'/%3E%3C/g%3E%3C/svg%3E") repeat;background-size:56px;color:#fff}
+#taskScore .muted{color:rgba(255,255,255,.75)!important}
+.score-row b{color:var(--saffron)}
+.tpl{background:#fff;border-color:var(--line)}
+.ann-box{border-top:8px solid var(--saffron)}
+@media (min-width:820px){nav.tabs{left:50%;right:auto;width:760px;transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 <div id="app">
   <header class="top">
-    <div class="brand"><span class="logo">JIY</span><div>Family<small id="subtitle">Unser Familien-Planer</small></div></div>
+    <div class="brand"><span class="logo">JIY</span><div style="min-width:0"><span id="brandTitle">Familie</span><small id="subtitle">Unser Familien-Planer</small></div></div>
     <button class="me-chip" data-act="who-am-i" id="meBtn"><span class="av ghost">?</span>Wer bin ich?</button>
   </header>
   <div id="banner" class="banner" hidden></div>
@@ -855,8 +922,11 @@ function resolveMe(){
   S.meId=m?m.id:null;
   if(!S.meId&&S.members.length&&!S.askedMe&&S.loaded){S.askedMe=true;openWhoAmI()}
 }
+function greetTxt(){const h=new Date().getHours();return h<11?'Guten Morgen':h<17?'Salam':'Guten Abend'}
 function renderMe(){
   const m=member(S.meId);
+  const st=$('#subtitle');if(st){let hj='';try{hj=hijriLong(today()).replace(/\s*\d+\s*n\. H\.$/,'')}catch{}st.textContent=new Date().toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'short'})+(hj?' · '+hj:'')}
+  const bt=$('#brandTitle');if(bt) bt.textContent=m?greetTxt()+', '+m.name:'Familie';
   $('#meBtn').innerHTML=m?`${av(m.id)}${esc(m.name)}`:`<span class="av ghost">?</span>Wer bin ich?`;
 }
 function openWhoAmI(){
