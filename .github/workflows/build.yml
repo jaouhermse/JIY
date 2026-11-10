@@ -32,7 +32,7 @@ jobs:
           if [ -z "$ICS_TOKEN" ]; then echo "Kein ICS_TOKEN – Kalender-Abo uebersprungen"; exit 0; fi
           mkdir -p web/cal
           if curl -sf "https://firestore.googleapis.com/v1/projects/jiy-family/databases/(default)/documents/ics/$ICS_TOKEN" -o doc.json; then
-            python3 -c "import json,sys; d=json.load(open('doc.json')); open('web/cal/'+sys.argv[1]+'.ics','w',newline='').write(d['fields']['ics']['stringValue'])" "$ICS_TOKEN"
+            python3 -c "import json,sys,re; t=sys.argv[1]; d=json.load(open('doc.json'))['fields']; open('web/cal/'+t+'.ics','w',newline='').write(d['ics']['stringValue']); [open('web/cal/'+t+'-'+k+'.ics','w',newline='').write(v['stringValue']) for k,v in d.get('per',{}).get('mapValue',{}).get('fields',{}).items() if re.fullmatch(r'[A-Za-z0-9_-]+',k)]" "$ICS_TOKEN"
             echo "Kalender-Abo aktualisiert"
           else
             echo "Noch kein Kalender in Firebase"
