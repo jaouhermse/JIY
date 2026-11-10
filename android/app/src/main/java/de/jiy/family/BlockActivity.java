@@ -33,13 +33,15 @@ public class BlockActivity extends Activity {
         box.setBackgroundColor(Color.parseColor("#FFF8F0"));
 
         TextView icon = new TextView(this);
-        icon.setText("🔒");
+        icon.setText("time".equals(getIntent().getStringExtra("reason")) ? "⏳" : "🔒");
         icon.setTextSize(64);
         icon.setGravity(Gravity.CENTER);
         box.addView(icon);
 
         TextView t = new TextView(this);
-        t.setText(name + "\nist nicht freigegeben");
+        boolean time = "time".equals(getIntent().getStringExtra("reason"));
+        int lim = getIntent().getIntExtra("limit", 0);
+        t.setText(time ? name + "\nZeit für heute ist um" : name + "\nist nicht freigegeben");
         t.setTextSize(22);
         t.setTypeface(Typeface.DEFAULT_BOLD);
         t.setTextColor(Color.parseColor("#2B2118"));
@@ -48,7 +50,7 @@ public class BlockActivity extends Activity {
         box.addView(t);
 
         TextView s = new TextView(this);
-        s.setText("Frag Mama oder Papa, ob sie die App in JIY freigeben.");
+        s.setText(time ? "Heute erlaubt: " + lim + " Minuten. Morgen geht es wieder!" : "Frag Mama oder Papa, ob sie die App in JIY freigeben.");
         s.setTextSize(16);
         s.setTextColor(Color.parseColor("#6B5E52"));
         s.setGravity(Gravity.CENTER);
