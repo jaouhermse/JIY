@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#FAF6F0">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="JIY">
 <title>JIY Family</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2146,7 +2153,15 @@ function sosModal(){modal(`<h3>🆘 Notruf</h3><p class="muted" style="margin-to
 const APK_URL='https://github.com/jaouhermse/JIY/releases/download/apk/JIY-Family.apk';
 function apkBuild(){try{return NATIVE&&window.JIYNative.appVersion?+window.JIYNative.appVersion():0}catch{return 0}}
 async function latestBuild(){try{const r=await fetch('https://api.github.com/repos/jaouhermse/JIY/releases/tags/apk',{cache:'no-store'});if(!r.ok) return 0;const j=await r.json();return +(((j.body||'').match(/Build (\d+)/)||[])[1]||0)}catch{return 0}}
+const IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const STANDALONE=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+function iosHowto(){return `<div class="card" style="background:#F2F7F6;margin:8px 0;text-align:left"><b>📱 JIY auf dem iPhone installieren</b>
+  <ol class="steps" style="margin:8px 0 0"><li>Diese Seite in <b>Safari</b> öffnen: <b>jaouhermse.github.io/JIY</b></li><li>Unten auf <b>Teilen</b> tippen (Quadrat mit Pfeil nach oben ⬆️)</li><li><b>„Zum Home-Bildschirm“</b> → <b>Hinzufügen</b></li><li>JIY vom Home-Bildschirm öffnen und anmelden</li></ol>
+  <p class="hint" style="margin:6px 0 0">Updates kommen automatisch. Auf dem iPhone gibt es keine APK – Kinderschutz/App-Sperre, Wecker und Adhan bei geschlossener App gehen nur auf Android.</p></div>`}
 async function updateModal(){
+  if(IOS&&!NATIVE){modal(`<h3>⬇️ App &amp; Update</h3>${STANDALONE?'<p class="hint">✅ JIY ist als App auf deinem iPhone installiert. Neue Funktionen kommen automatisch – einfach neu laden.</p>':iosHowto()}
+    <div class="actions"><span class="sp"></span><button type="button" class="btn primary" id="updReload">🔄 Neu laden</button></div>`);
+    $('#updReload').onclick=()=>location.reload();return}
   const mine=apkBuild();
   modal(`<h3>⬇️ App &amp; Update</h3>
     <p class="hint" style="margin-top:-4px">Neue Funktionen der App (Kalender, Chat, Gebet …) kommen <b>automatisch</b> – einfach neu laden. Eine neue APK brauchst du nur, wenn sich am Handy-Teil etwas ändert.</p>
@@ -2503,6 +2518,7 @@ function showLogin(mode,user,msg){
     ${reg?'':'<button class="btn ghost" style="width:100%;margin-top:12px" id="lKid">🔑 Mit Kürzel &amp; PIN anmelden</button><button class="btn ghost" style="width:100%;margin-top:8px" id="lQr">📷 QR-Code scannen</button>'}`;
   $('#lSwitch').onclick=()=>showLogin(reg?'login':'register');
   const lk=$('#lKid');if(lk) lk.onclick=()=>showLogin('kid');
+  if(IOS&&!STANDALONE&&!NATIVE&&!box.querySelector('.ios-hint')){const d=document.createElement('div');d.className='ios-hint';d.innerHTML=iosHowto();box.appendChild(d)}
   const lq=$('#lQr');if(lq) lq.onclick=()=>showLogin('scan');
   const f=$('#loginForm');
   if(!reg) $('#lReset').onclick=async()=>{const em=f.email.value.trim();if(!em){$('#loginErr').textContent='Bitte zuerst die E-Mail eintragen.';return}
