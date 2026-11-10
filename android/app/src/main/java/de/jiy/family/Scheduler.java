@@ -44,7 +44,8 @@ public final class Scheduler {
                 JSONObject o = a.getJSONObject(i);
                 long at = o.optLong("at", 0);
                 if (at <= now) continue;
-                PendingIntent pi = intent(c, o.optString("id"), o.optString("title"), o.optString("body"));
+                PendingIntent pi = intent(c, o.optString("id"), o.optString("title"), o.optString("body"),
+                        o.optBoolean("adhan", false) ? "adhan" : o.optBoolean("ring", false) ? "ring" : "");
                 try {
                     if (exact) {
                         am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi);
@@ -65,18 +66,19 @@ public final class Scheduler {
         try {
             JSONArray a = new JSONArray(json);
             for (int i = 0; i < a.length(); i++) {
-                am.cancel(intent(c, a.getJSONObject(i).optString("id"), "", ""));
+                am.cancel(intent(c, a.getJSONObject(i).optString("id"), "", "", ""));
             }
         } catch (Exception ignored) {
         }
     }
 
-    private static PendingIntent intent(Context c, String id, String title, String body) {
+    private static PendingIntent intent(Context c, String id, String title, String body, String sound) {
         Intent i = new Intent(c, AlarmReceiver.class);
         i.setAction("de.jiy.family.ALARM." + id);
         i.putExtra("id", id);
         i.putExtra("title", title);
         i.putExtra("body", body);
+        i.putExtra("sound", sound);
         return PendingIntent.getBroadcast(c, id.hashCode(), i,
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
     }
