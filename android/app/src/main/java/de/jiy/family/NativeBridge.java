@@ -50,6 +50,11 @@ public class NativeBridge {
     }
 
     @JavascriptInterface
+    public String appUsage() {
+        return AppGuard.usageJson(ctx);
+    }
+
+    @JavascriptInterface
     public String guardPerms() {
         return "{\"usage\":" + AppGuard.hasUsage(ctx) + ",\"overlay\":" + AppGuard.hasOverlay(ctx) + ",\"on\":" + AppGuard.isOn(ctx) + "}";
     }
