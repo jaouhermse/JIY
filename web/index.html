@@ -1591,14 +1591,15 @@ function liveNotifyTasks(ts){
 
 /* ---------- Wecker ---------- */
 const WD=['Mo','Di','Mi','Do','Fr','Sa','So'];
-function clockMine(c){return !c.who||c.who===S.meId}
+function clockWho(c){return Array.isArray(c.who)?c.who:(c.who?[c.who]:[])}
+function clockMine(c){const w=clockWho(c);return !w.length||w.includes(S.meId)}
 function clockDaysTxt(c){const d=c.days||[];if(!d.length) return 'einmalig'+(c.date?' am '+fmtDay(c.date):'');if(d.length===7) return 'täglich';if(d.join()==='1,2,3,4,5') return 'Mo–Fr';if(d.join()==='6,7') return 'Wochenende';return d.map(x=>WD[x-1]).join(', ')}
 function renderClockHint(){const h=$('#moreClockHint');if(!h) return;const m=(S.clocks||[]).filter(c=>c.on&&clockMine(c)).sort((a,b)=>a.time.localeCompare(b.time));h.textContent=m.length?'⏰ '+m.map(c=>c.time).slice(0,3).join(' · '):'Weckzeiten für alle'}
 function renderClockList(){
   const el=$('#clockList');if(!el) return;
   const list=[...(S.clocks||[])].sort((a,b)=>a.time.localeCompare(b.time));
-  el.innerHTML=list.length?list.map(c=>{const who=member(c.who);return `<div class="dev ${c.on?'':'blk'}" style="${c.on?'':'opacity:.6'}"><span class="dev-ic" style="font-size:26px;font-weight:900">${esc(c.time)}</span>
-    <div class="dev-main"><b>${esc(c.label||'Wecker')}</b><small>${clockDaysTxt(c)} · ${who?'für '+esc(who.name):'für alle'}</small></div>
+  el.innerHTML=list.length?list.map(c=>{const ws=clockWho(c).map(member).filter(Boolean);return `<div class="dev ${c.on?'':'blk'}" style="${c.on?'':'opacity:.6'}"><span class="dev-ic" style="font-size:26px;font-weight:900">${esc(c.time)}</span>
+    <div class="dev-main"><b>${esc(c.label||'Wecker')}</b><small>${clockDaysTxt(c)} · ${ws.length?'für '+ws.map(m=>esc(m.name)).join(', '):'für alle'}</small></div>
     <button class="btn ${c.on?'soft':'ghost'} sm" data-act="clock-toggle" data-id="${esc(c.id)}">${c.on?'An':'Aus'}</button><button class="icon-btn" data-act="clock-del" data-id="${esc(c.id)}" aria-label="Löschen">🗑</button></div>`}).join('')
     :'<div class="empty">Noch kein Wecker.</div>';
 }
@@ -1608,15 +1609,16 @@ function clockModal(){
     <form id="clockForm" class="card" style="margin-top:10px" autocomplete="off">
       <div class="row"><label style="flex:0 0 120px">Uhrzeit<input name="time" type="time" required value="07:00"></label><label>Name<input name="label" maxlength="40" placeholder="z. B. Schule, Fajr"></label></div>
       <div class="wd-row">${WD.map((d,i)=>`<label class="wd"><input type="checkbox" name="d" value="${i+1}" ${i<5?'checked':''}><span>${d}</span></label>`).join('')}</div>
-      <label>Für wen?<select name="who"><option value="">👨‍👩‍👦 Alle</option>${S.members.map(m=>`<option value="${esc(m.id)}" ${m.id===S.meId?'selected':''}>${esc(m.name)}</option>`).join('')}</select></label>
-      <p class="hint">Klingelt auf jedem Gerät mit der JIY-App, auf dem dieses Profil gewählt ist – auch wenn die App geschlossen ist. Keine Tage = einmalig.</p>
+      <div class="lbl">Für wen? <small class="muted">(nichts angehakt = alle)</small></div>
+      <div class="wd-row">${S.members.map(m=>`<label class="wd"><input type="checkbox" name="who" value="${esc(m.id)}" ${m.id===S.meId?'checked':''}><span>${esc(m.name)}</span></label>`).join('')}</div>
+      <p class="hint">Klingelt nur bei den angehakten Personen – auf jedem Gerät mit der JIY-App, auf dem deren Profil gewählt ist, auch wenn die App geschlossen ist. Keine Wochentage = einmalig.</p>
       <div class="actions">${NATIVE&&window.JIYNative.ringTest?'<button type="button" class="btn ghost" id="clockTest">🔔 Ton testen</button>':''}<span class="sp"></span><button class="btn primary">+ Wecker speichern</button></div>
     </form>`);
   renderClockList();
   const f=$('#clockForm');
   f.onsubmit=async e=>{e.preventDefault();const days=[...f.querySelectorAll('[name=d]:checked')].map(x=>+x.value);
     const date=days.length?'':(atMs(today(),f.time.value)>Date.now()?today():addDays(today(),1));
-    if(await w(()=>S.db.collection('clocks').add({time:f.time.value,label:f.label.value.trim(),days,date,who:f.who.value||'',on:true,by:S.meId||null,ts:Date.now()}))){f.label.value='';toast('⏰ Wecker '+f.time.value+' gespeichert')}};
+    if(await w(()=>S.db.collection('clocks').add({time:f.time.value,label:f.label.value.trim(),days,date,who:[...f.querySelectorAll('[name=who]:checked')].map(x=>x.value),on:true,by:S.meId||null,ts:Date.now()}))){f.label.value='';toast('⏰ Wecker '+f.time.value+' gespeichert')}};
   const tb=$('#clockTest');if(tb) tb.onclick=()=>{try{window.JIYNative.ringTest()}catch{}};
 }
 async function clockToggle(id){const c=S.clocks.find(x=>x.id===id);if(c) await w(()=>S.db.doc('clocks/'+id).update({on:!c.on}))}
