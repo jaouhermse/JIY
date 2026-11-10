@@ -209,6 +209,7 @@ public class MainActivity extends Activity {
     @Override
     @SuppressWarnings("deprecation")
     public void onBackPressed() {
+        if (AppGuard.isLocked(this)) return; // gesperrt: Zurück-Taste wirkungslos
         if (web != null && web.canGoBack()) {
             web.goBack();
         } else {
