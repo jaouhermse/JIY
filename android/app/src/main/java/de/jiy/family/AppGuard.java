@@ -222,6 +222,11 @@ public final class AppGuard {
         s.add("com.google.android.permissioncontroller");
         s.add("com.android.packageinstaller");
         s.add("com.google.android.packageinstaller");
+        s.add("com.teamviewer.quicksupport.market");
+        s.add("com.teamviewer.host.market");
+        s.add("com.google.android.deskclock");
+        s.add("com.android.deskclock");
+        s.add("com.sec.android.app.clockpackage");
         try {
             Intent home = new Intent(Intent.ACTION_MAIN);
             home.addCategory(Intent.CATEGORY_HOME);
