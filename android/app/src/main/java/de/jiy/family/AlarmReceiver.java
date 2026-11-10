@@ -9,6 +9,11 @@ public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String id = intent.getStringExtra("id");
+        String sound = intent.getStringExtra("sound");
+        if ("adhan".equals(sound) || "ring".equals(sound)) {
+            SoundService.start(context, sound, intent.getStringExtra("title"), intent.getStringExtra("body"));
+            return;
+        }
         Notifier.show(context, id == null ? 1 : id.hashCode(),
                 intent.getStringExtra("title"), intent.getStringExtra("body"));
     }
