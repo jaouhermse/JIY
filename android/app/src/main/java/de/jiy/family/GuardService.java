@@ -58,7 +58,7 @@ public class GuardService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (!AppGuard.isOn(this)) {
+        if (!AppGuard.isOn(this) && !AppGuard.isLocked(this)) {
             stopSelf();
             return START_NOT_STICKY;
         }
@@ -67,7 +67,8 @@ public class GuardService extends Service {
     }
 
     private void check() {
-        if (!AppGuard.isOn(this)) {
+        boolean locked = AppGuard.isLocked(this);
+        if (!AppGuard.isOn(this) && !locked) {
             stopSelf();
             return;
         }
@@ -87,6 +88,18 @@ public class GuardService extends Service {
             }
             lastPkg = screenOn ? current : null;
             lastTick = now;
+            if (locked) {
+                // Komplettsperre: alles außer JIY und Telefon/Notruf zurück zu JIY (auch Einstellungen & Startbildschirm)
+                if (screenOn && current != null && !AppGuard.lockAllowed(this, current) && now - lastBlock > 1200) {
+                    lastBlock = now;
+                    Intent m = new Intent(this, MainActivity.class);
+                    m.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    startActivity(m);
+                    current = getPackageName();
+                }
+                return;
+            }
+            if (!AppGuard.isOn(this)) return;
             if (current == null || always.contains(current)) return;
             String reason = null;
             int lim = 0;
