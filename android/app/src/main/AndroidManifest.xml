@@ -17,6 +17,9 @@
     <!-- QR-Code-Anmeldung -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <!-- Adhan & Wecker, Fernwartung -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
     <!-- Update direkt in der App -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
@@ -54,6 +57,11 @@
                 android:value="Kinderschutz: Eltern legen fest, welche Apps das Kind öffnen darf" />
         </service>
 
+        <service
+            android:name=".SoundService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+
         <receiver
             android:name=".AlarmReceiver"
             android:exported="false" />
@@ -83,5 +91,7 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.HOME" />
         </intent>
+        <package android:name="com.teamviewer.quicksupport.market" />
+        <package android:name="com.teamviewer.teamviewer.market.mobile" />
     </queries>
 </manifest>
