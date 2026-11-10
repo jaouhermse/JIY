@@ -46,8 +46,14 @@ public final class Scheduler {
                 if (at <= now) continue;
                 PendingIntent pi = intent(c, o.optString("id"), o.optString("title"), o.optString("body"),
                         o.optBoolean("adhan", false) ? "adhan" : o.optBoolean("ring", false) ? "ring" : "");
+                boolean loud = o.optBoolean("ring", false) || o.optBoolean("adhan", false);
                 try {
-                    if (exact) {
+                    if (loud) {
+                        // Wecker/Adhan: als echter Wecker planen – am zuverlässigsten (auch im Doze/Akku-Sparmodus)
+                        Intent show = new Intent(c, MainActivity.class);
+                        PendingIntent sp = PendingIntent.getActivity(c, 9, show, PendingIntent.FLAG_IMMUTABLE);
+                        am.setAlarmClock(new AlarmManager.AlarmClockInfo(at, sp), pi);
+                    } else if (exact) {
                         am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi);
                     } else {
                         am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi);
