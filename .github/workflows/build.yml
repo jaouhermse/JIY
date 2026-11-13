@@ -74,11 +74,26 @@ jobs:
         with:
           gradle-version: '8.7'
 
+      # Signier-Schlüssel kommt nur aus den GitHub-Secrets (nie im Repo speichern)
+      - if: steps.chk.outputs.build == 'true'
+        name: Signier-Schlüssel aus Secret holen
+        env:
+          KS: ${{ secrets.JIY_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KS" ]; then echo "::error::Secret JIY_KEYSTORE_BASE64 fehlt"; exit 1; fi
+          printf '%s' "$KS" | tr -d '\r\n ' | base64 -d > "$RUNNER_TEMP/jiy.jks"
+          echo "JIY_KEYSTORE=$RUNNER_TEMP/jiy.jks" >> "$GITHUB_ENV"
+
       - if: steps.chk.outputs.build == 'true'
         name: APK bauen
         env:
           JIY_APP_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+          JIY_KEYSTORE_PASSWORD: ${{ secrets.JIY_KEYSTORE_PASSWORD }}
         run: gradle -p android assembleRelease --no-daemon --stacktrace
+
+      - if: always() && steps.chk.outputs.build == 'true'
+        name: Schlüssel wieder löschen
+        run: rm -f "$RUNNER_TEMP/jiy.jks"
 
       - if: steps.chk.outputs.build == 'true'
         name: APK umbenennen
