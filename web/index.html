@@ -469,6 +469,80 @@ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
 .ann-box{border-top:8px solid var(--saffron)}
 @media (min-width:820px){nav.tabs{left:50%;right:auto;width:760px;transform:translateX(-50%)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* ---------- Kleine Entdecker (Kinderbereich) ---------- */
+#view-kinder{--kg:#3F7A5E;--kg-soft:#E4F0E6}
+.kid-top{display:flex;align-items:center;gap:8px;margin:10px 0 12px}
+.kid-top h2{flex:1;margin:0;font-size:20px}
+.kid-lang{display:flex;border:1.5px solid var(--line);border-radius:999px;overflow:hidden;background:#fff;flex:none}
+.kid-lang button{border:0;background:none;padding:6px 10px;font-weight:900;font-size:13px}
+.kid-lang button.on{background:var(--kg);color:#fff}
+.kid-hero{display:flex;align-items:center;gap:14px;padding:18px;border-radius:24px;background:linear-gradient(135deg,#E7F1E8,#FFEFD9)}
+.kid-hero .big{font-size:52px;line-height:1}
+.kid-hero b{display:block;font-size:22px;font-weight:900;color:#2F5A45}
+.kid-hero small{color:#5E7166;font-weight:700}
+.kid-stars{display:inline-flex;align-items:center;gap:6px;background:#FFF3C9;border-radius:999px;padding:5px 12px;font-weight:900;margin-top:6px}
+.kid-card{width:100%;display:flex;align-items:center;gap:14px;border:0;border-radius:22px;padding:16px;margin-top:12px;text-align:start;background:var(--t,#E9F1E8);box-shadow:var(--shadow)}
+.kid-card .ic{width:58px;height:58px;border-radius:18px;background:#fff;display:grid;place-items:center;font-size:32px;flex:none}
+.kid-card b{display:block;font-size:19px;font-weight:900}
+.kid-card small{color:#5b6660;font-weight:700}
+.kid-card .go{margin-inline-start:auto;font-size:20px;opacity:.5}
+.kid-note{padding:14px 16px;border-radius:18px;background:var(--kg-soft);font-weight:600;line-height:1.45;margin-bottom:10px}
+.kid-abc{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin:8px 0 12px}
+.kid-abc button{aspect-ratio:1/1;border:1.5px solid #E2E6DC;background:#F7F7F1;border-radius:12px;font-size:21px;font-weight:900;color:var(--kg);padding:0}
+.kid-abc button.on{background:#DCEBDD;border-color:var(--kg);box-shadow:0 2px 6px rgba(0,0,0,.12)}
+.kid-letter{display:flex;align-items:center;gap:10px;padding:12px;border-radius:16px;background:#F4F7F1}
+.kid-letter .L{width:70px;height:70px;border-radius:16px;background:#fff;display:grid;place-items:center;font-size:50px;font-weight:900;color:var(--kg);box-shadow:0 3px 8px rgba(0,0,0,.1);flex:none}
+.kid-letter .W{flex:1;font-size:19px;font-weight:800}
+.kid-round{width:46px;height:46px;border-radius:50%;border:0;background:var(--kg-soft);font-size:22px;flex:none}
+.kid-round.pri{background:var(--kg);color:#fff}
+.kid-draw{position:relative;border:2px solid #DCE5DA;border-radius:20px;background:#FFFEFA;height:min(56vh,420px);overflow:hidden;touch-action:none}
+.kid-draw .ghost{position:absolute;inset:0;display:grid;place-items:center;font-size:min(48vh,300px);font-weight:900;color:rgba(190,212,190,.6);pointer-events:none;line-height:1}
+.kid-draw canvas{position:absolute;inset:0;width:100%;height:100%}
+.kid-seg{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.kid-seg button{flex:1 1 22%;min-width:64px;font-size:13px;line-height:1.2;overflow-wrap:anywhere;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:8px 6px;font-weight:800}
+.kid-seg button.on{background:var(--kg);border-color:var(--kg);color:#fff}
+.kid-board{display:grid;gap:6px;width:min(100%,440px);margin:10px auto;aspect-ratio:1/1}
+.kid-board button{border:1.2px solid #35644C;border-radius:13px;background:linear-gradient(135deg,#83B79A,#47785F);color:#fff;position:relative;font-size:var(--fs,30px);padding:0;box-shadow:0 5px 7px rgba(0,0,0,.22);transition:transform .12s}
+.kid-board button:active{transform:scale(.95)}
+.kid-board button.blank{background:rgba(0,0,0,.08);border-color:rgba(0,0,0,.08);box-shadow:none}
+.kid-board button i{position:absolute;right:5px;top:2px;font-size:11px;font-style:normal;opacity:.75;font-weight:800}
+.kid-mem{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:10px auto;max-width:440px}
+.kid-mem button{aspect-ratio:1/1;border:0;padding:0;background:none;perspective:600px}
+.kid-mem .in{position:relative;display:block;width:100%;height:100%;transition:transform .36s;transform-style:preserve-3d}
+.kid-mem button.up .in{transform:rotateY(180deg)}
+.kid-mem .f,.kid-mem .b{position:absolute;inset:0;border-radius:18px;display:grid;place-items:center;backface-visibility:hidden;box-shadow:0 5px 7px rgba(0,0,0,.2)}
+.kid-mem .b{background:linear-gradient(135deg,#78A98D,#315F47);color:#fff;font-size:26px}
+.kid-mem .f{background:linear-gradient(135deg,#FFFDF5,#E6F0E4);font-size:34px;transform:rotateY(180deg);border:1.5px solid #DCE7D8}
+.kid-mem button.done .f{opacity:.55}
+.kid-pl{display:flex;justify-content:space-evenly;gap:8px;margin-top:6px}
+.kid-pl span{padding:8px 12px;border-radius:14px;font-weight:900;border:1.5px solid}
+.kid-pl .p0{background:#FFEAEA;color:#A32020;border-color:#E35A5A}
+.kid-pl .p1{background:#E7F0FF;color:#1E4FA8;border-color:#4C7FE0}
+.kid-pl .act{border-width:3px;box-shadow:0 3px 8px rgba(0,0,0,.15)}
+.kid-maze{display:grid;grid-template-columns:repeat(11,1fr);gap:2px;width:min(100%,440px);margin:10px auto;aspect-ratio:1/1;touch-action:none}
+.kid-maze span{border-radius:5px;background:#E8F2E5;display:grid;place-items:center;font-size:clamp(12px,4.5vw,22px)}
+.kid-maze span.w{background:#465B50;box-shadow:1px 2px 2px rgba(0,0,0,.25)}
+.kid-maze span.me{background:#FFE5D6}
+.kid-maze span.goal{background:#FFF0BF}
+.kid-pad{display:grid;grid-template-columns:repeat(3,64px);gap:8px;justify-content:center;margin:6px 0}
+.kid-pad button{height:58px;border-radius:16px;border:0;background:var(--kg-soft);font-size:26px;font-weight:900}
+.kid-chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.kid-chips button{border:1.5px solid var(--line);border-radius:999px;background:#fff;padding:7px 12px;font-weight:800}
+.kid-chips button.on{background:var(--kg);border-color:var(--kg);color:#fff}
+.kid-mv{width:100%;height:360px;border-radius:22px;background:#EAF2EC;display:block}
+.kid-road{width:100%;height:min(52vh,420px);border-radius:20px;display:block;touch-action:none}
+.kid-step{display:flex;align-items:center;gap:10px;background:#fff;border-radius:18px;padding:8px;margin-top:8px;box-shadow:var(--shadow)}
+.kid-step .pic{width:64px;height:68px;border-radius:15px;display:grid;place-items:center;font-size:34px;flex:none;background:var(--t,#DDF0EB)}
+.kid-step b{display:block;font-size:16px;font-weight:900}
+.kid-step small{display:block;font-size:14px;line-height:1.35;color:var(--ink);font-weight:600}
+.kid-step input{width:28px;height:28px;accent-color:var(--kg);flex:none}
+.kid-prog{height:10px;border-radius:10px;background:#E5ECE5;overflow:hidden;margin:12px 0 6px}
+.kid-prog i{display:block;height:100%;background:var(--kg);border-radius:10px;transition:width .3s}
+.kid-win{margin:10px 0;padding:12px;border-radius:16px;background:#E3F1DF;font-weight:900;font-size:17px;text-align:center}
+.kid-cele{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:40}
+.kid-cele div{font-size:64px;font-weight:900;color:#E3A33A;text-shadow:0 4px 18px rgba(0,0,0,.18);animation:kidPop 1.6s ease forwards}
+@keyframes kidPop{0%{transform:scale(.3);opacity:0}20%{transform:scale(1.15);opacity:1}70%{transform:scale(1);opacity:1}100%{transform:translateY(-60px) scale(.9);opacity:0}}
+.kid-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0}
 </style>
 </head>
 <body>
@@ -563,10 +637,10 @@ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
         </div>
         <div class="row">
           <label>Geburtsdatum<input type="date" name="birth"></label>
-          <label>Rolle<select name="role"><option value="admin">👑 Eltern</option><option value="user">🧒 Kind</option><option value="guest">👋 Gast</option></select></label>
+          <label>Rolle<select name="role"><option value="admin">👑 Papa · Administrator</option><option value="parent">💜 Mama</option><option value="user">🧒 Kind</option><option value="guest">👋 Gast</option></select></label>
         </div>
         <p class="hint role-hint" id="famRoleHint" hidden>Unter 18 Jahren: Kind oder Gast.</p>
-        <p class="hint">👑 Eltern: alles inkl. Familie &amp; Kinderschutz · 🧒 Kind: mit Kinderschutz, ohne Haushalt · 👋 Gast: Kalender, Chat, Einkauf, Essen, Gebet, WLAN – ohne Haushalt &amp; Familie.</p>
+        <p class="hint">👑 Papa · Administrator: alles inkl. Familie &amp; Kinderschutz · 💜 Mama: wie Eltern (Kalender, Haushalt, Fristen, Punkte, Profile wechseln) – nur Familie/Profile verwalten bleibt beim Administrator · 🧒 Kind: mit Kinderschutz, ohne Haushalt · 👋 Gast: Kalender, Chat, Einkauf, Essen, Gebet, WLAN – ohne Haushalt &amp; Familie.</p>
         <label>E-Mail (Anmeldung in JIY, optional)<input name="email" type="email" maxlength="80" placeholder="name@beispiel.de" autocomplete="off"></label>
         <p class="hint" style="margin-top:-4px">Mit E-Mail: Wer sich mit dieser E-Mail anmeldet, ist automatisch dieses Profil – und die E-Mail wird gleich freigeschaltet. Ohne E-Mail (z. B. kleine Kinder): Profil wird auf einem Eltern-Gerät gewählt.</p>
         <label>Handynummer (für WhatsApp, optional)<input name="phone" type="tel" maxlength="25" placeholder="+49 151 …"></label>
@@ -722,6 +796,9 @@ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
     </section>
 
     <!-- MEHR -->
+    <!-- KLEINE ENTDECKER (nur Kind-Profile) -->
+    <section id="view-kinder" class="view" hidden><div id="kidBox"></div></section>
+
     <section id="view-mehr" class="view" hidden>
       <h2>☰ Mehr</h2>
       <div class="more-grid">
@@ -729,6 +806,7 @@ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
         <button class="more-btn" data-act="announce"><span class="mi">📣</span><b>Durchsage</b><small>z. B. „Essen ist fertig!“</small></button>
         <button class="more-btn" data-act="tab" data-id="haushalt" id="hhTab"><span class="mi">💸</span><b>Haushalt</b><small id="moreBillHint">Rechnungen &amp; Fixkosten</small></button>
         <button class="more-btn" data-act="tab" data-id="fristen" id="fristTab"><span class="mi">🚗</span><b>Auto &amp; Fristen</b><small id="moreFristHint">TÜV, Pass, Verträge</small></button>
+        <button class="more-btn" data-act="tab" data-id="kinder" id="kidGameBtn" hidden><span class="mi">🎮</span><b>Kleine Entdecker</b><small>Lernen &amp; Spielen</small></button>
         <button class="more-btn" data-act="tab" data-id="punkte"><span class="mi">🎁</span><b>Punkte &amp; Belohnungen</b><small id="morePtsHint">Pizza, Kino, Spielzeug …</small></button>
         <button class="more-btn" data-act="tab" data-id="stammbaum"><span class="mi">🌳</span><b>Stammbaum</b><small>Opa, Oma &amp; alle</small></button>
         <button class="more-btn" data-act="guard-setup" id="guardBtn" hidden><span class="mi">📲</span><b>Kinderschutz einrichten</b><small id="guardHint">Berechtigungen prüfen</small></button>
@@ -747,6 +825,7 @@ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
     <button class="tab" data-act="tab" data-id="kalender"><span class="ic">📅</span>Kalender</button>
     <button class="tab" data-act="tab" data-id="chat"><span class="ic">💬</span>Chat<span class="badge" id="chatBadge" hidden></span></button>
     <button class="tab" data-act="tab" data-id="haus"><span class="ic">🏠</span>Haus<span class="badge" id="shopBadge" hidden></span></button>
+    <button class="tab" data-act="tab" data-id="kinder" id="kidTab" hidden><span class="ic">🎒</span>Entdecker</button>
     <button class="tab" data-act="tab" data-id="gebet"><span class="ic">🕌</span>Gebet</button>
     <button class="tab" data-act="tab" data-id="mehr"><span class="ic">☰</span>Mehr<span class="badge" id="moreBadge" hidden></span></button>
   </div></nav>
@@ -910,9 +989,10 @@ function member(id){return S.members.find(m=>m.id===id)}
 function ageOf(birth,at){if(!birth) return null;const b=parse(birth),d=at?parse(at):new Date();let a=d.getFullYear()-b.getFullYear();
   if(d.getMonth()<b.getMonth()||(d.getMonth()===b.getMonth()&&d.getDate()<b.getDate())) a--;return a}
 function isMinor(m){const a=ageOf(m&&m.birth);return a!==null&&a<18}
-// Rollen: admin = Eltern, user = Kind, guest = Gast
-function roleOf(m){if(!m) return 'user';if(m.role==='guest') return 'guest';return m.role==='admin'&&!isMinor(m)?'admin':'user'}
-const ROLE_TXT={admin:'👑 Eltern',user:'🧒 Kind',guest:'👋 Gast'};
+// Rollen: admin = Papa (Administrator), parent = Mama (Eltern ohne Familienverwaltung), user = Kind, guest = Gast
+function roleOf(m){if(!m) return 'user';if(m.role==='guest') return 'guest';if(isMinor(m)) return 'user';return m.role==='admin'?'admin':m.role==='parent'?'parent':'user'}
+function isParentRole(r){return r==='admin'||r==='parent'}
+const ROLE_TXT={admin:'👑 Papa · Administrator',parent:'💜 Mama',user:'🧒 Kind',guest:'👋 Gast'};
 function isKid(){const me=member(S.meId);return me?roleOf(me)==='user':S.isOwner!==true}
 function isGuest(){const me=member(S.meId);return !!me&&roleOf(me)==='guest'}
 function amAdmin(){
@@ -926,7 +1006,7 @@ function normEmail(e){return String(e||'').trim().toLowerCase()}
 // Profil gehört zu diesem Konto: per E-Mail oder per Verknüpfung
 function ownsProfile(m){return !!m&&((!!S.uid&&m.uid===S.uid)||(!!m.email&&normEmail(m.email)===normEmail(S.email))||(!!m.login&&normEmail(m.login)===normEmail(S.email)))}
 // Eltern-Konto: fest eingetragene Eltern oder eigenes Profil mit Rolle Eltern
-function isParentAcc(){if(S.isOwner===true||S.parentAcc) return true;const own=S.members.find(ownsProfile);return !!own&&roleOf(own)==='admin'}
+function isParentAcc(){if(S.isOwner===true||S.parentAcc) return true;const own=S.members.find(ownsProfile);return !!own&&isParentRole(roleOf(own))}
 // „Wer bin ich?“: Eltern sehen alle Profile – alle anderen nur ihr eigenes
 function myProfiles(){
   if(isParentAcc()) return S.members.slice();
@@ -937,12 +1017,12 @@ async function allowEmail(em){
   try{if(ALLOWED_HASHES.includes(await emailHash(em))) return;if((S.allowed||[]).some(a=>a.id===em)) return;
     await S.db.doc('allowed/'+em).set({email:em,by:S.uid,ts:Date.now()});toast('✅ '+em+' ist freigeschaltet')}catch(e){console.warn('allow',e)}
 }
-function applyAdmin(){const ok=amAdmin();$('#famTab').hidden=!ok;if(!ok&&S.view==='familie') show('kalender');
+function applyAdmin(){const kid=isKid();const kg=$('#kidGameBtn');if(kg) kg.hidden=!kid;const ktb=$('#kidTab');if(ktb) ktb.hidden=!kid;if(!kid&&S.view==='kinder') show('kalender');const ok=amAdmin();$('#famTab').hidden=!ok;if(!ok&&S.view==='familie') show('kalender');
   const hh=amAdmin()||(!isGuest()&&!isKid());const hb=$('#hhTab');if(hb) hb.hidden=!hh;const fb=$('#fristTab');if(fb) fb.hidden=!hh;if(!hh&&S.view==='fristen') show('kalender');if(!hh&&S.view==='haushalt') show('kalender')}
 function syncRole(form,hintEl){
   const minor=form.birth.value&&ageOf(form.birth.value)<18;
-  if(minor&&form.role.value==='admin') form.role.value='user';
-  const o=form.role.querySelector('option[value=admin]');if(o) o.disabled=!!minor;hintEl.hidden=!minor;
+  if(minor&&isParentRole(form.role.value)) form.role.value='user';
+  form.role.querySelectorAll('option[value=admin],option[value=parent]').forEach(o=>o.disabled=!!minor);hintEl.hidden=!minor;
 }
 function av(id,cls=''){
   const m=member(id);
@@ -990,12 +1070,14 @@ function confirmBtn(btn,label,fn){
 }
 
 /* ---------- Navigation ---------- */
-const VIEWS=['kalender','chat','einkauf','essen','gebet','mehr','haushalt','familie','aufgaben','challenge','stammbaum','punkte','fristen'];
+const VIEWS=['kinder','kalender','chat','einkauf','essen','gebet','mehr','haushalt','familie','aufgaben','challenge','stammbaum','punkte','fristen'];
 const HAUS=['einkauf','essen','aufgaben','challenge'];
 function show(v){
   if(v==='haus') v=HAUS.includes(ls('jiy-haus'))?ls('jiy-haus'):'einkauf';
   if(!VIEWS.includes(v)) v='kalender';
   if(v==='familie'&&!amAdmin()) v='kalender';
+  if(v==='kinder'&&!isKid()) v='kalender';
+  if(v!=='kinder') kidStop();
   if(v==='fristen'&&(isKid()||isGuest())) v='kalender';
   S.view=v;
   for(const x of VIEWS) $('#view-'+x).hidden=x!==v;
@@ -1008,6 +1090,7 @@ function show(v){
   if(v==='chat'){markChatSeen();renderChat(true)}
   if(v==='gebet'){initPrayer();renderAzkar();renderRamadan()}
   if(v==='fristen') renderDeadlines();
+  if(v==='kinder') renderKid();
   if(v==='familie') renderBackups();
   if(v==='challenge') renderChallenges();
   if(v==='stammbaum') renderTree();
@@ -1041,7 +1124,7 @@ function renderMe(){
 function openWhoAmI(){
   if(S.meId&&!amAdmin()){const m=member(S.meId);
     modal(`<div style="text-align:center">${av(S.meId,'lg')}<h3 style="margin:8px 0 2px">${esc(m?m.name:'')}</h3><p class="muted">Das bist du auf diesem Gerät.<br>Profil wechseln kann nur Mama oder Papa.</p></div>
-      ${S.members.filter(x=>roleOf(x)==='admin'&&x.pin).length?`<div class="lbl" style="text-align:center;margin-top:10px">🔒 Mama/Papa hier anmelden (mit PIN)</div><div class="who-grid">${S.members.filter(x=>roleOf(x)==='admin'&&x.pin).map(x=>`<button data-act="set-me" data-id="${esc(x.id)}">${av(x.id,'lg')}${esc(x.name)}<small>🔒</small></button>`).join('')}</div>`:''}
+      ${S.members.filter(x=>isParentRole(roleOf(x))&&x.pin).length?`<div class="lbl" style="text-align:center;margin-top:10px">🔒 Mama/Papa hier anmelden (mit PIN)</div><div class="who-grid">${S.members.filter(x=>isParentRole(roleOf(x))&&x.pin).map(x=>`<button data-act="set-me" data-id="${esc(x.id)}">${av(x.id,'lg')}${esc(x.name)}<small>🔒</small></button>`).join('')}</div>`:''}
       ${isKid()?'':'<div style="text-align:center"><button class="btn ghost sm" data-act="logout">Abmelden</button></div>'}`);return}
   if(!S.members.length){if(!amAdmin()){toast('Es sind noch keine Profile angelegt – bitte Mama oder Papa fragen');return}show('familie');toast('Lege zuerst die Familienmitglieder an');return}
   modal(`<h3>Wer bist du?</h3><p class="muted" style="margin-top:-6px">Dann sehen alle, wer was geschrieben oder eingetragen hat.</p>
@@ -1053,9 +1136,9 @@ async function setMe(id){
   const t=member(id);if(!t) return;
   if(id===S.meId){closeModal();return}
   if(!myProfiles().some(m=>m.id===id)){toast('Dieses Profil gehört zu einem anderen Konto');return}
-  const own=ownsProfile(t),cur=member(S.meId),curAdmin=cur?roleOf(cur)==='admin':isParentAcc();
+  const own=ownsProfile(t),cur=member(S.meId),curAdmin=cur?isParentRole(roleOf(cur)):isParentAcc();
   // Eltern wechseln ohne PIN zu Kind/Gast und zurück ins eigene Profil – sonst PIN
-  if(t.pin&&!(curAdmin&&(own||roleOf(t)!=='admin'))){const ok=await askPin(t);if(!ok) return}
+  if(t.pin&&!(curAdmin&&(own||!isParentRole(roleOf(t))))){const ok=await askPin(t);if(!ok) return}
   lsSet('jiy-me',id);S.meId=id;closeModal();renderAll();
   if(S.devId&&S.db) S.db.doc('devices/'+S.devId).update({member:id}).catch(()=>{});
   S.guardAsked=false;applyAppGuard();
@@ -1094,7 +1177,7 @@ $('#famForm').birth.addEventListener('change',()=>syncRole($('#famForm'),$('#fam
 $('#famForm').addEventListener('submit',async e=>{
   e.preventDefault();const f=e.target;const name=f.name.value.trim();if(!name) return;
   const short=(f.short.value.trim()||initials(name)).toUpperCase().slice(0,3);
-  const birth=f.birth.value||'';const role=birth&&ageOf(birth)<18&&f.role.value==='admin'?'user':f.role.value;
+  const birth=f.birth.value||'';const role=birth&&ageOf(birth)<18&&isParentRole(f.role.value)?'user':f.role.value;
   const phone=f.phone.value.trim(),email=normEmail(f.email.value);
   if(email&&S.members.some(x=>normEmail(x.email)===email)){toast('Diese E-Mail gehört schon zu einem anderen Profil');return}
   const ok=await w(()=>S.db.collection('members').add({name,short,birth,role,phone,email,color:S.newColor,uid:email&&email===normEmail(S.email)?S.uid:null,pin:null,ts:Date.now(),order:S.members.length}));
@@ -1107,7 +1190,7 @@ function openMemberEdit(id){
     <div class="row"><label>Name<input name="name" required maxlength="40" value="${esc(m.name)}"></label>
     <label style="flex:0 0 96px">Kürzel<input name="short" maxlength="3" value="${esc(m.short||'')}"></label></div>
     <div class="row"><label>Geburtsdatum<input type="date" name="birth" value="${esc(m.birth||'')}"></label>
-    <label>Rolle<select name="role">${[['admin','👑 Eltern'],['user','🧒 Kind'],['guest','👋 Gast']].map(([v,t])=>`<option value="${v}" ${roleOf(m)===v?'selected':''}>${t}</option>`).join('')}</select></label></div>
+    <label>Rolle<select name="role">${[['admin','👑 Papa · Administrator'],['parent','💜 Mama'],['user','🧒 Kind'],['guest','👋 Gast']].map(([v,t])=>`<option value="${v}" ${roleOf(m)===v?'selected':''}>${t}</option>`).join('')}</select></label></div>
     <p class="hint" id="memRoleHint" hidden>Unter 18 Jahren: Kind oder Gast.</p>
     <label>E-Mail (Anmeldung in JIY)<input name="email" type="email" maxlength="80" value="${esc(m.email||'')}" placeholder="name@beispiel.de" autocomplete="off"></label>
     <label>Handynummer (WhatsApp)<input name="phone" type="tel" maxlength="25" value="${esc(m.phone||'')}" placeholder="+49 151 …"></label>
@@ -1125,8 +1208,8 @@ function openMemberEdit(id){
   $('#memDel').onclick=e=>confirmBtn(e.currentTarget,'Wirklich löschen?',async()=>{if(await w(()=>S.db.doc('members/'+id).delete())){closeModal();toast('Profil gelöscht')}});
   $('#memForm').onsubmit=async e=>{e.preventDefault();const f=e.target;const name=f.name.value.trim();if(!name) return;
     const short=(f.short.value.trim()||initials(name)).toUpperCase().slice(0,3);
-    const birth=f.birth.value||'';const role=birth&&ageOf(birth)<18&&f.role.value==='admin'?'user':f.role.value;
-    if(m.uid&&m.uid===S.uid&&role!=='admin'&&S.isOwner!==true&&!f.dataset.armed){f.dataset.armed='1';toast('Achtung: Du nimmst dir selbst die Eltern-Rechte. Nochmal Speichern zum Bestätigen.');return}
+    const birth=f.birth.value||'';const role=birth&&ageOf(birth)<18&&isParentRole(f.role.value)?'user':f.role.value;
+    if(m.uid&&m.uid===S.uid&&role!=='admin'&&S.isOwner!==true&&!f.dataset.armed){f.dataset.armed='1';toast('Achtung: Du nimmst dir selbst die Administrator-Rechte. Nochmal Speichern zum Bestätigen.');return}
     const email=normEmail(f.email.value);
     if(email&&S.members.some(x=>x.id!==id&&normEmail(x.email)===email)){toast('Diese E-Mail gehört schon zu einem anderen Profil');return}
     const ch={name,short,color,birth,role,phone:f.phone.value.trim(),email};
@@ -1933,7 +2016,7 @@ async function sendAnnounce(text){
 const ANN_MAX=60*60000;
 function annActive(){return (S.ann||[]).filter(x=>!x.done&&Date.now()-(x.ts||0)<ANN_MAX).sort((a,b)=>b.ts-a.ts)[0]||null}
 function annSeen(){try{return JSON.parse(ls('jiy-ann-seen')||'[]')}catch{return []}}
-function iAmParent(){const me=member(S.meId);return me?roleOf(me)==='admin':isParentAcc()}
+function iAmParent(){const me=member(S.meId);return me?isParentRole(roleOf(me)):isParentAcc()}
 function onAnnounce(list){
   S.ann=list;const maxTs=list.reduce((a,x)=>Math.max(a,x.ts||0),0);
   if(S.lastAnn!=null){
@@ -2886,7 +2969,7 @@ function guardSetupModal(){
     <p class="hint"><b>Xiaomi/Redmi:</b> zusätzlich Einstellungen → Apps → JIY Family → <b>Sonstige Berechtigungen</b> → „Pop-up-Fenster im Hintergrund anzeigen“ erlauben und bei <b>Ein/Aus</b> „Keine Einschränkungen“. Ist ein Schalter grau: dort oben rechts ⋮ → „Eingeschränkte Einstellungen zulassen“.</p>
     <p class="hint">Danach zurück zu JIY – hier steht dann ✅.</p>`);
 }
-function cacheSos(){try{lsSet('jiy-sos',JSON.stringify(S.members.filter(m=>roleOf(m)==='admin'&&m.phone).map(m=>({name:m.name,phone:m.phone}))))}catch{}}
+function cacheSos(){try{lsSet('jiy-sos',JSON.stringify(S.members.filter(m=>isParentRole(roleOf(m))&&m.phone).map(m=>({name:m.name,phone:m.phone}))))}catch{}}
 function sosHtml(){
   let par=[];try{par=JSON.parse(ls('jiy-sos')||'[]')}catch{}
   const tel=p=>String(p).replace(/[^\d+]/g,'');
@@ -3188,6 +3271,237 @@ const ACT={
   'qr-mark':(t,id)=>qrSaveProgress(+id),
   'qr-continue':()=>{const p=S.quran[S.meId];if(p) openSurah(p.surah,p.ayah)},
 };
+
+/* ---------- Kleine Entdecker – Kinderbereich (nur Kind-Profile) ---------- */
+const K={lang:ls('jiy-kid-lang')==='ar'?'ar':'de',scr:'home',timer:null,keys:null};
+const kt=(de,ar)=>K.lang==='ar'?ar:de;
+const KID_DE=[['A','Apfel 🍎'],['B','Ball ⚽'],['C','Clown 🤡'],['D','Dino 🦕'],['E','Elefant 🐘'],['F','Fisch 🐟'],['G','Giraffe 🦒'],['H','Haus 🏠'],['I','Igel 🦔'],['J','Jacke 🧥'],['K','Katze 🐱'],['L','Löwe 🦁'],['M','Mond 🌙'],['N','Nase 👃'],['O','Orange 🍊'],['P','Panda 🐼'],['Q','Qualle 🪼'],['R','Regenbogen 🌈'],['S','Sonne ☀️'],['T','Tiger 🐯'],['U','Uhr ⏰'],['V','Vogel 🐦'],['W','Wolke ☁️'],['X','Xylophon 🎼'],['Y','Yo-Yo 🪀'],['Z','Zebra 🦓']];
+const KID_AR=[['ا','أَسَد 🦁'],['ب','بَطَّة 🦆'],['ت','تُفَّاحَة 🍎'],['ث','ثَعْلَب 🦊'],['ج','جَمَل 🐪'],['ح','حِصَان 🐴'],['خ','خَرُوف 🐑'],['د','دُبّ 🐻'],['ذ','ذِئْب 🐺'],['ر','رُمَّان'],['ز','زَهْرَة 🌷'],['س','سَمَكَة 🐟'],['ش','شَمْس ☀️'],['ص','صَقْر 🦅'],['ض','ضِفْدَع 🐸'],['ط','طَائِرَة ✈️'],['ظ','ظَرْف ✉️'],['ع','عِنَب 🍇'],['غ','غَيْمَة ☁️'],['ف','فَرَاشَة 🦋'],['ق','قَمَر 🌙'],['ك','كِتَاب 📘'],['ل','لَيْمُون 🍋'],['م','مَوْز 🍌'],['ن','نَمِر 🐯'],['ه','هِلال 🌙'],['و','وَرْدَة 🌹'],['ي','يَد ✋']];
+const KID_PUZ={Tiere:['🐻','🐼','🦁','🐯','🐸','🦊','🐰','🐵','🐨','🐧'],Fahrzeuge:['🚗','🚕','🚌','🚓','🚑','🚒','🚜','🚲','🚀','🚁'],Meer:['🐠','🐬','🐳','🦀','🐙','🦈','🐢','🪼','🦭','🐡'],Weltraum:['🚀','🪐','🌙','⭐','☄️','🛸','🌍','👨‍🚀','🌌','🛰️']};
+const KID_PUZ_AR={Tiere:'حيوانات',Fahrzeuge:'مركبات',Meer:'البحر',Weltraum:'الفضاء'};
+const KID_MEM={Tiere:['🐻','🐼','🦁','🐯','🐸','🦊','🐰','🐨'],Meer:['🐠','🐬','🐳','🦀','🐙','🦈','🐢','🐡'],Fahrzeuge:['🚗','🚌','🚕','🚲','🚀','🚜','🚁','🚒']};
+const KID_MEM_AR={Tiere:'حيوانات',Meer:'البحر',Fahrzeuge:'مركبات'};
+const KID_VILLA=[['Ziegelwand','🧱','جدار طوب'],['Glaswand','🪟','جدار زجاجي'],['Fenster','🪟','نافذة'],['Tür','🚪','باب'],['Dach','🏠','سقف'],['Balkon','🌇','شرفة'],['Gartenzaun','🌳','سياج'],['Pool','🏊','مسبح']];
+const KID_WUDU=[['🙌','Hände waschen','Beide Hände bis zu den Handgelenken waschen.','غسل اليدين','اغسل اليدين إلى الرسغين.'],['💧','Mund ausspülen','Wasser in den Mund nehmen und vorsichtig ausspülen.','المضمضة','خذ قليلاً من الماء وتمضمض بلطف.'],['👃','Nase reinigen','Vorsichtig Wasser an die Nase führen und reinigen.','الاستنشاق','استنشق الماء بلطف ونظّف الأنف.'],['😊','Gesicht waschen','Das ganze Gesicht waschen.','غسل الوجه','اغسل الوجه كاملاً.'],['💪','Arme waschen','Rechten, dann linken Arm bis zum Ellenbogen waschen.','غسل الذراعين','اغسل الذراع اليمنى ثم اليسرى إلى المرفقين.'],['🧑','Kopf streichen','Mit feuchten Händen über den Kopf streichen.','مسح الرأس','امسح الرأس بيدين مبللتين.'],['👂','Ohren reinigen','Die Ohren sanft mit feuchten Fingern reinigen.','مسح الأذنين','امسح الأذنين برفق بأصابع مبللة.'],['🦶','Füße waschen','Rechten, dann linken Fuß bis zu den Knöcheln waschen.','غسل القدمين','اغسل القدم اليمنى ثم اليسرى إلى الكعبين.']];
+const KID_SALAT=[['💧','Wudu machen','Bereite dich mit der Gebetswaschung vor.','الوضوء','توضأ قبل الصلاة.'],['🧭','Gebetsrichtung finden','Stelle dich in Richtung Qibla.','استقبال القبلة','استقبل القبلة.'],['🙌','Gebet beginnen','Beginne mit dem Takbir: Allahu akbar.','تكبيرة الإحرام','ابدأ الصلاة بقول: الله أكبر.'],['🧍','Stehen und rezitieren','Stehe ruhig und rezitiere.','القيام والقراءة','قف بخشوع واقرأ ما تيسّر.'],['🙇','Ruku – Verbeugung','Beuge dich und halte den Rücken ruhig.','الركوع','اركع واطمئن في ركوعك.'],['🧍','Aufrichten','Richte dich wieder auf.','الاعتدال','ارفع من الركوع واعتدل قائماً.'],['🕌','Sujud – Niederwerfung','Gehe in die Niederwerfung.','السجود','اسجد لله تعالى.'],['🧎','Sitzen','Setze dich zwischen den Niederwerfungen.','الجلوس','اجلس بين السجدتين.'],['🕌','Zweite Niederwerfung','Gehe erneut in Sujud.','السجدة الثانية','اسجد مرة أخرى.'],['👋','Abschluss','Lerne Tashahhud und Salam mit deiner Familie.','التشهد والسلام','تعلّم التشهد والتسليم مع عائلتك.']];
+
+function kidStoreKey(s){return 'jiy-kid-'+(S.meId||'x')+'-'+s}
+function kidCelebrate(n){const d=document.createElement('div');d.className='kid-cele';d.innerHTML=`<div>⭐ +${n}</div>`;document.body.append(d);setTimeout(()=>d.remove(),1700)}
+// Sterne landen als Punkte im Familien-Punktekonto (Punkte & Belohnungen) – max. 3× pro Spiel und Tag
+async function kidAward(game,n,label){
+  if(!S.meId||!isKid()) return false;
+  const k=kidStoreKey('d-'+game+'-'+today()),c=+(ls(k)||0);
+  if(c>=3){toast(kt('Super gemacht! Für dieses Spiel gibt es heute keine Sterne mehr.','أحسنت! لا مزيد من النجوم لهذه اللعبة اليوم.'));return false}
+  const ok=await w(()=>S.db.collection('bonus').add({mid:S.meId,pts:n,why:'🎮 '+label,by:S.meId,kid:true,ts:Date.now()}));
+  if(ok){lsSet(k,String(c+1));kidCelebrate(n)}
+  return ok;
+}
+async function kidAwardOnce(topic,n,label){const k=kidStoreKey('t-'+topic);if(ls(k)) return false;const ok=await kidAward('t-'+topic,n,label);if(ok) lsSet(k,'1');return ok}
+function kidStop(){clearInterval(K.timer);K.timer=null;try{speechSynthesis.cancel()}catch{}if(K.keys){document.removeEventListener('keydown',K.keys);K.keys=null}}
+function kidGo(scr){kidStop();K.scr=scr;renderKid();window.scrollTo(0,0)}
+function kidHead(title,back){
+  return `<div class="kid-top">${back?`<button class="icon-btn" data-k="go" data-v="${back}" aria-label="Zurück">${K.lang==='ar'?'→':'←'}</button>`:''}<h2>${title}</h2>
+    <div class="kid-lang"><button data-k="lang" data-v="de" class="${K.lang==='de'?'on':''}">DE</button><button data-k="lang" data-v="ar" class="${K.lang==='ar'?'on':''}">ع</button></div></div>`;
+}
+function kidCard(ic,t,s,go,tint){return `<button class="kid-card" data-k="go" data-v="${go}" style="--t:${tint}"><span class="ic">${ic}</span><span><b>${t}</b><small>${s}</small></span><span class="go">${K.lang==='ar'?'‹':'›'}</span></button>`}
+function renderKid(){
+  const box=$('#kidBox');if(!box||S.view!=='kinder') return;
+  box.dir=K.lang==='ar'?'rtl':'ltr';
+  const f=KID_SCR[K.scr]||KID_SCR.home;box.innerHTML=f();
+  const after=KID_AFTER[K.scr];if(after) after();
+}
+const KS={};// Zustand der einzelnen Spiele
+const KID_SCR={
+  home(){const me=member(S.meId);const st=me?ptsBalance(me.id):0;
+    return kidHead('🎒 '+kt('Kleine Entdecker','المستكشفون الصغار'))+
+    `<div class="kid-hero"><span class="big">🧒</span><div><b>${kt('Hallo','مرحباً')}${me?', '+esc(me.name):''}!</b><small>${kt('Lernen und Spielen auf Deutsch und Arabisch','تعلّم والعب بالألمانية والعربية')}</small><div class="kid-stars">⭐ ${st} ${kt('Sterne','نجمة')}</div></div></div>`+
+    kidCard('📚',kt('Lernen','التعلّم'),kt('Deutsch und Arabisch entdecken','اكتشف الألمانية والعربية'),'learn','#E9F1E8')+
+    kidCard('🧩',kt('Spielen','الألعاب'),kt('Puzzle, Memory, Labyrinth, Villa, Auto','أحجية، ذاكرة، متاهة، منزل، سيارة'),'games','#FFEEDC')+
+    kidCard('🕌',kt('Mein Leben','حياتي'),kt('Wudu, Salat und Quran entdecken','تعلّم الوضوء والصلاة والقرآن'),'life','#EAE9F7')+
+    `<button class="kid-card" data-act="tab" data-id="punkte" style="--t:#FFF3C9"><span class="ic">⭐</span><span><b>${kt('Belohnungen','المكافآت')}</b><small>${kt('Sterne gegen Eis, Kino & mehr tauschen','استبدل النجوم بالمكافآت')}</small></span><span class="go">${K.lang==='ar'?'‹':'›'}</span></button>`+
+    `<p class="hint" style="text-align:center">${kt('Für jedes geschaffte Spiel gibt es Sterne – sie landen bei Punkte & Belohnungen.','تحصل على نجوم عند إنهاء كل لعبة.')}</p>`},
+  learn(){const sd=KS.de||'A',sa=KS.ar||'ا';const d=KID_DE.find(x=>x[0]===sd),a=KID_AR.find(x=>x[0]===sa);
+    const panel=(title,list,sel,cur,lang,rtl)=>`<div class="card"><h3 dir="${rtl?'rtl':'ltr'}">${title}</h3>
+      <div class="kid-abc" dir="${rtl?'rtl':'ltr'}">${list.map(x=>`<button data-k="abc" data-l="${lang}" data-v="${esc(x[0])}" class="${x[0]===sel?'on':''}">${esc(x[0])}</button>`).join('')}</div>
+      <div class="kid-letter" dir="${rtl?'rtl':'ltr'}"><span class="L">${esc(cur[0])}</span><span class="W">${esc(cur[1])}</span>
+      <button class="kid-round" data-k="say" data-l="${lang}" aria-label="${kt('Anhören','استمع')}">🔊</button><button class="kid-round pri" data-k="trace" data-l="${lang}" aria-label="${kt('Schreiben üben','تدرّب على الكتابة')}">✏️</button></div></div>`;
+    return kidHead('📚 '+kt('Lernwerkstatt','ورشة التعلّم'),'home')+
+    `<div class="kid-note">${kt('Wähle einen Buchstaben, hör dir das Beispiel an und übe die Form mit deinem Finger.','اختر حرفاً، واستمع إلى المثال، وتدرّب على رسمه بإصبعك.')}</div>`+
+    panel(kt('Deutsch · A bis Z','الألمانية · A إلى Z'),KID_DE,sd,d,'de',false)+panel(kt('Arabisch · ا bis ي','العربية · ا إلى ي'),KID_AR,sa,a,'ar',true)+
+    `<p class="hint" style="text-align:center">${kt('Die Aussprache nutzt die Sprachstimmen des Handys.','يستخدم النطق أصوات الهاتف.')}</p>`},
+  trace(){const l=KS.trL==='ar'?KID_AR.find(x=>x[0]===(KS.ar||'ا')):KID_DE.find(x=>x[0]===(KS.de||'A'));
+    return kidHead('✏️ '+kt('Schreiben üben','تعلّم الكتابة'),'learn')+
+    `<div style="text-align:center"><div style="font-size:56px;font-weight:900;color:var(--kg)">${esc(l[0])}</div><div style="font-weight:800">${esc(l[1])}</div><p class="muted">${kt('Schreibe den Buchstaben mit deinem Finger nach.','اكتب الحرف بإصبعك باتباع النموذج.')}</p></div>
+    <div class="kid-draw"><div class="ghost" dir="${KS.trL==='ar'?'rtl':'ltr'}">${esc(l[0])}</div><canvas id="kidCanvas"></canvas></div>
+    <div class="kid-actions"><button class="btn ghost" data-k="clear">${kt('Löschen','مسح')}</button><button class="btn primary" data-k="trace-done">✓ ${kt('Fertig','انتهيت')}</button></div>`},
+  games(){return kidHead('🧩 '+kt('Spielen','الألعاب'),'home')+
+    kidCard('🧩',kt('Puzzle','أحجية'),kt('Thema und Schwierigkeit wählen','اختر الصورة ومستوى الصعوبة'),'puzzle','#FFEEDC')+
+    kidCard('🧠',kt('Memory','لعبة الذاكرة'),kt('Allein oder zu zweit','لاعب واحد أو لاعبان'),'memory','#E9F1E8')+
+    kidCard('🧭',kt('Labyrinth','المتاهة'),kt('Finde den Ausgang','اعثر على المخرج'),'maze','#EAE9F7')+
+    kidCard('🏡',kt('Villa bauen','بناء المنزل'),kt('3D-Haus und Bauteile','منزل ثلاثي الأبعاد وقطع البناء'),'villa','#E4F2F0')+
+    kidCard('🚗',kt('Auto fahren','قيادة السيارة'),kt('Fahre sicher bis zum Ziel','قد سيارتك حتى خط النهاية'),'car','#FFF3C9')},
+  puzzle(){if(!KS.puz) kidPuzNew();const p=KS.puz,ic=KID_PUZ[p.theme],done=kidPuzSolved();
+    return kidHead('🧩 '+kt('Puzzle','أحجية'),'games')+
+    `<p class="muted" style="text-align:center;font-weight:700">${kt('Schiebe die Teile an ihren Platz.','حرّك القطع إلى أماكنها.')}</p>
+    <div class="kid-seg">${Object.keys(KID_PUZ).map(t=>`<button data-k="puz-theme" data-v="${t}" class="${p.theme===t?'on':''}">${KID_PUZ[t][0]} ${kt(t,KID_PUZ_AR[t])}</button>`).join('')}</div>
+    <div class="kid-seg">${[[3,'Leicht','سهل'],[4,'Mittel','متوسط'],[5,'Schwer','صعب']].map(([n,a,b])=>`<button data-k="puz-size" data-v="${n}" class="${p.size===n?'on':''}">${kt(a,b)}</button>`).join('')}</div>
+    <b>${kt('Züge','الحركات')}: ${p.moves}</b>
+    <div class="kid-board" dir="ltr" style="grid-template-columns:repeat(${p.size},1fr);--fs:${p.size===5?'22px':'30px'}">${p.board.map((v,i)=>v?`<button data-k="puz" data-v="${i}">${ic[(v-1)%ic.length]}<i>${v}</i></button>`:`<button class="blank" data-k="puz" data-v="${i}"></button>`).join('')}</div>
+    ${done?`<div class="kid-win">🎉 ${kt('Geschafft! Dein Puzzle ist fertig.','أحسنت! اكتملت الأحجية.')}</div>`:''}
+    <div class="kid-actions"><button class="btn primary" data-k="puz-new">↻ ${kt('Neues Puzzle','أحجية جديدة')}</button></div>`},
+  memory(){if(!KS.mem) kidMemNew();const m=KS.mem,all=m.done.every(Boolean);
+    return kidHead('🧠 '+kt('Memory','لعبة الذاكرة'),'games')+
+    `<div class="kid-seg">${[[1,'1 Spieler','لاعب واحد'],[2,'2 Spieler','لاعبان']].map(([n,a,b])=>`<button data-k="mem-pl" data-v="${n}" class="${m.players===n?'on':''}">${kt(a,b)}</button>`).join('')}</div>
+    <div class="kid-seg">${Object.keys(KID_MEM).map(t=>`<button data-k="mem-theme" data-v="${t}" class="${m.theme===t?'on':''}">${KID_MEM[t][0]} ${kt(t,KID_MEM_AR[t])}</button>`).join('')}</div>
+    <div class="kid-pl"><span class="p0 ${m.players===2&&m.cur===0?'act':''}">🔴 ${kt('Spieler 1','لاعب 1')}: ${m.score[0]}</span>${m.players===2?`<span class="p1 ${m.cur===1?'act':''}">🔵 ${kt('Spieler 2','لاعب 2')}: ${m.score[1]}</span>`:''}</div>
+    <div class="kid-mem" dir="ltr">${m.vals.map((v,i)=>`<button data-k="mem" data-v="${i}" class="${m.show[i]||m.done[i]?'up':''} ${m.done[i]?'done':''}"><span class="in"><span class="b">✦</span><span class="f">${v}</span></span></button>`).join('')}</div>
+    ${all?`<div class="kid-win">${m.players===2?`🏁 ${kt('Spiel beendet!','انتهت اللعبة!')} 🔴 ${m.score[0]} · 🔵 ${m.score[1]}`:'🎉 '+kt('Alle Paare gefunden! Super gespielt.','وجدت كل الأزواج! أحسنت اللعب.')}</div>`:''}
+    <div class="kid-actions"><button class="btn primary" data-k="mem-new">↻ ${kt('Neues Spiel','لعبة جديدة')}</button></div>`},
+  maze(){if(!KS.maze) kidMazeNew();const z=KS.maze,win=z.pos===z.goal;
+    return kidHead('🧭 '+kt('Labyrinth','المتاهة'),'games')+
+    `<p class="muted" style="text-align:center;font-weight:700">${kt('Finde den Weg bis zur Flagge 🏁 – mit den Pfeilen oder durch Wischen.','اعثر على الطريق حتى العلم 🏁 بالأسهم أو بالسحب.')}</p>
+    <div class="kid-maze" id="kidMaze" dir="ltr">${Array.from({length:121},(_,i)=>{const wl=!z.open.has(i);return `<span class="${wl?'w':''} ${i===z.pos?'me':''} ${i===z.goal?'goal':''}">${i===z.pos?'🧒':i===z.goal?'🏁':''}</span>`}).join('')}</div>
+    <div class="kid-pad" dir="ltr"><span></span><button data-k="mv" data-v="-11">⬆️</button><span></span><button data-k="mv" data-v="-1">⬅️</button><button data-k="mv" data-v="11">⬇️</button><button data-k="mv" data-v="1">➡️</button></div>
+    ${win?`<div class="kid-win">🎉 ${kt('Geschafft! Du hast den Ausgang gefunden!','أحسنت! وجدت المخرج!')}</div>`:''}
+    <div class="kid-actions"><button class="btn primary" data-k="maze-new">↻ ${kt('Neues Labyrinth','متاهة جديدة')}</button></div>`},
+  villa(){const parts=new Set(JSON.parse(ls(kidStoreKey('villa'))||'[]'));
+    return kidHead('🏡 '+kt('Meine Villa – 3D','منزلي ثلاثي الأبعاد'),'games')+
+    `<model-viewer class="kid-mv" src="villa.gltf" alt="3D-Haus mit Garten, Pool, Garage und Auto" camera-controls touch-action="pan-y" camera-orbit="35deg 67deg 13m" camera-target="0m 1m 0m" shadow-intensity="1" exposure="1" environment-image="neutral" ${KS.rot?'auto-rotate':''}></model-viewer>
+    <p class="muted">${kt('Drehe die Villa mit einem Finger, mit zwei Fingern zoomen.','أدر المنزل بإصبع واحد، واستخدم إصبعين للتكبير.')}</p>
+    <h3>${kt('Bauteile','قطع البناء')}</h3>
+    <div class="kid-chips">${KID_VILLA.map(([n,e,a])=>`<button data-k="villa-part" data-v="${n}" class="${parts.has(n)?'on':''}">${e} ${kt(n,a)}</button>`).join('')}</div>
+    <div class="card"><b>${kt('Dein Bauplan','مخطط منزلك')}</b><p style="margin:6px 0 0">${parts.size?KID_VILLA.filter(x=>parts.has(x[0])).map(x=>x[1]+' '+kt(x[0],x[2])).join(' · '):kt('Noch leer – wähle oben Bauteile aus.','المخزون فارغ. اختر قطعاً من الأعلى.')}</p></div>
+    <div class="kid-actions"><button class="btn ghost" data-k="villa-rot">${KS.rot?'⏸ '+kt('Drehung stoppen','إيقاف الدوران'):'🔄 '+kt('Automatisch drehen','تدوير تلقائي')}</button><button class="btn soft" data-k="go" data-v="car">🚗 ${kt('Auto fahren','قيادة السيارة')}</button><button class="btn primary" data-k="villa-done">✓ ${kt('Villa fertig','انتهى المنزل')}</button></div>`},
+  car(){KS.car={lane:0,dist:0,speed:0,fin:false};
+    return kidHead('🚗 '+kt('Mein Auto-Abenteuer','مغامرتي بالسيارة'),'games')+
+    `<div style="display:flex;justify-content:space-between;font-weight:900;margin-bottom:6px"><span id="carDist">0 / 100 m</span><span id="carSpeed" style="color:var(--kg)"></span></div>
+    <canvas class="kid-road" id="kidRoad"></canvas>
+    <div id="carWin"></div>
+    <div class="kid-actions" dir="ltr" style="flex-wrap:nowrap;align-items:center"><button class="kid-round" style="width:64px;height:64px;font-size:28px" data-k="steer" data-v="-1">⬅️</button><button class="btn primary" id="carGas" style="padding:16px 18px;font-size:16px;flex:1;max-width:220px;white-space:normal">🏎️ ${kt('Gas (gedrückt halten)','اضغط مطولاً')}</button><button class="kid-round" style="width:64px;height:64px;font-size:28px" data-k="steer" data-v="1">➡️</button></div>
+    <div class="kid-actions"><button class="btn ghost sm" data-k="go" data-v="car">↻ ${kt('Neu starten','ابدأ من جديد')}</button></div>`},
+  life(){return kidHead('🕌 '+kt('Mein Leben','حياتي'),'home')+
+    `<div class="kid-note" style="background:#ECEAF7">${kt('Gemeinsam entdecken: Wudu, Salat und Quran. Lerne Schritt für Schritt mit deiner Familie.','نتعلّم معاً الوضوء والصلاة والقرآن خطوة بخطوة مع عائلتك.')}</div>`+
+    kidCard('🧼',kt('Wudu – Gebetswaschung','الوضوء'),kt('Schritt für Schritt lernen','تعلّم خطوات الوضوء'),'wudu','#E4F2F0')+
+    kidCard('🕌',kt('Salat lernen','تعلّم الصلاة'),kt('Gebetshaltungen der Reihe nach','حركات الصلاة بالترتيب'),'salat','#F2EAF8')+
+    `<button class="kid-card" data-act="tab" data-id="gebet" style="--t:#FFF1DD"><span class="ic">📍</span><span><b>${kt('Gebetszeiten & Quran','مواقيت الصلاة والقرآن')}</b><small>${kt('Zeiten, Qibla und Quran hören','الأوقات والقبلة والاستماع إلى القرآن')}</small></span><span class="go">${K.lang==='ar'?'‹':'›'}</span></button>`},
+  wudu(){return kidSteps('wudu',KID_WUDU,'🧼 '+kt('Wudu – Gebetswaschung','الوضوء'),kt('Lerne die Gebetswaschung Schritt für Schritt. Ein Erwachsener zeigt dir die genaue Ausführung.','تعلّم الوضوء خطوة بخطوة، واطلب من شخص بالغ أن يريك الطريقة الصحيحة.'),'#DDF0EB',true)},
+  salat(){return kidSteps('salat',KID_SALAT,'🕌 '+kt('Salat Schritt für Schritt','الصلاة خطوة بخطوة'),kt('Lerne die Gebetshaltungen gemeinsam mit einem Erwachsenen.','تعلّم حركات الصلاة مع شخص بالغ.'),'#F2EAF8',false)},
+};
+function kidSteps(id,steps,title,note,tint,daily){
+  const k=kidStoreKey(id+(daily?'-'+today():'')),v=JSON.parse(ls(k)||'[]'),n=steps.filter((_,i)=>v[i]).length;
+  return kidHead(title,'life')+`<div class="kid-note">${note}</div>`+
+    steps.map((s,i)=>`<label class="kid-step"><span class="pic" style="--t:${tint}">${s[0]}</span><span style="flex:1"><b>${kt(s[1],s[3])}</b><small>${kt(s[2],s[4])}</small></span><input type="checkbox" data-k="step" data-id="${id}" data-v="${i}" ${v[i]?'checked':''}></label>`).join('')+
+    `<div class="kid-prog"><i style="width:${Math.round(n/steps.length*100)}%"></i></div><p style="text-align:center;font-weight:800">${kt('Geübte Schritte','الخطوات')}: ${n} / ${steps.length}</p>`;
+}
+/* Puzzle */
+function kidPuzNbr(b,s){const r=Math.floor(b/s),c=b%s,o=[];if(r>0)o.push(b-s);if(r<s-1)o.push(b+s);if(c>0)o.push(b-1);if(c<s-1)o.push(b+1);return o}
+function kidPuzNew(size,theme){const p=KS.puz||{size:3,theme:'Tiere'};const s=size||p.size,t=theme||p.theme;
+  const b=Array.from({length:s*s},(_,i)=>i===s*s-1?0:i+1);let prev=-1;
+  for(let k=0;k<s*s*25;k++){const z=b.indexOf(0),ch=kidPuzNbr(z,s).filter(x=>x!==prev),n=ch[Math.floor(Math.random()*ch.length)];b[z]=b[n];b[n]=0;prev=z}
+  KS.puz={size:s,theme:t,board:b,moves:0,won:false}}
+function kidPuzSolved(){const b=KS.puz.board;for(let i=0;i<b.length-1;i++) if(b[i]!==i+1) return false;return b[b.length-1]===0}
+/* Memory */
+function kidMemNew(players,theme){const o=KS.mem||{players:1,theme:'Tiere'};const t=theme||o.theme,v=[...KID_MEM[t],...KID_MEM[t]];
+  for(let i=v.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[v[i],v[j]]=[v[j],v[i]]}
+  KS.mem={players:players||o.players,theme:t,vals:v,show:v.map(()=>false),done:v.map(()=>false),first:null,cur:0,score:[0,0],lock:false,won:false}}
+async function kidMemTap(i){const m=KS.mem;if(m.lock||m.show[i]||m.done[i]) return;
+  if(m.first===null){m.show[i]=true;m.first=i;renderKid();return}
+  const p=m.first;m.show[i]=true;m.lock=true;renderKid();const match=m.vals[p]===m.vals[i];
+  if(!match) await new Promise(r=>setTimeout(r,850));
+  if(KS.mem!==m) return;
+  if(match){m.done[p]=m.done[i]=true;m.score[m.cur]++}else{m.show[p]=m.show[i]=false;if(m.players===2) m.cur=1-m.cur}
+  m.first=null;m.lock=false;renderKid();
+  if(m.done.every(Boolean)&&!m.won){m.won=true;kidAward('memory',m.players===2?2:1,'Memory')}}
+/* Labyrinth */
+function kidMazeNew(){const side=11,start=12,vis=new Set([start]),stack=[start],open=new Set([start]);
+  while(stack.length){const cur=stack[stack.length-1],r=Math.floor(cur/side),c=cur%side;
+    const opts=[[-2,0],[2,0],[0,-2],[0,2]].filter(([dr,dc])=>{const nr=r+dr,nc=c+dc;return nr>=1&&nr<=9&&nc>=1&&nc<=9&&!vis.has(nr*side+nc)});
+    if(!opts.length){stack.pop();continue}
+    const [dr,dc]=opts[Math.floor(Math.random()*opts.length)],nk=(r+dr)*side+c+dc;
+    open.add((r+dr/2)*side+c+dc/2);open.add(nk);vis.add(nk);stack.push(nk)}
+  open.add(1);KS.maze={open,pos:1,goal:9*side+9,won:false}}
+function kidMazeMove(d){const z=KS.maze;if(!z||z.pos===z.goal) return;const n=z.pos+d;
+  if(Math.abs(d)===1&&Math.floor(n/11)!==Math.floor(z.pos/11)) return;
+  if(!z.open.has(n)) return;z.pos=n;renderKid();
+  if(z.pos===z.goal&&!z.won){z.won=true;kidAward('maze',2,'Labyrinth')}}
+/* Auto */
+function kidCarDraw(){const cv=$('#kidRoad');if(!cv) return;const c=KS.car,r=cv.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
+  if(cv.width!==Math.round(r.width*dpr)){cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr)}
+  const x=cv.getContext('2d'),w=cv.width,h=cv.height;
+  x.fillStyle='#B9D9A7';x.fillRect(0,0,w,h);
+  x.fillStyle='#4B5156';x.beginPath();x.moveTo(w*.36,0);x.lineTo(w*.64,0);x.lineTo(w*.98,h);x.lineTo(w*.02,h);x.closePath();x.fill();
+  x.strokeStyle='#fff';x.lineWidth=4*dpr;x.beginPath();x.moveTo(w*.36,0);x.lineTo(w*.02,h);x.moveTo(w*.64,0);x.lineTo(w*.98,h);x.stroke();
+  const off=(c.dist%12)*h*.014;x.strokeStyle='#FFF2C3';x.lineWidth=3*dpr;
+  for(let i=0;i<8;i++){const y=((i*h/7+off)%(h+30))-15,t=y/h,half=w*(.015+.007*t);x.beginPath();
+    for(const dx of [0,.15,-.15]){x.moveTo(w*(.5+dx)-half,y);x.lineTo(w*(.5+dx)+half,y)}x.stroke()}
+  for(let i=0;i<5;i++){const y=((i*h/5+off*1.4)%(h+30))-12,t=Math.min(1,Math.max(0,y/h)),rr=(7+18*t)*dpr;
+    for(const sx of [.12,.88]){x.fillStyle='#805A3C';x.fillRect(w*sx-rr*.125,y+rr*.3,rr*.25,rr*1.4);x.fillStyle='#428653';x.beginPath();x.arc(w*sx,y,rr,0,Math.PI*2);x.fill()}}
+  const cx=w*(.5+c.lane*.19),cy=h*.78,cw=w*.19,ch=h*.15;
+  x.fillStyle='rgba(0,0,0,.33)';x.beginPath();x.ellipse(cx,cy+ch*.48,cw*.6,ch*.18,0,0,Math.PI*2);x.fill();
+  x.fillStyle='#C83F37';x.beginPath();x.moveTo(cx-cw*.5,cy+ch*.35);x.lineTo(cx-cw*.4,cy-ch*.12);x.lineTo(cx-cw*.22,cy-ch*.48);x.lineTo(cx+cw*.22,cy-ch*.48);x.lineTo(cx+cw*.4,cy-ch*.12);x.lineTo(cx+cw*.5,cy+ch*.35);x.closePath();x.fill();
+  x.fillStyle='#9DD9E6';x.beginPath();x.moveTo(cx-cw*.18,cy-ch*.37);x.lineTo(cx+cw*.18,cy-ch*.37);x.lineTo(cx+cw*.32,cy-ch*.02);x.lineTo(cx-cw*.32,cy-ch*.02);x.closePath();x.fill();
+  x.fillStyle='#202326';x.fillRect(cx-cw*.495,cy+ch*.035,cw*.13,ch*.33);x.fillRect(cx+cw*.365,cy+ch*.035,cw*.13,ch*.33);
+  const dd=$('#carDist');if(dd) dd.textContent=c.dist+' / 100 m';const sp=$('#carSpeed');if(sp) sp.textContent=c.speed?'💨 '+kt('Fahren …','انطلق …'):'';
+  if(c.fin){const wn=$('#carWin');if(wn&&!wn.innerHTML) wn.innerHTML=`<div class="kid-win">🏁 ${kt('Ziel erreicht! Du bist sicher angekommen.','وصلت إلى الهدف بأمان!')}</div>`}}
+function kidCarStep(){const c=KS.car;if(!c||c.fin) return;c.dist=Math.min(100,c.dist+1);
+  if(c.dist>=100){c.fin=true;c.speed=0;clearInterval(K.timer);K.timer=null;kidAward('car',1,'Auto fahren')}kidCarDraw()}
+function kidCarGas(on){const c=KS.car;if(!c||c.fin) return;clearInterval(K.timer);K.timer=null;
+  if(on){c.speed=2;K.timer=setInterval(kidCarStep,120)}else{c.speed=0;kidCarDraw()}}
+/* Schreiben */
+function kidTraceInit(){const cv=$('#kidCanvas');if(!cv) return;const r=cv.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
+  cv.width=r.width*dpr;cv.height=r.height*dpr;const x=cv.getContext('2d');x.scale(dpr,dpr);x.lineWidth=9;x.lineCap='round';x.lineJoin='round';x.strokeStyle='#3F7A5E';
+  KS.pts=0;let down=false;const pos=e=>{const b=cv.getBoundingClientRect();return [e.clientX-b.left,e.clientY-b.top]};
+  cv.onpointerdown=e=>{down=true;cv.setPointerCapture(e.pointerId);const [a,b]=pos(e);x.beginPath();x.moveTo(a,b)};
+  cv.onpointermove=e=>{if(!down) return;const [a,b]=pos(e);x.lineTo(a,b);x.stroke();KS.pts++};
+  cv.onpointerup=cv.onpointercancel=()=>{down=false}}
+function kidSay(text,lang){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang=lang==='ar'?'ar-SA':'de-DE';u.rate=.8;u.pitch=1.05;
+  const v=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.toLowerCase().startsWith(lang));if(v) u.voice=v;speechSynthesis.speak(u)}
+  catch{toast(kt('Vorlesen geht auf diesem Gerät leider nicht.','القراءة غير متاحة على هذا الجهاز.'))}}
+let kidMV=false;
+function kidLoadMV(){if(kidMV) return;kidMV=true;const s=document.createElement('script');s.type='module';s.src='https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js';document.head.append(s)}
+const KID_AFTER={
+  trace:kidTraceInit,
+  villa:kidLoadMV,
+  maze(){K.keys=e=>{const d={ArrowUp:-11,ArrowDown:11,ArrowLeft:-1,ArrowRight:1}[e.key];if(d){e.preventDefault();kidMazeMove(d)}};document.addEventListener('keydown',K.keys);
+    const g=$('#kidMaze');let sx=0,sy=0;g.onpointerdown=e=>{sx=e.clientX;sy=e.clientY};
+    g.onpointerup=e=>{const dx=e.clientX-sx,dy=e.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))<20) return;kidMazeMove(Math.abs(dx)>Math.abs(dy)?(dx>0?1:-1):(dy>0?11:-11))}},
+  car(){kidCarDraw();const g=$('#carGas');g.onpointerdown=e=>{e.preventDefault();kidCarGas(true)};g.onpointerup=g.onpointerleave=g.onpointercancel=()=>kidCarGas(false);g.oncontextmenu=e=>e.preventDefault();
+    const cv=$('#kidRoad');let sx=0;cv.onpointerdown=e=>{sx=e.clientX};cv.onpointerup=e=>{const dx=e.clientX-sx;if(Math.abs(dx)>25) kidSteer(dx>0?1:-1)}},
+};
+function kidSteer(d){const c=KS.car;if(!c||c.fin) return;c.lane=Math.max(-1,Math.min(1,c.lane+d));kidCarDraw()}
+$('#kidBox').addEventListener('click',e=>{
+  const t=e.target.closest('[data-k]');if(!t||t.dataset.k==='step') return;const k=t.dataset.k,v=t.dataset.v;
+  if(k==='go') return kidGo(v);
+  if(k==='lang'){K.lang=v;lsSet('jiy-kid-lang',v);return renderKid()}
+  if(k==='abc'){KS[t.dataset.l]=v;kidSay(v+'. '+(t.dataset.l==='ar'?KID_AR:KID_DE).find(x=>x[0]===v)[1].replace(/\p{Extended_Pictographic}/gu,''),t.dataset.l);return renderKid()}
+  if(k==='say'){const l=t.dataset.l,cur=l==='ar'?KID_AR.find(x=>x[0]===(KS.ar||'ا')):KID_DE.find(x=>x[0]===(KS.de||'A'));return kidSay(cur[0]+'. '+cur[1].replace(/\p{Extended_Pictographic}/gu,''),l)}
+  if(k==='trace'){KS.trL=t.dataset.l;return kidGo('trace')}
+  if(k==='clear') return kidTraceInit();
+  if(k==='trace-done'){if((KS.pts||0)<5) return toast(kt('Male den Buchstaben zuerst mit dem Finger nach.','ارسم الحرف بإصبعك أولاً.'));
+    const l=KS.trL==='ar'?(KS.ar||'ا'):(KS.de||'A');kidAwardOnce('write-'+KS.trL+'-'+l,1,kt('Buchstabe ','حرف ')+l+' '+kt('geschrieben','مكتوب')).then(ok=>{if(!ok) toast('👍 '+kt('Toll geschrieben!','كتابة رائعة!'))});return kidGo('learn')}
+  if(k==='puz'){const p=KS.puz;if(p.won) return;const i=+v,z=p.board.indexOf(0);if(!kidPuzNbr(z,p.size).includes(i)) return;
+    p.board[z]=p.board[i];p.board[i]=0;p.moves++;if(kidPuzSolved()){p.won=true;kidAward('puzzle',p.size===3?1:p.size===4?2:3,'Puzzle')}return renderKid()}
+  if(k==='puz-new'){kidPuzNew();return renderKid()}
+  if(k==='puz-size'){kidPuzNew(+v);return renderKid()}
+  if(k==='puz-theme'){kidPuzNew(0,v);return renderKid()}
+  if(k==='mem') return kidMemTap(+v);
+  if(k==='mem-new'){kidMemNew();return renderKid()}
+  if(k==='mem-pl'){kidMemNew(+v);return renderKid()}
+  if(k==='mem-theme'){kidMemNew(0,v);return renderKid()}
+  if(k==='mv') return kidMazeMove(+v);
+  if(k==='maze-new'){kidMazeNew();return renderKid()}
+  if(k==='villa-part'){const s=new Set(JSON.parse(ls(kidStoreKey('villa'))||'[]'));s.has(v)?s.delete(v):s.add(v);lsSet(kidStoreKey('villa'),JSON.stringify([...s]));return renderKid()}
+  if(k==='villa-rot'){KS.rot=!KS.rot;return renderKid()}
+  if(k==='villa-done'){if(!JSON.parse(ls(kidStoreKey('villa'))||'[]').length) return toast(kt('Wähle zuerst Bauteile aus.','اختر قطع البناء أولاً.'));return kidAward('villa',1,'Villa gebaut')}
+  if(k==='steer') return kidSteer(+v);
+});
+$('#kidBox').addEventListener('change',e=>{const t=e.target.closest('[data-k=step]');if(!t) return;
+  const id=t.dataset.id,steps=id==='wudu'?KID_WUDU:KID_SALAT,k=kidStoreKey(id+(id==='wudu'?'-'+today():'')),v=JSON.parse(ls(k)||'[]');
+  v[+t.dataset.v]=t.checked;lsSet(k,JSON.stringify(v));
+  if(steps.every((_,i)=>v[i])) kidAwardOnce(id+(id==='wudu'?'-'+today():''),2,id==='wudu'?'Wudu geübt':'Salat gelernt');
+  renderKid()});
+window.addEventListener('resize',()=>{if(S.view==='kinder'&&K.scr==='car') kidCarDraw()});
+
 document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(!t) return;const f=ACT[t.dataset.act];if(f){e.preventDefault();f(t,t.dataset.id,e)}});
 
 /* ---------- Start ---------- */
