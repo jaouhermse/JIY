@@ -24,7 +24,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Kalender-Abo (ICS) aus Firebase holen
         env:
           ICS_TOKEN: ${{ secrets.ICS_TOKEN }}
@@ -37,19 +37,19 @@ jobs:
           else
             echo "Noch kein Kalender in Firebase"
           fi
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: web
       - id: deploy
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   # 2) Android-APK bauen und unter "Releases" bereitstellen
   apk:
     if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 2
 
@@ -64,13 +64,13 @@ jobs:
           fi
 
       - if: steps.chk.outputs.build == 'true'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
 
       - if: steps.chk.outputs.build == 'true'
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           gradle-version: '8.7'
 
@@ -100,7 +100,7 @@ jobs:
         run: cp android/app/build/outputs/apk/release/app-release.apk JIY-Family.apk
 
       - if: steps.chk.outputs.build == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: JIY-Family-APK
           path: JIY-Family.apk
