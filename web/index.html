@@ -700,6 +700,7 @@ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
       <div class="card" id="mealToday"></div>
       <h2>📅 Diese Woche</h2>
       <div id="mealWeek"></div>
+      <button class="btn soft" data-act="x-meal-week" style="width:100%;margin-top:10px">🛒 Zutaten der ganzen Woche einkaufen</button>
     </section>
 
     <!-- GEBET -->
@@ -807,6 +808,13 @@ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
         <button class="more-btn" data-act="tab" data-id="haushalt" id="hhTab"><span class="mi">💸</span><b>Haushalt</b><small id="moreBillHint">Rechnungen &amp; Fixkosten</small></button>
         <button class="more-btn" data-act="tab" data-id="fristen" id="fristTab"><span class="mi">🚗</span><b>Auto &amp; Fristen</b><small id="moreFristHint">TÜV, Pass, Verträge</small></button>
         <button class="more-btn" data-act="tab" data-id="kinder" id="kidGameBtn" hidden><span class="mi">🎮</span><b>Kleine Entdecker</b><small>Lernen &amp; Spielen</small></button>
+        <button class="more-btn" data-act="x-report" id="xReportBtn" hidden><span class="mi">📊</span><b>Wochenbericht</b><small>Kinder, Termine, Rechnungen</small></button>
+        <button class="more-btn" data-act="x-health" id="xHealthBtn" hidden><span class="mi">🩺</span><b>Gesundheitsheft</b><small>U-Termine, Impfungen, Größe</small></button>
+        <button class="more-btn" data-act="x-kita" id="xKitaBtn" hidden><span class="mi">🎒</span><b>Kita &amp; Schule</b><small id="xKitaHint">Elternbriefe &amp; Packlisten</small></button>
+        <button class="more-btn" data-act="x-album" id="xAlbumBtn" hidden><span class="mi">📸</span><b>Fotoalbum</b><small>Schöne Momente</small></button>
+        <button class="more-btn" data-act="x-goals" id="xGoalsBtn" hidden><span class="mi">🎯</span><b>Gemeinsame Ziele</b><small id="xGoalsHint">Sparen &amp; Ausflüge</small></button>
+        <button class="more-btn" data-act="x-it" id="xItBtn" hidden><span class="mi">🖥️</span><b>IT-Ecke</b><small id="xItHint">Geräte, Backups, Lizenzen</small></button>
+        <button class="more-btn" data-act="x-rules" id="xRulesBtn" hidden><span class="mi">⏱️</span><b>Spielzeit-Regeln</b><small>für Kleine Entdecker</small></button>
         <button class="more-btn" data-act="tab" data-id="punkte"><span class="mi">🎁</span><b>Punkte &amp; Belohnungen</b><small id="morePtsHint">Pizza, Kino, Spielzeug …</small></button>
         <button class="more-btn" data-act="tab" data-id="stammbaum"><span class="mi">🌳</span><b>Stammbaum</b><small>Opa, Oma &amp; alle</small></button>
         <button class="more-btn" data-act="guard-setup" id="guardBtn" hidden><span class="mi">📲</span><b>Kinderschutz einrichten</b><small id="guardHint">Berechtigungen prüfen</small></button>
@@ -1017,7 +1025,7 @@ async function allowEmail(em){
   try{if(ALLOWED_HASHES.includes(await emailHash(em))) return;if((S.allowed||[]).some(a=>a.id===em)) return;
     await S.db.doc('allowed/'+em).set({email:em,by:S.uid,ts:Date.now()});toast('✅ '+em+' ist freigeschaltet')}catch(e){console.warn('allow',e)}
 }
-function applyAdmin(){const kid=isKid();const kg=$('#kidGameBtn');if(kg) kg.hidden=!kid;const ktb=$('#kidTab');if(ktb) ktb.hidden=!kid;if(!kid&&S.view==='kinder') show('kalender');const ok=amAdmin();$('#famTab').hidden=!ok;if(!ok&&S.view==='familie') show('kalender');
+function applyAdmin(){try{renderExtrasHints()}catch{}const kid=isKid();const kg=$('#kidGameBtn');if(kg) kg.hidden=!kid;const ktb=$('#kidTab');if(ktb) ktb.hidden=!kid;if(!kid&&S.view==='kinder') show('kalender');const ok=amAdmin();$('#famTab').hidden=!ok;if(!ok&&S.view==='familie') show('kalender');
   const hh=amAdmin()||(!isGuest()&&!isKid());const hb=$('#hhTab');if(hb) hb.hidden=!hh;const fb=$('#fristTab');if(fb) fb.hidden=!hh;if(!hh&&S.view==='fristen') show('kalender');if(!hh&&S.view==='haushalt') show('kalender')}
 function syncRole(form,hintEl){
   const minor=form.birth.value&&ageOf(form.birth.value)<18;
@@ -2266,7 +2274,7 @@ function dlAlarms(){const out=[];for(const d of S.deadlines||[]){if(d.done||!d.d
   out.push({id:'dl0-'+d.id+d.date,at:atMs(d.date,'09:00'),title:`📅 Heute fällig: ${d.title}`,body:d.note||'Frist in JIY'})}return out}
 
 /* ---------- Datensicherung ---------- */
-const BAK_COLLS=['members','events','chat','shop','meals','bills','tasks','clocks','challenges','tree','rewards','redeem','bonus','quran','deadlines','fasting','allowed','kidlogin','config'];
+const BAK_COLLS=['members','events','chat','shop','meals','bills','tasks','clocks','challenges','tree','rewards','redeem','bonus','quran','deadlines','fasting','allowed','kidlogin','config','it','health','kita','album','goals'];
 const BAK_KEEP=6,BAK_PART=800000;
 async function bakCollect(){const data={},counts={};
   for(const c of BAK_COLLS){try{const snap=await S.db.collection(c).get();data[c]={};for(const d of snap.docs) data[c][d.id]=d.data();counts[c]=snap.docs.length}catch(e){console.warn('bak',c,e)}}
@@ -3184,6 +3192,11 @@ const ACT={
   tab:(t,id)=>show(id),
   close:()=>closeModal(),
   'who-am-i':()=>openWhoAmI(),
+  'x-report':()=>openReport(),'x-it':()=>openIt(),'x-it-edit':(t,id)=>openItEdit(id),'x-rules':()=>openRules(),
+  'x-health':(t,id)=>openHealth(id),'x-health-add':(t,id)=>openHealthEdit(null,id),'x-health-edit':(t,id)=>openHealthEdit(id),
+  'x-kita':()=>openKita(),'x-kita-open':(t,id)=>openKitaItem(id),'x-kita-edit':(t,id)=>openKitaEdit(id),
+  'x-album':()=>openAlbum(),'x-photo':(t,id)=>openPhoto(id),'x-goals':()=>openGoals(),'x-goal-edit':(t,id)=>openGoalEdit(id),'x-goal-add':(t,id)=>openGoalAdd(id),
+  'x-meal-week':()=>mealShopWeek(),
   logout:async()=>{lsSet('jiy-me','');try{await signOut(auth)}catch{}location.reload()},
   'set-me':(t,id)=>setMe(id),
   'edit-member':(t,id)=>openMemberEdit(id),
@@ -3298,7 +3311,7 @@ async function kidAward(game,n,label){
 }
 async function kidAwardOnce(topic,n,label){const k=kidStoreKey('t-'+topic);if(ls(k)) return false;const ok=await kidAward('t-'+topic,n,label);if(ok) lsSet(k,'1');return ok}
 function kidStop(){clearInterval(K.timer);K.timer=null;try{speechSynthesis.cancel()}catch{}if(K.keys){document.removeEventListener('keydown',K.keys);K.keys=null}}
-function kidGo(scr){kidStop();K.scr=scr;renderKid();window.scrollTo(0,0)}
+function kidGo(scr){kidStop();if(KID_GAME_SCR.includes(scr)){const bl=kidGameBlock();if(bl){K.block=bl;scr='blocked'}}K.scr=scr;renderKid();window.scrollTo(0,0)}
 function kidHead(title,back){
   return `<div class="kid-top">${back?`<button class="icon-btn" data-k="go" data-v="${back}" aria-label="Zurück">${K.lang==='ar'?'→':'←'}</button>`:''}<h2>${title}</h2>
     <div class="kid-lang"><button data-k="lang" data-v="de" class="${K.lang==='de'?'on':''}">DE</button><button data-k="lang" data-v="ar" class="${K.lang==='ar'?'on':''}">ع</button></div></div>`;
@@ -3312,6 +3325,9 @@ function renderKid(){
 }
 const KS={};// Zustand der einzelnen Spiele
 const KID_SCR={
+  blocked(){return kidHead('⏱️ '+kt('Pause','استراحة'),'home')+`<div class="kid-hero" style="flex-direction:column;text-align:center"><span class="big">🌙</span><b>${esc(K.block||'')}</b></div>
+    <button class="kid-card" data-k="go" data-v="learn" style="--t:#E9F1E8"><span class="ic">📚</span><span><b>${kt('Lernen geht immer','التعلّم متاح دائماً')}</b><small>${kt('Buchstaben üben','تدرّب على الحروف')}</small></span></button>
+    <button class="kid-card" data-k="go" data-v="life" style="--t:#EAE9F7"><span class="ic">🕌</span><span><b>${kt('Mein Leben','حياتي')}</b><small>${kt('Wudu und Salat','الوضوء والصلاة')}</small></span></button>`},
   home(){const me=member(S.meId);const st=me?ptsBalance(me.id):0;
     return kidHead('🎒 '+kt('Kleine Entdecker','المستكشفون الصغار'))+
     `<div class="kid-hero"><span class="big">🧒</span><div><b>${kt('Hallo','مرحباً')}${me?', '+esc(me.name):''}!</b><small>${kt('Lernen und Spielen auf Deutsch und Arabisch','تعلّم والعب بالألمانية والعربية')}</small><div class="kid-stars">⭐ ${st} ${kt('Sterne','نجمة')}</div></div></div>`+
@@ -3334,7 +3350,7 @@ const KID_SCR={
     `<div style="text-align:center"><div style="font-size:56px;font-weight:900;color:var(--kg)">${esc(l[0])}</div><div style="font-weight:800">${esc(l[1])}</div><p class="muted">${kt('Schreibe den Buchstaben mit deinem Finger nach.','اكتب الحرف بإصبعك باتباع النموذج.')}</p></div>
     <div class="kid-draw"><div class="ghost" dir="${KS.trL==='ar'?'rtl':'ltr'}">${esc(l[0])}</div><canvas id="kidCanvas"></canvas></div>
     <div class="kid-actions"><button class="btn ghost" data-k="clear">${kt('Löschen','مسح')}</button><button class="btn primary" data-k="trace-done">✓ ${kt('Fertig','انتهيت')}</button></div>`},
-  games(){return kidHead('🧩 '+kt('Spielen','الألعاب'),'home')+
+  games(){const r=kidRules(),left=r.maxMin?Math.max(0,r.maxMin-kidPlayedMin()):null;return kidHead('🧩 '+kt('Spielen','الألعاب'),'home')+(left!==null?`<div class="kid-note">⏱️ ${kt('Heute noch','متبقٍ اليوم')} <b>${left} ${kt('Minuten','دقيقة')}</b></div>`:'')+
     kidCard('🧩',kt('Puzzle','أحجية'),kt('Thema und Schwierigkeit wählen','اختر الصورة ومستوى الصعوبة'),'puzzle','#FFEEDC')+
     kidCard('🧠',kt('Memory','لعبة الذاكرة'),kt('Allein oder zu zweit','لاعب واحد أو لاعبان'),'memory','#E9F1E8')+
     kidCard('🧭',kt('Labyrinth','المتاهة'),kt('Finde den Ausgang','اعثر على المخرج'),'maze','#EAE9F7')+
@@ -3477,7 +3493,7 @@ $('#kidBox').addEventListener('click',e=>{
   if(k==='say'){const l=t.dataset.l,cur=l==='ar'?KID_AR.find(x=>x[0]===(KS.ar||'ا')):KID_DE.find(x=>x[0]===(KS.de||'A'));return kidSay(cur[0]+'. '+cur[1].replace(/\p{Extended_Pictographic}/gu,''),l)}
   if(k==='trace'){KS.trL=t.dataset.l;return kidGo('trace')}
   if(k==='clear') return kidTraceInit();
-  if(k==='trace-done'){if((KS.pts||0)<5) return toast(kt('Male den Buchstaben zuerst mit dem Finger nach.','ارسم الحرف بإصبعك أولاً.'));
+  if(k==='trace-done'){if((KS.pts||0)<5) return toast(kt('Male den Buchstaben zuerst mit dem Finger nach.','ارسم الحرف بإصبعك أولاً.'));lsSet(kidStoreKey('learned-'+today()),'1');
     const l=KS.trL==='ar'?(KS.ar||'ا'):(KS.de||'A');kidAwardOnce('write-'+KS.trL+'-'+l,1,kt('Buchstabe ','حرف ')+l+' '+kt('geschrieben','مكتوب')).then(ok=>{if(!ok) toast('👍 '+kt('Toll geschrieben!','كتابة رائعة!'))});return kidGo('learn')}
   if(k==='puz'){const p=KS.puz;if(p.won) return;const i=+v,z=p.board.indexOf(0);if(!kidPuzNbr(z,p.size).includes(i)) return;
     p.board[z]=p.board[i];p.board[i]=0;p.moves++;if(kidPuzSolved()){p.won=true;kidAward('puzzle',p.size===3?1:p.size===4?2:3,'Puzzle')}return renderKid()}
@@ -3501,6 +3517,241 @@ $('#kidBox').addEventListener('change',e=>{const t=e.target.closest('[data-k=ste
   if(steps.every((_,i)=>v[i])) kidAwardOnce(id+(id==='wudu'?'-'+today():''),2,id==='wudu'?'Wudu geübt':'Salat gelernt');
   renderKid()});
 window.addEventListener('resize',()=>{if(S.view==='kinder'&&K.scr==='car') kidCarDraw()});
+
+
+/* ---------- Familien-Extras: Wochenbericht, IT-Ecke, Spielzeit, Gesundheit, Kita, Album, Ziele ---------- */
+const X_COLLS=['it','health','kita','album','goals'];
+function xDate(ds){return ds?parse(ds).toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'}):''}
+function xKids(){return S.members.filter(m=>roleOf(m)==='user')}
+function xDel(btn,path,msg){confirmBtn(btn,'Wirklich löschen?',async()=>{if(await w(()=>S.db.doc(path).delete())){closeModal();toast(msg||'Gelöscht')}})}
+function renderExtrasHints(){
+  const par=iAmParent(),adm=amAdmin(),kid=isKid(),gst=isGuest();
+  const show=(id,on)=>{const b=$('#'+id);if(b) b.hidden=!on};
+  show('xReportBtn',par);show('xItBtn',adm);show('xRulesBtn',adm);show('xHealthBtn',par);show('xKitaBtn',!gst);show('xAlbumBtn',!gst);show('xGoalsBtn',!gst);
+  const itDue=(S.it||[]).filter(i=>i.due&&i.due<=addDays(today(),7)).length;
+  const h=$('#xItHint');if(h) h.innerHTML=itDue?`<b class="late-txt">⚠️ ${itDue} fällig</b>`:'Geräte, Backups, Lizenzen';
+  const kh=$('#xKitaHint');if(kh){const n=(S.kita||[]).filter(k=>k.date&&k.date>=today()&&k.date<=addDays(today(),7)).length;kh.innerHTML=n?`<b>📌 ${n} diese Woche</b>`:'Elternbriefe & Packlisten'}
+  const gh=$('#xGoalsHint');if(gh){const g=(S.goals||[]).filter(g=>!g.done);gh.textContent=g.length?g.length+' aktiv':'Sparen & Ausflüge'}
+}
+/* Wochenbericht */
+function openReport(){
+  const from=Date.now()-7*864e5,t=today(),to=addDays(t,7);
+  const kids=xKids();
+  const kidHtml=kids.length?kids.map(k=>{
+    const b=(S.bonus||[]).filter(x=>x.mid===k.id&&x.ts>=from&&x.kid);const st=b.reduce((a,x)=>a+(+x.pts||0),0);
+    const games={};for(const x of b){const n=String(x.why||'').replace(/^🎮\s*/,'');games[n]=(games[n]||0)+1}
+    const tasks=(S.tasks||[]).filter(x=>x.done&&x.doneBy===k.id&&(x.doneAt||0)>=from).length;
+    return `<div class="card" style="margin-top:10px"><div style="display:flex;align-items:center;gap:10px">${av(k.id,'lg')}<div><b>${esc(k.name)}</b><div class="muted">⭐ ${st} Sterne aus Spielen · ✅ ${tasks} Aufgaben</div></div></div>
+      ${Object.keys(games).length?`<p style="margin:8px 0 0">${Object.entries(games).map(([n,c])=>`${esc(n)} ×${c}`).join(' · ')}</p>`:'<p class="muted" style="margin:8px 0 0">Diese Woche noch nichts gespielt.</p>'}</div>`}).join(''):'<p class="muted">Noch kein Kind-Profil angelegt.</p>';
+  const bills=(S.bills||[]).map(b=>({b,n:billNext(b)})).filter(x=>x.n&&x.n<=to).sort((a,b)=>a.n.localeCompare(b.n));
+  const dls=(S.deadlines||[]).filter(d=>!d.done&&d.date&&d.date<=addDays(t,30)).sort((a,b)=>a.date.localeCompare(b.date));
+  const evs=(S.events||[]).filter(e=>e.start>=t&&e.start<=to).sort((a,b)=>a.start.localeCompare(b.start));
+  const health=(S.health||[]).filter(h=>h.kind==='termin'&&h.date>=t&&h.date<=addDays(t,14));
+  const it=(S.it||[]).filter(i=>i.due&&i.due<=to);
+  const sec=(title,items,fn)=>`<h3 style="margin-top:16px">${title}</h3>${items.length?items.map(fn).join(''):'<p class="muted" style="margin:4px 0">Nichts.</p>'}`;
+  const row=(ic,a,b)=>`<div style="display:flex;gap:8px;padding:6px 0;border-top:1px solid var(--line)"><span>${ic}</span><span style="flex:1">${a}</span><span class="muted">${b}</span></div>`;
+  modal(`<h3>📊 Wochenbericht</h3><p class="muted" style="margin-top:-6px">Letzte 7 Tage und was als Nächstes ansteht</p>
+    <h3 style="margin-top:12px">🧒 Kinder</h3>${kidHtml}
+    ${sec('📅 Termine (7 Tage)',evs,e=>row((CATS[e.cat]||{}).icon||'📌',esc(e.title),xDate(e.start)))}
+    ${sec('💸 Rechnungen (7 Tage)',bills,x=>row(esc(x.b.icon||'💸'),esc(x.b.title)+' · '+eur(x.b.amount),xDate(x.n)))}
+    ${sec('🚗 Fristen (30 Tage)',dls,d=>row(esc(d.icon||'📅'),esc(d.title),xDate(d.date)))}
+    ${health.length?sec('🩺 Arzttermine (14 Tage)',health,h=>row('🩺',esc(h.title)+' · '+esc((member(h.mid)||{}).name||''),xDate(h.date))):''}
+    ${amAdmin()&&it.length?sec('🖥️ IT fällig',it,i=>row(esc(i.icon||'🖥️'),esc(i.name),xDate(i.due))):''}`);
+}
+function reportSunday(){
+  if(!iAmParent()||new Date().getDay()!==0) return;const k='jiy-report-'+today();if(ls(k)) return;lsSet(k,'1');
+  nativeNotify('📊 Wochenbericht ist da','Was Yanis gelernt hat und was nächste Woche ansteht','report');
+  toast('📊 Neuer Wochenbericht',{label:'Ansehen',fn:openReport});
+}
+/* IT-Ecke (nur Administrator) */
+const IT_KINDS=[['🌐','Router/WLAN'],['💾','NAS/Backup'],['💻','PC/Laptop'],['📱','Handy/Tablet'],['📺','Fernseher'],['🔑','Lizenz/Abo'],['🖨️','Drucker'],['🧩','Sonstiges']];
+function openIt(){
+  if(!amAdmin()) return;
+  const list=[...(S.it||[])].sort((a,b)=>String(a.due||'9999').localeCompare(String(b.due||'9999'))||String(a.name).localeCompare(String(b.name)));
+  modal(`<h3>🖥️ IT-Ecke</h3><p class="muted" style="margin-top:-6px">Geräte, Backups, Lizenzen der Familie. <b>Keine Passwörter</b> eintragen – dafür einen Passwort-Manager nutzen.</p>
+    <button class="btn primary" style="width:100%" data-act="x-it-edit">+ Neuer Eintrag</button>
+    <div style="margin-top:10px">${list.length?list.map(i=>{const late=i.due&&i.due<today(),soon=i.due&&!late&&i.due<=addDays(today(),7);
+      return `<button class="ev-row" style="--c:${late?'#C2410C':soon?'#E3A33A':'#2F6F6A'}" data-act="x-it-edit" data-id="${esc(i.id)}"><span class="ev-ic">${esc(i.icon||'🖥️')}</span><span class="ev-main"><b>${esc(i.name)}</b><small>${esc(i.info||'')}${i.due?` · ${late?'⚠️ überfällig':'fällig'} ${xDate(i.due)}`:''}</small></span></button>`}).join(''):'<div class="empty">Noch nichts eingetragen – z. B. „NAS-Backup prüfen“ oder „Router-Update“.</div>'}</div>`);
+}
+function openItEdit(id){
+  const i=(S.it||[]).find(x=>x.id===id)||{};
+  modal(`<h3>🖥️ ${id?'Eintrag bearbeiten':'Neuer Eintrag'}</h3><form id="xItForm" autocomplete="off">
+    <div class="chips">${IT_KINDS.map(([e,t])=>`<button type="button" class="chip ${(i.icon||'🌐')===e?'on':''}" data-ic="${e}">${e} ${t}</button>`).join('')}</div>
+    <label>Name<input name="name" required maxlength="60" value="${esc(i.name||'')}" placeholder="z. B. FritzBox 7590"></label>
+    <label>Info (Modell, IP, Standort, Ablauf …)<input name="info" maxlength="120" value="${esc(i.info||'')}" placeholder="z. B. 192.168.178.1 · Flur"></label>
+    <div class="row"><label>Nächste Prüfung/Ablauf<input name="due" type="date" value="${esc(i.due||'')}"></label>
+    <label>Wiederholen<select name="every">${[['0','nicht'],['1','monatlich'],['3','alle 3 Monate'],['6','alle 6 Monate'],['12','jährlich']].map(([v,t])=>`<option value="${v}" ${String(i.every||0)===v?'selected':''}>${t}</option>`).join('')}</select></label></div>
+    <label>Notiz<textarea name="note" rows="3" maxlength="600">${esc(i.note||'')}</textarea></label>
+    <div class="actions">${id?'<button type="button" class="btn ghost danger" id="xItDel">Löschen</button>':''}<span class="sp"></span>${id&&i.due?'<button type="button" class="btn soft" id="xItDone">✓ Erledigt</button>':''}<button class="btn primary">Speichern</button></div></form>`);
+  const f=$('#xItForm');let icon=i.icon||'🌐';
+  f.querySelectorAll('[data-ic]').forEach(b=>b.onclick=()=>{icon=b.dataset.ic;f.querySelectorAll('[data-ic]').forEach(x=>x.classList.toggle('on',x===b))});
+  f.onsubmit=async e=>{e.preventDefault();const d={icon,name:f.name.value.trim(),info:f.info.value.trim(),due:f.due.value||'',every:+f.every.value||0,note:f.note.value.trim(),ts:i.ts||Date.now(),by:S.meId||null};
+    if(await w(()=>id?S.db.doc('it/'+id).set(d):S.db.collection('it').add(d))) openIt()};
+  const del=$('#xItDel');if(del) del.onclick=e=>xDel(e.currentTarget,'it/'+id);
+  const dn=$('#xItDone');if(dn) dn.onclick=async()=>{let due='';if(+i.every){const d=parse(i.due>today()?i.due:today());d.setMonth(d.getMonth()+(+i.every));due=iso(d)}
+    if(await w(()=>S.db.doc('it/'+id).update({due,lastDone:Date.now()}))){toast(due?'✓ Nächste Prüfung '+xDate(due):'✓ Erledigt');openIt()}};
+}
+/* Spielzeit-Regeln (Administrator) */
+function kidRules(){return S.kidRules||{}}
+function openRules(){
+  if(!amAdmin()) return;const r=kidRules();
+  modal(`<h3>⏱️ Spielzeit-Regeln</h3><p class="muted" style="margin-top:-6px">Gilt für alle Kinder im Bereich 🎒 Entdecker. Lernen bleibt immer erlaubt.</p><form id="xRuleForm">
+    <label>Spielzeit pro Tag<select name="max">${[['0','unbegrenzt'],['15','15 Minuten'],['30','30 Minuten'],['45','45 Minuten'],['60','1 Stunde'],['90','1,5 Stunden']].map(([v,t])=>`<option value="${v}" ${String(r.maxMin||0)===v?'selected':''}>${t}</option>`).join('')}</select></label>
+    <label class="check"><input type="checkbox" name="wudu" ${r.wuduFirst?'checked':''}> Erst Wudu üben, dann spielen</label>
+    <label class="check"><input type="checkbox" name="learn" ${r.learnFirst?'checked':''}> Erst einen Buchstaben schreiben, dann spielen</label>
+    <label>Spielen erlaubt von – bis<div class="row"><input name="from" type="time" value="${esc(r.from||'')}"><input name="to" type="time" value="${esc(r.to||'')}"></div></label>
+    <div class="actions"><span class="sp"></span><button class="btn primary">Speichern</button></div></form>`);
+  const f=$('#xRuleForm');f.onsubmit=async e=>{e.preventDefault();
+    const d={maxMin:+f.max.value||0,wuduFirst:f.wudu.checked,learnFirst:f.learn.checked,from:f.from.value||'',to:f.to.value||'',by:S.meId||null,ts:Date.now()};
+    if(await w(()=>S.db.doc('config/kid').set(d))){closeModal();toast('⏱️ Regeln gespeichert')}};
+}
+function kidPlayedMin(){return Math.floor(+(ls(kidStoreKey('play-'+today()))||0)/60)}
+// Prüft, ob Spielen gerade erlaubt ist – liefert Grund-Text oder ''
+function kidGameBlock(){
+  const r=kidRules(),now=new Date(),hm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  if(r.from&&r.to&&(hm<r.from||hm>r.to)) return kt(`Spielen ist von ${r.from} bis ${r.to} Uhr erlaubt.`,`اللعب مسموح من ${r.from} إلى ${r.to}.`);
+  if(r.maxMin&&kidPlayedMin()>=r.maxMin) return kt(`Deine Spielzeit für heute (${r.maxMin} Min.) ist vorbei. Morgen geht's weiter!`,`انتهى وقت اللعب اليوم (${r.maxMin} دقيقة). نكمل غداً!`);
+  if(r.wuduFirst){const v=JSON.parse(ls(kidStoreKey('wudu-'+today()))||'[]');if(!KID_WUDU.every((_,i)=>v[i])) return kt('Übe zuerst Wudu unter „Mein Leben“ – dann darfst du spielen.','تدرّب أولاً على الوضوء في «حياتي» ثم العب.')}
+  if(r.learnFirst&&!ls(kidStoreKey('learned-'+today()))) return kt('Schreibe zuerst einen Buchstaben unter „Lernen“ – dann darfst du spielen.','اكتب حرفاً أولاً في «التعلّم» ثم العب.');
+  return '';
+}
+const KID_GAME_SCR=['puzzle','memory','maze','villa','car'];
+setInterval(()=>{if(S.view==='kinder'&&KID_GAME_SCR.includes(K.scr)&&!document.hidden){const k=kidStoreKey('play-'+today());lsSet(k,String(+(ls(k)||0)+15));
+  const r=kidRules();if(r.maxMin&&kidPlayedMin()>=r.maxMin) kidGo('games')}},15000);
+/* Gesundheitsheft */
+function openHealth(mid){
+  if(!iAmParent()) return;const kids=S.members.slice();if(!kids.length) return toast('Noch keine Profile');
+  const cur=mid||(xKids()[0]||kids[0]).id,m=member(cur);
+  const all=(S.health||[]).filter(h=>h.mid===cur).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  const next=all.filter(h=>h.kind==='termin'&&h.date>=today()).sort((a,b)=>a.date.localeCompare(b.date));
+  const past=all.filter(h=>!(h.kind==='termin'&&h.date>=today()));
+  const ms=all.filter(h=>h.kind==='mass'&&(h.cm||h.kg)).sort((a,b)=>a.date.localeCompare(b.date));
+  const KIND={termin:'🩺',impf:'💉',mass:'📏',notiz:'📝'};
+  modal(`<h3>🩺 Gesundheitsheft</h3>
+    <div class="chips">${kids.map(k=>`<button type="button" class="chip ${k.id===cur?'on':''}" style="--c:${esc(k.color)}" data-act="x-health" data-id="${esc(k.id)}">${av(k.id,'sm')} ${esc(k.name)}</button>`).join('')}</div>
+    <div class="row" style="flex-wrap:wrap"><button class="btn primary sm" data-act="x-health-add" data-id="${esc(cur)}|termin">🩺 Arzttermin</button><button class="btn soft sm" data-act="x-health-add" data-id="${esc(cur)}|impf">💉 Impfung</button><button class="btn soft sm" data-act="x-health-add" data-id="${esc(cur)}|mass">📏 Größe/Gewicht</button><button class="btn soft sm" data-act="x-health-add" data-id="${esc(cur)}|notiz">📝 Notiz</button></div>
+    ${next.length?`<h3 style="margin-top:14px">Nächste Termine</h3>${next.map(h=>`<button class="ev-row" style="--c:#457B9D" data-act="x-health-edit" data-id="${esc(h.id)}"><span class="ev-ic">🩺</span><span class="ev-main"><b>${esc(h.title)}</b><small>${xDate(h.date)}${h.time?' · '+esc(h.time):''}${h.note?' · '+esc(h.note):''}</small></span></button>`).join('')}`:''}
+    ${ms.length?`<h3 style="margin-top:14px">📏 Wachstum ${esc(m?m.name:'')}</h3><div class="card" style="margin-top:6px">${ms.map(h=>`<div style="display:flex;gap:10px;padding:4px 0;border-top:1px solid var(--line)"><span style="flex:1">${xDate(h.date)}</span>${h.cm?`<b>${esc(h.cm)} cm</b>`:''}${h.kg?`<b>${esc(h.kg)} kg</b>`:''}</div>`).join('')}</div>`:''}
+    <h3 style="margin-top:14px">Verlauf</h3>${past.length?past.map(h=>`<button class="ev-row" style="--c:#8E7DBE" data-act="x-health-edit" data-id="${esc(h.id)}"><span class="ev-ic">${KIND[h.kind]||'📝'}</span><span class="ev-main"><b>${esc(h.title||(h.kind==='mass'?[h.cm&&h.cm+' cm',h.kg&&h.kg+' kg'].filter(Boolean).join(' · '):''))}</b><small>${xDate(h.date)}${h.note?' · '+esc(h.note):''}</small></span></button>`).join(''):'<div class="empty">Noch keine Einträge.</div>'}
+    <p class="hint">Nur Mama und Papa sehen das Gesundheitsheft. Arzttermine erscheinen auch im Kalender.</p>`);
+}
+function openHealthEdit(id,preset){
+  const h=(S.health||[]).find(x=>x.id===id)||{};const [pmid,pkind]=String(preset||'').split('|');const mid=h.mid||pmid,kind=h.kind||pkind||'termin';
+  const T={termin:'🩺 Arzttermin',impf:'💉 Impfung',mass:'📏 Größe & Gewicht',notiz:'📝 Notiz'};
+  const U=['U1','U2','U3','U4','U5','U6','U7','U7a','U8','U9','J1','Zahnarzt','Kinderarzt','Augenarzt'];
+  modal(`<h3>${T[kind]} · ${esc((member(mid)||{}).name||'')}</h3><form id="xHForm" autocomplete="off">
+    ${kind==='mass'?`<div class="row"><label>Größe (cm)<input name="cm" inputmode="decimal" maxlength="6" value="${esc(h.cm||'')}"></label><label>Gewicht (kg)<input name="kg" inputmode="decimal" maxlength="6" value="${esc(h.kg||'')}"></label></div>`
+      :`<label>${kind==='impf'?'Impfung':'Titel'}<input name="title" required maxlength="80" list="xHList" value="${esc(h.title||'')}" placeholder="${kind==='impf'?'z. B. MMR 2. Dosis':kind==='termin'?'z. B. U8 Kinderarzt':''}"></label>${kind==='termin'?`<datalist id="xHList">${U.map(u=>`<option value="${u}">`).join('')}</datalist>`:''}`}
+    <div class="row"><label>Datum<input name="date" type="date" required value="${esc(h.date||today())}"></label>${kind==='termin'?`<label>Uhrzeit<input name="time" type="time" value="${esc(h.time||'')}"></label>`:''}</div>
+    <label>Notiz<textarea name="note" rows="2" maxlength="400">${esc(h.note||'')}</textarea></label>
+    <div class="actions">${id?'<button type="button" class="btn ghost danger" id="xHDel">Löschen</button>':''}<span class="sp"></span><button class="btn primary">Speichern</button></div></form>`);
+  const f=$('#xHForm');
+  f.onsubmit=async e=>{e.preventDefault();const d={mid,kind,date:f.date.value,note:f.note.value.trim(),title:f.title?f.title.value.trim():'',time:f.time?f.time.value:'',cm:f.cm?f.cm.value.trim().replace(',','.'):'',kg:f.kg?f.kg.value.trim().replace(',','.'):'',ev:h.ev||null,ts:h.ts||Date.now(),by:S.meId||null};
+    if(kind==='termin'){const ed={title:'🩺 '+d.title+' ('+((member(mid)||{}).name||'')+')',cat:'termin',start:d.date,end:d.date,allDay:!d.time,from:d.time||'',to:'',who:[mid],loc:'',note:d.note,by:S.meId||null,ts:Date.now(),updated:Date.now()};
+      try{if(d.ev) await S.db.doc('events/'+d.ev).set(ed);else{const r=await S.db.collection('events').add(ed);d.ev=r&&r.id||null}}catch(err){console.warn('health ev',err)}}
+    if(await w(()=>id?S.db.doc('health/'+id).set(d):S.db.collection('health').add(d))){toast('Gespeichert 🩺');openHealth(mid)}};
+  const del=$('#xHDel');if(del) del.onclick=e=>confirmBtn(e.currentTarget,'Wirklich löschen?',async()=>{if(h.ev){try{await S.db.doc('events/'+h.ev).delete()}catch{}}if(await w(()=>S.db.doc('health/'+id).delete())){toast('Gelöscht');openHealth(mid)}});
+}
+/* Kita-/Schul-Ecke */
+function openKita(){
+  const par=iAmParent(),t=today();
+  const list=[...(S.kita||[])].sort((a,b)=>String(a.date||'9999').localeCompare(String(b.date||'9999')));
+  const up=list.filter(k=>!k.date||k.date>=t),old=list.filter(k=>k.date&&k.date<t).reverse().slice(0,10);
+  const card=k=>{const pk=k.pack||[],dn=pk.filter(p=>p.d).length;
+    return `<button class="ev-row" style="--c:#E3A33A" data-act="x-kita-open" data-id="${esc(k.id)}"><span class="ev-ic">${k.img?'🖼️':'🎒'}</span><span class="ev-main"><b>${esc(k.title)}</b><small>${k.date?xDate(k.date):'ohne Datum'}${pk.length?` · Packliste ${dn}/${pk.length}`:''}</small></span></button>`};
+  modal(`<h3>🎒 Kita & Schule</h3><p class="muted" style="margin-top:-6px">Elternbriefe, Termine und Packlisten an einem Ort.</p>
+    ${par?'<button class="btn primary" style="width:100%" data-act="x-kita-edit">+ Elternbrief / Termin</button>':''}
+    <div style="margin-top:10px">${up.length?up.map(card).join(''):'<div class="empty">Nichts geplant.</div>'}</div>
+    ${old.length?`<h3 style="margin-top:14px">Vergangen</h3>${old.map(card).join('')}`:''}`);
+}
+function openKitaItem(id){
+  const k=(S.kita||[]).find(x=>x.id===id);if(!k) return openKita();const par=iAmParent();
+  modal(`<h3>🎒 ${esc(k.title)}</h3><p class="muted" style="margin-top:-6px">${k.date?xDate(k.date):''}${k.note?' · '+esc(k.note):''}</p>
+    ${k.img?`<img src="${esc(k.img)}" alt="Elternbrief" style="width:100%;border-radius:14px;margin:6px 0">`:''}
+    ${(k.pack||[]).length?`<h3>🧳 Packliste</h3>${k.pack.map((p,i)=>`<label class="check" style="padding:6px 0;border-top:1px solid var(--line)"><input type="checkbox" data-kpack="${i}" ${p.d?'checked':''}> ${esc(p.t)}</label>`).join('')}`:''}
+    <div class="actions" style="margin-top:12px"><button class="btn ghost" data-act="x-kita">← Zurück</button><span class="sp"></span>${par?`<button class="btn soft" data-act="x-kita-edit" data-id="${esc(id)}">✎ Bearbeiten</button>`:''}</div>`);
+  document.querySelectorAll('[data-kpack]').forEach(c=>c.onchange=()=>{const pk=(k.pack||[]).map(p=>({...p}));pk[+c.dataset.kpack].d=c.checked;w(()=>S.db.doc('kita/'+id).update({pack:pk}))});
+}
+function openKitaEdit(id){
+  const k=(S.kita||[]).find(x=>x.id===id)||{};let img=k.img||'';
+  modal(`<h3>🎒 ${id?'Bearbeiten':'Neu'}</h3><form id="xKForm" autocomplete="off">
+    <label>Worum geht's?<input name="title" required maxlength="80" value="${esc(k.title||'')}" placeholder="z. B. Ausflug in den Zoo"></label>
+    <label>Datum<input name="date" type="date" value="${esc(k.date||'')}"></label>
+    <label>Notiz<textarea name="note" rows="2" maxlength="400" placeholder="z. B. 3 € Eintritt mitgeben">${esc(k.note||'')}</textarea></label>
+    <label>🧳 Packliste (eine Sache pro Zeile)<textarea name="pack" rows="4" maxlength="800" placeholder="Wechselkleidung&#10;Regenjacke&#10;Brotdose">${esc((k.pack||[]).map(p=>p.t).join('\n'))}</textarea></label>
+    <label>📷 Foto vom Elternbrief<input name="img" type="file" accept="image/*"></label><div id="xKPrev">${img?`<img src="${esc(img)}" style="max-width:120px;border-radius:10px">`:''}</div>
+    ${id?'':'<label class="check"><input type="checkbox" name="cal" checked> Auch in den Kalender eintragen</label>'}
+    <div class="actions">${id?'<button type="button" class="btn ghost danger" id="xKDel">Löschen</button>':''}<span class="sp"></span><button class="btn primary">Speichern</button></div></form>`);
+  const f=$('#xKForm');
+  f.img.onchange=async()=>{const file=f.img.files[0];if(!file) return;try{img=await compressImage(file,1100);$('#xKPrev').innerHTML=`<img src="${img}" style="max-width:120px;border-radius:10px">`}catch(e){toast(e.userMsg||'Foto ging nicht')}};
+  f.onsubmit=async e=>{e.preventDefault();const old=k.pack||[];
+    const pack=f.pack.value.split('\n').map(s=>s.trim()).filter(Boolean).map(t=>({t,d:!!(old.find(p=>p.t===t)||{}).d}));
+    const d={title:f.title.value.trim(),date:f.date.value||'',note:f.note.value.trim(),pack,img,ts:k.ts||Date.now(),by:S.meId||null};
+    if(!id&&f.cal&&f.cal.checked&&d.date){const kids=xKids().map(x=>x.id);try{await S.db.collection('events').add({title:'🎒 '+d.title,cat:'termin',start:d.date,end:d.date,allDay:true,from:'',to:'',who:kids,loc:'',note:d.note+(pack.length?'\nMitbringen: '+pack.map(p=>p.t).join(', '):''),by:S.meId||null,ts:Date.now(),updated:Date.now()})}catch{}}
+    if(await w(()=>id?S.db.doc('kita/'+id).set(d):S.db.collection('kita').add(d))){toast('Gespeichert 🎒');openKita()}};
+  const del=$('#xKDel');if(del) del.onclick=e=>xDel(e.currentTarget,'kita/'+id);
+}
+/* Fotoalbum */
+function openAlbum(){
+  const list=[...(S.album||[])].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||(b.ts||0)-(a.ts||0));
+  const by={};for(const p of list){const m=String(p.date||'').slice(0,7);(by[m]=by[m]||[]).push(p)}
+  modal(`<h3>📸 Familienalbum</h3><p class="muted" style="margin-top:-6px">Schöne Momente – für euch, Oma & Opa.</p>
+    <label class="btn primary" style="width:100%;display:flex;color:#fff">📷 Fotos hinzufügen<input type="file" accept="image/*" multiple id="xAlbFile" hidden></label>
+    ${Object.keys(by).length?Object.entries(by).map(([m,ps])=>`<h3 style="margin-top:14px">${m?parse(m+'-01').toLocaleDateString('de-DE',{month:'long',year:'numeric'}):''}</h3>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">${ps.map(p=>`<button data-act="x-photo" data-id="${esc(p.id)}" style="border:0;padding:0;aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:#eee"><img src="${esc(p.img)}" alt="${esc(p.cap||'Foto')}" style="width:100%;height:100%;object-fit:cover" loading="lazy"></button>`).join('')}</div>`).join(''):'<div class="empty" style="margin-top:10px">Noch keine Fotos.</div>'}`);
+  $('#xAlbFile').onchange=async e=>{const files=[...e.target.files].slice(0,10);let n=0;
+    for(const file of files){try{const img=await compressImage(file,1280);if(await w(()=>S.db.collection('album').add({img,cap:'',date:today(),by:S.meId||null,ts:Date.now()}))) n++}catch(err){toast(err.userMsg||'Foto ging nicht')}}
+    if(n){toast(`📸 ${n} Foto${n>1?'s':''} gespeichert`);openAlbum()}};
+}
+function openPhoto(id){
+  const p=(S.album||[]).find(x=>x.id===id);if(!p) return openAlbum();const mine=p.by===S.meId||iAmParent();
+  modal(`<img src="${esc(p.img)}" alt="${esc(p.cap||'Foto')}" style="width:100%;border-radius:14px;margin-top:30px">
+    <form id="xPForm" class="row" style="margin-top:8px"><input name="cap" maxlength="100" value="${esc(p.cap||'')}" placeholder="Beschreibung …" ${mine?'':'disabled'}><input name="date" type="date" value="${esc(p.date||'')}" style="max-width:150px" ${mine?'':'disabled'}>${mine?'<button class="btn primary sm">✓</button>':''}</form>
+    <p class="muted">${p.by&&member(p.by)?'Von '+esc(member(p.by).name):''}</p>
+    <div class="actions"><button class="btn ghost" data-act="x-album">← Album</button><span class="sp"></span><a class="btn soft" href="${esc(p.img)}" download="JIY-Foto.jpg">⬇️ Speichern</a>${mine?'<button type="button" class="btn ghost danger" id="xPDel">Löschen</button>':''}</div>`);
+  const f=$('#xPForm');f.onsubmit=async e=>{e.preventDefault();if(await w(()=>S.db.doc('album/'+id).update({cap:f.cap.value.trim(),date:f.date.value||p.date}))) toast('Gespeichert')};
+  const del=$('#xPDel');if(del) del.onclick=e=>confirmBtn(e.currentTarget,'Wirklich löschen?',async()=>{if(await w(()=>S.db.doc('album/'+id).delete())){toast('Gelöscht');openAlbum()}});
+}
+/* Gemeinsame Ziele */
+function openGoals(){
+  const par=iAmParent(),list=[...(S.goals||[])].sort((a,b)=>(a.done?1:0)-(b.done?1:0)||(a.ts||0)-(b.ts||0));
+  modal(`<h3>🎯 Gemeinsame Ziele</h3><p class="muted" style="margin-top:-6px">Zum Beispiel Urlaubskasse, Freizeitpark oder ein großes Familienziel.</p>
+    ${par?'<button class="btn primary" style="width:100%" data-act="x-goal-edit">+ Neues Ziel</button>':''}
+    <div style="margin-top:10px">${list.length?list.map(g=>{const p=Math.min(100,Math.round((+g.have||0)/(+g.target||1)*100));
+      return `<div class="card" style="margin-top:10px;${g.done?'opacity:.6':''}"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:30px">${esc(g.icon||'🎯')}</span><div style="flex:1"><b>${esc(g.title)}</b><div class="muted">${esc(+g.have||0)} von ${esc(+g.target||0)} ${esc(g.unit||'')}${g.when?' · bis '+xDate(g.when):''}</div></div>${par?`<button class="icon-btn" data-act="x-goal-edit" data-id="${esc(g.id)}" aria-label="Bearbeiten">✎</button>`:''}</div>
+        <div class="kid-prog" style="margin:10px 0 6px"><i style="width:${p}%"></i></div><div style="display:flex;align-items:center;gap:8px"><b>${p} %</b><span class="sp" style="flex:1"></span>${g.done?'🎉 Geschafft!':`<button class="btn soft sm" data-act="x-goal-add" data-id="${esc(g.id)}">+ Dazu</button>`}</div></div>`}).join(''):'<div class="empty">Noch kein Ziel.</div>'}</div>`);
+}
+function openGoalEdit(id){
+  if(!iAmParent()) return;const g=(S.goals||[]).find(x=>x.id===id)||{};
+  modal(`<h3>🎯 ${id?'Ziel bearbeiten':'Neues Ziel'}</h3><form id="xGForm" autocomplete="off">
+    <div class="chips">${['🏖️','🎢','✈️','🚲','🏠','🐪','🎁','🎯'].map(e=>`<button type="button" class="chip ${(g.icon||'🏖️')===e?'on':''}" data-ic="${e}">${e}</button>`).join('')}</div>
+    <label>Ziel<input name="title" required maxlength="60" value="${esc(g.title||'')}" placeholder="z. B. Urlaub in Tunesien"></label>
+    <div class="row"><label>Zielwert<input name="target" type="number" min="1" required value="${esc(g.target||'')}" placeholder="2000"></label><label>Einheit<input name="unit" maxlength="12" value="${esc(g.unit||'€')}"></label></div>
+    <div class="row"><label>Schon geschafft<input name="have" type="number" min="0" value="${esc(g.have||0)}"></label><label>Bis wann?<input name="when" type="date" value="${esc(g.when||'')}"></label></div>
+    <div class="actions">${id?'<button type="button" class="btn ghost danger" id="xGDel">Löschen</button>':''}<span class="sp"></span><button class="btn primary">Speichern</button></div></form>`);
+  const f=$('#xGForm');let icon=g.icon||'🏖️';f.querySelectorAll('[data-ic]').forEach(b=>b.onclick=()=>{icon=b.dataset.ic;f.querySelectorAll('[data-ic]').forEach(x=>x.classList.toggle('on',x===b))});
+  f.onsubmit=async e=>{e.preventDefault();const d={icon,title:f.title.value.trim(),target:+f.target.value||1,unit:f.unit.value.trim(),have:+f.have.value||0,when:f.when.value||'',ts:g.ts||Date.now(),by:S.meId||null};d.done=d.have>=d.target;
+    if(await w(()=>id?S.db.doc('goals/'+id).set(d):S.db.collection('goals').add(d))) openGoals()};
+  const del=$('#xGDel');if(del) del.onclick=e=>xDel(e.currentTarget,'goals/'+id);
+}
+function openGoalAdd(id){
+  const g=(S.goals||[]).find(x=>x.id===id);if(!g) return;
+  modal(`<h3>${esc(g.icon||'🎯')} ${esc(g.title)}</h3><form id="xGAdd" class="row"><input name="n" type="number" min="1" required placeholder="Wie viel dazu? (${esc(g.unit||'')})" style="flex:1"><button class="btn primary">+ Dazu</button></form>`);
+  const f=$('#xGAdd');f.onsubmit=async e=>{e.preventDefault();const have=(+g.have||0)+(+f.n.value||0);const done=have>=(+g.target||1);
+    if(await w(()=>S.db.doc('goals/'+id).update({have,done}))){if(done) toast('🎉 Ziel geschafft: '+g.title);openGoals()}};
+}
+/* Essen: ganze Woche einkaufen */
+async function mealShopWeek(){
+  const items=new Set();for(let i=0;i<7;i++){const m=S.meals[addDays(S.mealWeek,i)];if(m&&m.ingr) m.ingr.split(/[,;\n]+/).map(s=>s.trim()).filter(Boolean).forEach(s=>items.add(s))}
+  if(!items.size) return toast('Diese Woche sind noch keine Zutaten eingetragen');
+  let n=0;for(const it of items){if(await addItem(it,null,{silent:true})) n++}
+  toast(n?`🛒 ${n} Zutat${n===1?'':'en'} für die Woche auf der Einkaufsliste`:'Alles steht schon auf der Liste');
+}
+function xListen(){
+  for(const c of X_COLLS) S.db.collection(c).onSnapshot(s=>{S[c]=rows(s);renderExtrasHints()},errX(c));
+  S.db.doc('config/kid').onSnapshot(s=>{S.kidRules=s.exists?s.data():{}},()=>{});
+  setTimeout(reportSunday,4000);
+}
 
 document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(!t) return;const f=ACT[t.dataset.act];if(f){e.preventDefault();f(t,t.dataset.id,e)}});
 
@@ -3536,6 +3787,7 @@ function subscribe(){
   setInterval(()=>{if(S.view==='familie') renderDevices()},60000);
   S.db.collection('quran').onSnapshot(s=>{const o={};for(const d of s.docs) o[d.id]=d.data();S.quran=o;renderQuranProgress()},errX('quran'));
   S.db.collection('shop').onSnapshot(s=>{S.shop=rows(s);renderShop();renderBadges();done('shop',s)},err('shop'));
+  xListen();
 }
 
 /* ---------- Anmeldung ---------- */
