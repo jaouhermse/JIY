@@ -70,3 +70,18 @@ Ohne Kreditkarte gehen Fotos (werden verkleinert). Für **Videos**:
 - **Google/Outlook** bei Terminen öffnet den jeweiligen Kalender zum Übernehmen.
 - Die „schlauen Vorschläge“ von claude.ai gibt es in dieser Version nicht – Katalog und „Oft gekauft“ sind da.
 - Die Datei `android/app/jiy.keystore` ist der Signier-Schlüssel der App. Nicht löschen – sonst lässt sich eine neue APK nicht mehr über die alte installieren.
+
+## Kleine Entdecker (Yanis' Lern- und Spielbereich)
+
+Die frühere Yanis-App „Kleine Entdecker“ ist jetzt **in JIY eingebaut** – keine zweite App mehr nötig.
+
+- Sichtbar **nur für Profile mit der Rolle „🧒 Kind“** (unten Tab **🎒 Entdecker**, außerdem unter *Mehr*).
+- Inhalt: Lernwerkstatt (Deutsch A–Z, Arabisch ا–ي, Vorlesen, Schreiben üben), Puzzle, Memory (1–2 Spieler), Labyrinth, 3D-Villa, Auto fahren, Wudu und Salat Schritt für Schritt. Gebetszeiten und Quran laufen über den Tab *Gebet*.
+- Sterne aus den Spielen landen automatisch bei **Punkte & Belohnungen** des Kindes (höchstens 3× pro Spiel und Tag).
+- Für die 3D-Villa muss die Datei `web/villa.gltf` mit hochgeladen sein.
+
+## Rollen
+
+- **👑 Papa · Administrator** – alles, inkl. Familie, Profile und Kinderschutz.
+- **💜 Mama** – alle Eltern-Funktionen (Kalender, Haushalt, Fristen, Punkte, Profile mit PIN wechseln), nur Familie/Profile verwalten bleibt beim Administrator.
+- **🧒 Kind** – mit Kinderschutz und Kleine Entdecker. **👋 Gast** – Kalender, Chat, Einkauf, Essen, Gebet, WLAN.
