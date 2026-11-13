@@ -21,10 +21,11 @@ android {
 
     signingConfigs {
         jiy {
-            storeFile file("jiy.keystore")
-            storePassword "jiyfamily"
+            // Schlüssel und Passwort kommen nur aus den GitHub-Secrets (nie im Code speichern)
+            storeFile file(System.getenv("JIY_KEYSTORE") ?: "release.keystore")
+            storePassword System.getenv("JIY_KEYSTORE_PASSWORD")
             keyAlias "jiy"
-            keyPassword "jiyfamily"
+            keyPassword System.getenv("JIY_KEYSTORE_PASSWORD")
         }
     }
 
