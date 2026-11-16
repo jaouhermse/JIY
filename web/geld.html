@@ -169,20 +169,47 @@ const fmt=n=>{const s=Math.abs(n).toLocaleString("de-DE",{minimumFractionDigits:
 
 // ---------- JIY-Familienmodus (eingebettet in JIY Family) ----------
 const JIY=(()=>{try{return window.parent!==window&&window.parent.JIYFin?window.parent.JIYFin:null}catch(e){return null}})();
-let jiyLastTs=0,jiyCache={},jiyReloadT=null;
-async function jiyLoad(){const main=await JIY.get("main");if(!main||!main.json)return false;const base=JSON.parse(main.json);let tx=[];jiyCache={};
- for(const y of (base.years||[])){const d=await JIY.get("tx-"+y);if(d&&d.json){jiyCache[y]=d.json;tx=tx.concat(JSON.parse(d.json))}}
- base.tx=tx;delete base.years;S=Object.assign(blank(),base);jiyLastTs=main.ts||0;saveLocal();return true}
-async function jiyFlush(){const byY={};for(const t of S.tx){const y=String(t.date).slice(0,4);(byY[y]=byY[y]||[]).push(t)}
- const years=Object.keys(byY).sort();const ts=Date.now();jiyLastTs=ts;
- for(const y of years){const j=JSON.stringify(byY[y]);if(jiyCache[y]!==j){await JIY.set("tx-"+y,{json:j,ts});jiyCache[y]=j}}
- for(const y of Object.keys(jiyCache))if(!byY[y]){await JIY.set("tx-"+y,{json:"[]",ts});delete jiyCache[y]}
- const base=Object.assign({},S);delete base.tx;delete base.auth;base.years=years;base._ts=ts;
- await JIY.set("main",{json:JSON.stringify(base),ts,by:(JIY.me()||{}).name||""})}
+// Modus: "full" = alles (Papa), "shared" = nur gemeinsame Konten (Mama)
+const JIYMODE=JIY?((JIY.access&&JIY.access())||"full"):null;
+let jiyTs={p:0,s:0},jiyCache={p:{},s:{}},jiySig={p:"",s:""},jiyReloadT=null;
+async function jiyLoadScope(sc){const main=await JIY.get("main",sc);if(!main||!main.json)return null;const base=JSON.parse(main.json);let tx=[];const cache={};
+ for(const y of (base.years||[])){const d=await JIY.get("tx-"+y,sc);if(d&&d.json){cache[y]=d.json;tx=tx.concat(JSON.parse(d.json))}}
+ delete base.years;base.tx=tx;return{base,cache,ts:main.ts||0}}
+async function jiyLoad(){
+ const sh=await jiyLoadScope("s");
+ if(JIYMODE==="shared"){if(!sh)return false;const b=sh.base;
+  S=Object.assign(blank(),{currency:b.currency||"€",accounts:(b.accounts||[]).map(x=>({...x,shared:true})),cats:b.cats&&b.cats.length?b.cats:blank().cats,tx:b.tx||[],recurring:b.recurring||[],budgets:b.budgets||{},goals:(b.goals||[]).map(g=>({...g,shared:true})),debts:[]});
+  if(!S.accounts.length)S.accounts=[{id:"a_shared",name:"Gemeinschaftskonto",icon:"👨‍👩‍👦",start:0,archived:false,shared:true}];
+  jiyCache={p:{},s:sh.cache};jiyTs.s=sh.ts;saveLocal();return true}
+ const pr=await jiyLoadScope("p");if(!pr&&!sh)return false;
+ const st=Object.assign(blank(),pr?pr.base:{});if(!pr)st.tx=[];
+ if(sh){const b=sh.base;const sa=(b.accounts||[]).map(x=>({...x,shared:true}));const ids=new Set(sa.map(x=>x.id));
+  st.accounts=st.accounts.filter(x=>!x.shared&&!ids.has(x.id)).concat(sa);
+  st.tx=st.tx.filter(t=>!ids.has(t.acc)&&!ids.has(t.to)).concat(b.tx||[]);
+  st.recurring=(st.recurring||[]).filter(r=>!ids.has(r.acc)).concat(b.recurring||[]);
+  st.goals=(st.goals||[]).filter(g=>!g.shared).concat((b.goals||[]).map(g=>({...g,shared:true})));
+  for(const c of (b.cats||[]))if(!st.cats.find(x=>x.id===c.id))st.cats.push(c);
+  st.sharedBudgets=b.budgets||{};jiyTs.s=sh.ts}
+ jiyCache={p:pr?pr.cache:{},s:sh?sh.cache:{}};jiyTs.p=pr?pr.ts:0;S=st;saveLocal();return true}
+async function jiyWriteScope(sc,base,tx){const sig=JSON.stringify(base)+JSON.stringify(tx);if(sig===jiySig[sc])return;
+ const byY={};for(const t of tx){const y=String(t.date).slice(0,4);(byY[y]=byY[y]||[]).push(t)}
+ const years=Object.keys(byY).sort();const ts=Date.now();jiyTs[sc]=ts;const cache=jiyCache[sc]=jiyCache[sc]||{};
+ for(const y of years){const j=JSON.stringify(byY[y]);if(cache[y]!==j){await JIY.set("tx-"+y,{json:j,ts},sc);cache[y]=j}}
+ for(const y of Object.keys(cache))if(!byY[y]){await JIY.set("tx-"+y,{json:"[]",ts},sc);delete cache[y]}
+ await JIY.set("main",{json:JSON.stringify(Object.assign({},base,{years,_ts:ts})),ts,by:(JIY.me()||{}).name||""},sc);jiySig[sc]=sig}
+async function jiyFlush(){const all=JIYMODE==="shared";
+ const sa=S.accounts.filter(x=>all||x.shared);const ids=new Set(sa.map(x=>x.id));
+ const shared={currency:S.currency,accounts:sa,cats:S.cats,recurring:S.recurring.filter(r=>ids.has(r.acc)),goals:S.goals.filter(g=>all||g.shared),budgets:all?S.budgets:(S.sharedBudgets||{})};
+ if(sa.length||all||Object.keys(jiyCache.s).length||jiyTs.s)await jiyWriteScope("s",shared,S.tx.filter(t=>ids.has(t.acc)||ids.has(t.to)));
+ if(!all){const priv=Object.assign({},S);delete priv.tx;delete priv.auth;delete priv.sharedBudgets;
+  priv.accounts=S.accounts.filter(x=>!x.shared);priv.recurring=S.recurring.filter(r=>!ids.has(r.acc));priv.goals=S.goals.filter(g=>!g.shared);
+  await jiyWriteScope("p",priv,S.tx.filter(t=>!ids.has(t.acc)&&!ids.has(t.to)))}}
 async function initJIY(){setSync("verbinde …");
- try{const had=await jiyLoad();if(had){runRecurring();render()}else{await jiyFlush();toast("Familien-Haushaltsbuch angelegt ✓")}
-  setSync("👨‍👩‍👦 Familie");
-  JIY.watch("main",d=>{if(!d||!d.ts||d.ts===jiyLastTs||saving||pending)return;clearTimeout(jiyReloadT);jiyReloadT=setTimeout(async()=>{try{if(await jiyLoad()){render();toast("🔄 Aktualisiert"+(d.by?" von "+d.by:""))}}catch(e){}},700)});
+ try{const had=await jiyLoad();if(had){runRecurring();render()}
+  else{if(JIYMODE==="shared"){S=blank();S.accounts=[{id:"a_shared",name:"Gemeinschaftskonto",icon:"👨‍👩‍👦",start:0,archived:false,shared:true}];render()}await jiyFlush();toast(JIYMODE==="shared"?"Gemeinschaftskonto angelegt ✓":"Haushaltsbuch angelegt ✓")}
+  setSync(JIYMODE==="shared"?"👨‍👩‍👦 Gemeinsam":"🔒 Privat + 👨‍👩‍👦");
+  const onRemote=sc=>d=>{if(!d||!d.ts||d.ts===jiyTs[sc]||saving||pending)return;clearTimeout(jiyReloadT);jiyReloadT=setTimeout(async()=>{try{if(await jiyLoad()){render();toast("🔄 Aktualisiert"+(d.by?" von "+d.by:""))}}catch(e){}},700)};
+  JIY.watch("main",onRemote("s"),"s");if(JIYMODE==="full")JIY.watch("main",onRemote("p"),"p");
  }catch(e){console.log(e);setSync("⚠️ keine Verbindung")}}
 
 // ---------- Storage (Cloud-DB + lokaler Cache) ----------
@@ -260,7 +287,7 @@ function line(points,h=120){if(points.length<2)return"";const w=320,min=Math.min
 // ---------- Views ----------
 const V={};
 function txRow(t){const c=cat(t.cat);let title=c.name,sub=(acc(t.acc)||{}).name||"";let cls=t.type==="in"?"in":t.type==="out"?"out":"";let sign=t.type==="in"?"+":t.type==="out"?"−":"";
- if(t.type==="tr"){title="Umbuchung";sub=((acc(t.acc)||{}).name||"?")+" → "+((acc(t.to)||{}).name||"?")}
+ if(t.type==="tr"){title="Umbuchung";sub=((acc(t.acc)||{}).name||"🔒 Privat")+" → "+((acc(t.to)||{}).name||"🔒 Privat")}
  const icon=t.type==="tr"?icoBox("🔄","#0f766e"):icoBox(c.icon,c.color);
  return `<li class="item" data-tx="${t.id}">${icon}<div class="grow"><div class="ttl">${esc(t.note||title)}${t.rec?'<span class="pill">🔁</span>':""}</div><div class="sub">${esc(t.note?title+" · ":"")}${esc(sub)}${t.tags?" · #"+esc(t.tags):""}${t.by?" · 👤 "+esc(t.by):""}</div></div><div class="amt ${cls}">${sign}${fmt(t.amount).replace("−","")}</div></li>`}
 const sorted=()=>[...S.tx].sort((a,b)=>b.date.localeCompare(a.date)||(b.id>a.id?1:-1));
@@ -336,13 +363,14 @@ V.plan=()=>{const k=ym(todayISO());const sp=catSpend(k);
   return `<div class="item" data-goal="${g.id}" style="display:block"><div class="between"><span><b>${g.icon||"🎯"} ${esc(g.name)}</b></span><span>${p>=100?"✅":Math.round(p)+"%"}</span></div><div class="bar"><i style="width:${Math.min(100,p)}%;background:${p>=100?"var(--in)":"var(--pri)"}"></i></div><div class="sub" style="margin-top:3px">${fmt(s)} von ${fmt(g.target)}${g.deadline?" · bis "+new Date(g.deadline).toLocaleDateString("de-DE"):""}${extra}</div></div>`}).join("");
  else h+=`<div class="empty">Urlaub, Notgroschen, neues Auto …</div>`;
  h+=`</div>`;
+ if(JIYMODE==="shared")return h;
  h+=`<div class="card"><h2>Schulden & Verliehen <button class="btn sm" data-adddebt>+ Neu</button></h2>`;
  if(S.debts.length){const owe=S.debts.filter(d=>d.dir==="owe").reduce((s,d)=>s+debtLeft(d),0),lent=S.debts.filter(d=>d.dir==="lent").reduce((s,d)=>s+debtLeft(d),0);
   h+=`<div class="sub" style="margin-bottom:6px">Ich schulde: <b class="out">${fmt(owe)}</b> · Mir wird geschuldet: <b class="in">${fmt(lent)}</b></div><ul class="list">${S.debts.map(d=>{const l=debtLeft(d);return `<li class="item" data-debt="${d.id}" style="${l<=0?"opacity:.5":""}">${icoBox(d.dir==="owe"?"📉":"🤝",d.dir==="owe"?"#c2410c":"#15803d")}<div class="grow"><div class="ttl">${esc(d.name)}</div><div class="sub">${d.dir==="owe"?"Ich schulde":"Schuldet mir"}${d.due?" · fällig "+new Date(d.due).toLocaleDateString("de-DE"):""}${l<=0?" · erledigt ✅":""}</div></div><div class="amt ${d.dir==="owe"?"out":"in"}">${fmt(l)}</div></li>`}).join("")}</ul>`}
  else h+=`<div class="empty">Kredite, Geld von Freunden, offene Rechnungen.</div>`;
  return h+`</div>`};
 
-V.accounts=()=>{let h=`<div class="card"><h2>Konten <button class="btn sm" data-addacc>+ Konto</button></h2><ul class="list">${S.accounts.map(a=>{const b=accBalance(a.id);return `<li class="item" data-editacc="${a.id}" style="${a.archived?"opacity:.5":""}">${icoBox(a.icon,"#0f766e")}<div class="grow"><div class="ttl">${esc(a.name)}</div><div class="sub">Startsaldo ${fmt(parseNum(a.start))}${a.archived?" · archiviert":""}</div></div><div class="amt ${b<0?"out":""}">${fmt(b)}</div></li>`}).join("")}</ul></div>`;
+V.accounts=()=>{let h=`<div class="card"><h2>Konten <button class="btn sm" data-addacc>+ Konto</button></h2><ul class="list">${S.accounts.map(a=>{const b=accBalance(a.id);return `<li class="item" data-editacc="${a.id}" style="${a.archived?"opacity:.5":""}">${icoBox(a.icon,"#0f766e")}<div class="grow"><div class="ttl">${esc(a.name)}</div><div class="sub">${a.shared&&JIY?"👨‍👩‍👦 Gemeinsam · ":JIY?"🔒 Privat · ":""}Startsaldo ${fmt(parseNum(a.start))}${a.archived?" · archiviert":""}</div></div><div class="amt ${b<0?"out":""}">${fmt(b)}</div></li>`}).join("")}</ul></div>`;
  h+=`<button class="btn sec block" data-transfer>🔄 Umbuchung zwischen Konten</button>`;return h};
 
 V.cats=()=>{const row=c=>`<li class="item" data-editcat="${c.id}">${icoBox(c.icon,c.color)}<div class="grow ttl">${esc(c.name)}</div><span class="muted">›</span></li>`;
@@ -367,8 +395,8 @@ V.more=()=>`<div class="card">
  <div class="settingrow" data-export="csv"><span>📤 Export als CSV (Excel)</span><span class="muted">›</span></div>
  <div class="settingrow" data-export="json"><span>💾 Komplett-Backup (JSON)</span><span class="muted">›</span></div>
  <div class="settingrow" data-import><span>📥 Backup / CSV importieren</span><span class="muted">›</span></div>
- <div class="settingrow" data-demo><span>🧪 Beispieldaten laden</span><span class="muted">›</span></div>
- <div class="settingrow" data-reset><span style="color:var(--danger)">🗑️ Alle Daten löschen</span><span class="muted">›</span></div></div>
+ <div class="settingrow" style="${JIYMODE==='shared'?'display:none':''}" data-demo><span>🧪 Beispieldaten laden</span><span class="muted">›</span></div>
+ <div class="settingrow" style="${JIYMODE==='shared'?'display:none':''}" data-reset><span style="color:var(--danger)">🗑️ Alle Daten löschen</span><span class="muted">›</span></div></div>
  <div class="card" style="${JIY?"display:none":""}"><h2>App</h2><div class="settingrow" data-update><span>🔄 Update & Versionsverlauf</span><span class="muted">v${APP_VERSION} ›</span></div></div>
  <div class="card" style="${NATIVE||JIY?"display:none":""}"><h2>Installieren auf Android</h2><div class="sub" style="white-space:normal">Seite in Chrome öffnen → Menü ⋮ → <b>„Zum Startbildschirm hinzufügen“</b>. Dann startet „Mein Geld“ wie eine App. Deine Daten werden in deinem Konto gesichert (☁️) und zusätzlich lokal.</div>
  <div class="sub" style="margin-top:8px">${S.tx.length} Buchungen · ${S.accounts.length} Konten · ${S.cats.length} Kategorien</div></div>`;
@@ -447,14 +475,15 @@ function catEditor(c,type){const isNew=!c;c=c?{...c}:{id:"c_"+uid(),name:"",icon
 function accEditor(a){const isNew=!a;a=a?{...a}:{id:"a_"+uid(),name:"",icon:"🏦",start:0,archived:false};
  sheet(`<h3>${isNew?"Neues Konto":"Konto bearbeiten"}</h3><label>Name</label><input id="n" value="${esc(a.name)}" placeholder="z. B. Sparkasse, PayPal, Kreditkarte">
  <label>Startsaldo (Kontostand bei Beginn)</label><input id="s" inputmode="decimal" value="${String(a.start).replace(".",",")}">
- <label>Symbol</label><div class="chips">${["🏦","💶","💳","🅿️","📈","🐷","🪙","💼"].map(e=>`<button class="chip ${a.icon===e?"on":""}" data-e="${e}">${e}</button>`).join("")}</div>
+ ${JIYMODE==="full"?`<label class="flex" style="margin-top:12px"><input type="checkbox" id="sh" style="width:auto" ${a.shared?"checked":""}> 👨‍👩‍👦 Gemeinsames Konto (Mama sieht es)</label>`:""}
+ <label>Symbol</label><div class="chips">${["🏦","💶","💳","🅿️","📈","🐷","🪙","💼","👨‍👩‍👦"].map(e=>`<button class="chip ${a.icon===e?"on":""}" data-e="${e}">${e}</button>`).join("")}</div>
  ${isNew?"":`<label class="flex" style="margin-top:12px"><input type="checkbox" id="ar" style="width:auto" ${a.archived?"checked":""}> Archiviert (ausblenden)</label>
  <label>Aktueller Kontostand laut Bank (Abgleich)</label><div class="flex"><input id="real" inputmode="decimal" placeholder="${fmt(accBalance(a.id))}"><button class="btn sm sec" data-rec>Abgleichen</button></div>`}
  <div class="actions">${isNew?"":`<button class="btn danger" data-del>Löschen</button>`}<button class="btn" data-save>Speichern</button></div>`,(el,close)=>{
   el.onclick=e=>{const b=e.target.closest("[data-e]");if(b){a.icon=b.dataset.e;el.querySelectorAll("[data-e]").forEach(x=>x.classList.toggle("on",x===b))}};
   const rc=el.querySelector("[data-rec]");if(rc)rc.onclick=()=>{const real=parseNum(el.querySelector("#real").value);const diff=Math.round((real-accBalance(a.id))*100)/100;if(!diff)return toast("Stimmt bereits ✓");S.tx.push({id:uid(),type:diff>0?"in":"out",amount:Math.abs(diff),acc:a.id,cat:diff>0?"c_inother":"c_other",date:todayISO(),note:"Kontoabgleich",tags:""});persist();close();render();toast("Korrekturbuchung "+fmt(diff)+" erstellt")};
   const d=el.querySelector("[data-del]");if(d)d.onclick=()=>{if(S.tx.some(t=>t.acc===a.id||t.to===a.id))return toast("Konto hat Buchungen – lieber archivieren");if(S.accounts.length<2)return toast("Mindestens ein Konto nötig");close();S.accounts=S.accounts.filter(x=>x.id!==a.id);persist();render()};
-  el.querySelector("[data-save]").onclick=()=>{a.name=el.querySelector("#n").value.trim();a.start=parseNum(el.querySelector("#s").value);const ar=el.querySelector("#ar");if(ar)a.archived=ar.checked;if(!a.name)return toast("Name fehlt");const ix=S.accounts.findIndex(x=>x.id===a.id);if(ix>=0)S.accounts[ix]=a;else S.accounts.push(a);persist();close();render()}})}
+  el.querySelector("[data-save]").onclick=()=>{a.name=el.querySelector("#n").value.trim();a.start=parseNum(el.querySelector("#s").value);const ar=el.querySelector("#ar");if(ar)a.archived=ar.checked;const shb=el.querySelector("#sh");if(shb)a.shared=shb.checked;if(JIYMODE==="shared")a.shared=true;if(!a.name)return toast("Name fehlt");const ix=S.accounts.findIndex(x=>x.id===a.id);if(ix>=0)S.accounts[ix]=a;else S.accounts.push(a);persist();close();render()}})}
 function budgetEditor(cid){const cs=S.cats.filter(c=>c.type==="out");cid=cid||cs[0].id;
  const avg=c=>{let s=0;for(let n=1;n<=3;n++){s+=catSpend(addMonths(ym(todayISO()),-n))[c]||0}return s/3};
  sheet(`<h3>Monatsbudget</h3><label>Kategorie</label><select id="c">${cs.map(c=>`<option value="${c.id}" ${c.id===cid?"selected":""}>${c.icon} ${esc(c.name)}</option>`).join("")}</select>
@@ -485,13 +514,14 @@ function goalEditor(g){const isNew=!g;g=g?JSON.parse(JSON.stringify(g)):{id:uid(
  ${isNew?"":`<div class="card" style="background:var(--bg);box-shadow:none"><b>${fmt(goalSaved(g))}</b> <span class="muted">von ${fmt(g.target)}</span><div class="flex" style="margin-top:8px"><input id="dep" inputmode="decimal" placeholder="Betrag"><button class="btn sm" data-dep="1">+ Einzahlen</button><button class="btn sm sec" data-dep="-1">− Entnehmen</button></div></div>`}
  <label>Name</label><input id="n" value="${esc(g.name)}" placeholder="z. B. Urlaub Tunesien">
  <div class="grid2"><div><label>Zielbetrag</label><input id="t" inputmode="decimal" value="${g.target?String(g.target).replace(".",","):""}"></div><div><label>Bis (optional)</label><input type="date" id="d" value="${g.deadline}"></div></div>
+ ${JIYMODE==="full"?`<label class="flex" style="margin-top:12px"><input type="checkbox" id="gsh" style="width:auto" ${g.shared?"checked":""}> 👨‍👩‍👦 Gemeinsames Sparziel (Mama sieht es)</label>`:""}
  <label>Symbol</label><div class="chips">${["🎯","🏖️","🚗","🏠","💍","🎓","🛟","💻","🎄","👶"].map(e=>`<button class="chip ${g.icon===e?"on":""}" data-e="${e}">${e}</button>`).join("")}</div>
  ${g.deposits.length?`<label>Verlauf</label><ul class="list">${g.deposits.slice().reverse().slice(0,8).map(d=>`<li class="item" style="cursor:default"><div class="grow sub">${new Date(d.date).toLocaleDateString("de-DE")}</div><div class="amt ${d.amount<0?"out":"in"}">${fmt(d.amount)}</div></li>`).join("")}</ul>`:""}
  <div class="actions">${isNew?"":`<button class="btn danger" data-del>Löschen</button>`}<button class="btn" data-save>Speichern</button></div>`,(el,close)=>{
   el.onclick=e=>{const b=e.target.closest("[data-e]");if(b){g.icon=b.dataset.e;el.querySelectorAll("[data-e]").forEach(x=>x.classList.toggle("on",x===b))}};
   el.querySelectorAll("[data-dep]").forEach(b=>b.onclick=()=>{const v=parseNum(el.querySelector("#dep").value);if(!v)return toast("Betrag eingeben");const real=S.goals.find(x=>x.id===g.id);real.deposits.push({amount:v*+b.dataset.dep,date:todayISO()});persist();close();render();if(goalSaved(real)>=real.target)toast("🎉 Sparziel erreicht!");else toast("Gespeichert ✓")});
   const d=el.querySelector("[data-del]");if(d)d.onclick=()=>{close();confirmBox("Sparziel löschen?",()=>{S.goals=S.goals.filter(x=>x.id!==g.id);persist();render()})};
-  el.querySelector("[data-save]").onclick=()=>{g.name=el.querySelector("#n").value.trim();g.target=parseNum(el.querySelector("#t").value);g.deadline=el.querySelector("#d").value;if(!g.name||!g.target)return toast("Name und Betrag angeben");const ix=S.goals.findIndex(x=>x.id===g.id);if(ix>=0){g.deposits=S.goals[ix].deposits;S.goals[ix]=g}else S.goals.push(g);persist();close();render()}})}
+  el.querySelector("[data-save]").onclick=()=>{g.name=el.querySelector("#n").value.trim();g.target=parseNum(el.querySelector("#t").value);g.deadline=el.querySelector("#d").value;const gs=el.querySelector("#gsh");if(gs)g.shared=gs.checked;if(JIYMODE==="shared")g.shared=true;if(!g.name||!g.target)return toast("Name und Betrag angeben");const ix=S.goals.findIndex(x=>x.id===g.id);if(ix>=0){g.deposits=S.goals[ix].deposits;S.goals[ix]=g}else S.goals.push(g);persist();close();render()}})}
 function debtEditor(d){const isNew=!d;d=d?JSON.parse(JSON.stringify(d)):{id:uid(),name:"",dir:"owe",amount:0,due:"",payments:[]};
  sheet(`<h3>${isNew?"Neuer Eintrag":esc(d.name)}</h3>
  ${isNew?"":`<div class="card" style="background:var(--bg);box-shadow:none">Offen: <b>${fmt(debtLeft(d))}</b><div class="flex" style="margin-top:8px"><input id="pay" inputmode="decimal" placeholder="Betrag"><button class="btn sm" data-pay>Zahlung erfassen</button></div></div>`}

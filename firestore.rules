@@ -27,14 +27,29 @@ service cloud.firestore {
       allow write: if family();
     }
 
-    // Haushaltsbuch – nicht für Mama, Kinder oder Gäste
+    // Mama + Papa (für das Gemeinschaftskonto)
+    function eltern() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.lower() in [
+          'deine.email@gmail.com',
+          'email.deiner.frau@outlook.de'
+        ];
+    }
+
+    // Haushaltsbuch privat – NUR dein Konto
     match /finance/{doc} {
       allow read, write: if geld();
     }
 
-    // Alles andere: ganze Familie (außer finance!)
+    // Gemeinschaftskonto – Mama und Papa
+    match /financeShared/{doc} {
+      allow read, write: if eltern();
+    }
+
+    // Alles andere: ganze Familie (außer Haushaltsbuch!)
     match /{col}/{document=**} {
-      allow read, write: if family() && col != 'finance';
+      allow read, write: if family() && col != 'finance' && col != 'financeShared';
     }
   }
 }

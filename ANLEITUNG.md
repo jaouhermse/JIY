@@ -88,12 +88,19 @@ Die frühere Yanis-App „Kleine Entdecker“ ist jetzt **in JIY eingebaut** –
 
 ## 💶 Mein Geld (Haushaltsbuch)
 
-Unter **Mehr → 💶 Mein Geld** – **nur für ein bestimmtes Konto** (Standard: der Besitzer/Papa als Administrator).
-Mama, Kinder und Gäste sehen es nicht und können die Daten auch nicht aus der Datenbank lesen.
+Unter **Mehr → 💶 Mein Geld**.
+
+- **Papa** (Konto in `GELD_HASHES`, Administrator-Profil): sieht **alles** – private Konten und Gemeinschaftskonto.
+- **Mama**: sieht **nur Konten mit Häkchen „👨‍👩‍👦 Gemeinsames Konto“** (z. B. Gemeinschaftskonto), deren Buchungen,
+  Daueraufträge und gemeinsame Sparziele. Private Konten, Gehalt usw. sieht sie nicht.
+- **Kinder und Gäste**: sehen „Mein Geld“ gar nicht.
+- Konto freigeben: *Mein Geld → Mehr → Konten → Konto antippen → „Gemeinsames Konto“*.
+  Sparziel teilen: beim Sparziel „Gemeinsames Sparziel“ anhaken.
+- Daten: `finance/` = privat (nur dein Konto), `financeShared/` = gemeinsam (Mama + Papa).
 
 **Einmalig in Firebase eintragen (wichtig!):** Firestore → *Regeln* → den Inhalt aus `firestore.rules` übernehmen
-und in der Funktion `geld()` **deine** E-Mail eintragen (klein geschrieben) → *Veröffentlichen*.
-Ohne diese Regel könnte Mamas Konto die Daten technisch lesen.
+und in `geld()` **deine** E-Mail, in `eltern()` **deine und Mamas** E-Mail eintragen (klein geschrieben) → *Veröffentlichen*.
+Ohne diese Regeln könnte Mamas Konto deine privaten Daten technisch lesen.
 
 - Wer es sehen darf, steht in `web/index.html` bei `GELD_HASHES` (Standard: nur `OWNER_HASH`)
   **und** in den Firestore-Regeln bei `geld()`. Beides muss passen.
