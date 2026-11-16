@@ -207,7 +207,7 @@ async function jiyFlush(){const all=JIYMODE==="shared";
 async function initJIY(){setSync("verbinde …");
  try{const had=await jiyLoad();if(had){runRecurring();render()}
   else{if(JIYMODE==="shared"){S=blank();S.accounts=[{id:"a_shared",name:"Gemeinschaftskonto",icon:"👨‍👩‍👦",start:0,archived:false,shared:true}];render()}await jiyFlush();toast(JIYMODE==="shared"?"Gemeinschaftskonto angelegt ✓":"Haushaltsbuch angelegt ✓")}
-  setSync(JIYMODE==="shared"?"👨‍👩‍👦 Gemeinsam":"🔒 Privat + 👨‍👩‍👦");
+  setSync(JIYMODE==="shared"?"👨‍👩‍👦 Gemeinsam":"🔒 Privat + 👨‍👩‍👦");setTimeout(autoBackup,3000);
   const onRemote=sc=>d=>{if(!d||!d.ts||d.ts===jiyTs[sc]||saving||pending)return;clearTimeout(jiyReloadT);jiyReloadT=setTimeout(async()=>{try{if(await jiyLoad()){render();toast("🔄 Aktualisiert"+(d.by?" von "+d.by:""))}}catch(e){}},700)};
   JIY.watch("main",onRemote("s"),"s");if(JIYMODE==="full")JIY.watch("main",onRemote("p"),"p");
  }catch(e){console.log(e);setSync("⚠️ keine Verbindung")}}
@@ -229,7 +229,7 @@ async function initCloud(){
   const user=await claude.use("user");db=await claude.use("db");
   if(!db||!user){setSync("lokal");return}
   const id=await user.id();if(!id){setSync("lokal");return}
-  docRef=db.doc("data/users/"+id+"/state/main");
+  docRef=db.doc("data/users/"+id+"/state/main");bkDocRef=db.doc("data/users/"+id+"/state/backups");
   let done=false;const timer=setTimeout(()=>{if(!done)setSync("lokal")},10000);
   const snap=await docRef.get();done=true;clearTimeout(timer);
   let d=snap;if(d&&typeof d.data==="function")d=d.data();else if(d&&d.data&&typeof d.data==="object")d=d.data;
@@ -392,6 +392,7 @@ V.more=()=>`<div class="card">
  <div class="settingrow"><span>🌙 Dunkles Design</span><select id="darkSel" style="width:auto"><option value="auto" ${S.dark===null?"selected":""}>Automatisch</option><option value="1" ${S.dark===true?"selected":""}>An</option><option value="0" ${S.dark===false?"selected":""}>Aus</option></select></div>
  <div class="settingrow"><span>💱 Währung</span><select id="curSel" style="width:auto">${["€","CHF","$","£","TND","DH"].map(c=>`<option ${S.currency===c?"selected":""}>${c}</option>`).join("")}</select></div></div>
  <div class="card"><h2>Daten</h2>
+ <div class="settingrow" data-backup><span>🛡️ Sicherungen (automatisch)</span><span class="muted">›</span></div>
  <div class="settingrow" data-export="csv"><span>📤 Export als CSV (Excel)</span><span class="muted">›</span></div>
  <div class="settingrow" data-export="json"><span>💾 Komplett-Backup (JSON)</span><span class="muted">›</span></div>
  <div class="settingrow" data-import><span>📥 Backup / CSV importieren</span><span class="muted">›</span></div>
@@ -771,8 +772,9 @@ async function handleHashLogin(){const h=location.hash.slice(1);const m=/^login-
  if(!S.auth||!S.auth.hash){return}if(await validQR(m[1])){locked=false;setUnlocked(true);const l=$("#lock");if(l)l.remove();render();toast("Per QR-Code angemeldet ✓")}else toast("QR-Code abgelaufen")}
 
 // ---------- App-Updates ----------
-const APP_VERSION="1.3.0";
+const APP_VERSION="1.4.0";
 const CHANGELOG=[
+ {v:"1.4.0",d:"2026-11-16",items:["🛡️ Automatisches wöchentliches Backup (Cloud + Datei), letzte 8 Sicherungen","↩️ Wiederherstellen mit einem Tipp","🗄️ Monatliche Erinnerung: Backup aufs NAS/PC kopieren","👨‍👩‍👦 In JIY: eigene private Konten für Mama & Papa + Gemeinschaftskonto"]},
  {v:"1.3.0",d:"2026-11-16",items:["🔄 Update-Funktion: Version anzeigen, nach Updates suchen, „Was ist neu?“","⚙️ Automatische Update-Prüfung beim Start (abschaltbar)"]},
  {v:"1.2.0",d:"2026-11-16",items:["📄 Kontoauszug hochladen (PDF, CSV, Foto) mit KI-Diagnose & Aktionsplan","✨ KI-Assistent kann Buchungen, Budgets, Sparziele und Daueraufträge anlegen","🔐 Anmeldung mit Benutzername/E-Mail & Passwort","📱 QR-Code-Login für ein zweites Handy"]},
  {v:"1.1.0",d:"2026-11-16",items:["✨ KI-Berater-Chat, Spartipps, Monatsanalyse","📷 Kassenbon scannen","🏷️ Kategorie-Vorschlag per KI"]},
@@ -806,6 +808,48 @@ async function nativeUpdateCheck(st,silent){if(UPDATE_REPO.startsWith("__")){if(
 function autoUpdateCheck(){if(NATIVE){if(lsGet("mg_autoupdate")!=="0"){const last=+lsGet("mg_native_check")||0;if(Date.now()-last>6*3600e3){lsSet("mg_native_check",String(Date.now()));setTimeout(()=>{if(!locked)nativeUpdateCheck(null,true)},2500)}}return}const last=+lsGet("mg_update_check")||0;lsSet("mg_update_check","0");
  if(last&&Date.now()-last<15000&&lsGet("mg_version")===APP_VERSION)setTimeout(()=>toast("✅ Du hast die neueste Version ("+APP_VERSION+")"),500)}
 
+// ---------- Automatisches Backup ----------
+const BK_KEEP=8;let bkDocRef=null;
+async function gz(str){try{if(window.CompressionStream){const cs=new Blob([str]).stream().pipeThrough(new CompressionStream("gzip"));const u=new Uint8Array(await new Response(cs).arrayBuffer());let s="";for(let i=0;i<u.length;i+=32768)s+=String.fromCharCode.apply(null,u.subarray(i,i+32768));return{z:1,data:btoa(s)}}}catch(e){}return{z:0,data:str}}
+async function ungz(o){if(!o.z)return o.data;const bin=Uint8Array.from(atob(o.data),c=>c.charCodeAt(0));const ds=new Blob([bin]).stream().pipeThrough(new DecompressionStream("gzip"));return await new Response(ds).text()}
+function weekKey(d=new Date()){const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const day=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-day);const y=t.getUTCFullYear();const w=Math.ceil(((t-Date.UTC(y,0,1))/864e5+1)/7);return y+"-w"+String(w).padStart(2,"0")}
+const cloudBackups=()=>JIY?JIYMODE==="full"&&!!JIY.list:true;
+async function bkLoadAll(){if(bkDocRef){let d=await bkDocRef.get();if(d&&typeof d.data==="function")d=d.data();else if(d&&d.data&&typeof d.data==="object")d=d.data;return (d&&d.list)||[]}try{return JSON.parse(localStorage.getItem("mg_backups")||"[]")}catch(e){return[]}}
+async function bkSaveAll(l){if(bkDocRef)return bkDocRef.set({list:l});try{localStorage.setItem("mg_backups",JSON.stringify(l))}catch(e){toast("Lokaler Speicher voll – Datei-Backup nutzen")}}
+async function bkList(){if(!cloudBackups())return[];if(JIY)return (await JIY.list("backup-","p")).sort((a,b)=>b.ts-a.ts);return (await bkLoadAll()).map(b=>({id:b.id,ts:b.ts,n:b.n,size:b.data.length})).sort((a,b)=>b.ts-a.ts)}
+async function bkPut(id,o){if(JIY)return JIY.set(id,o,"p");const l=(await bkLoadAll()).filter(b=>b.id!==id);l.push(Object.assign({id},o));l.sort((a,b)=>b.ts-a.ts);await bkSaveAll(l.slice(0,bkDocRef?BK_KEEP:3))}
+async function bkGet(id){if(JIY)return JIY.get(id,"p");return (await bkLoadAll()).find(b=>b.id===id)}
+async function bkDel(id){if(JIY)return JIY.del(id,"p");await bkSaveAll((await bkLoadAll()).filter(b=>b.id!==id))}
+function backupJSON(){const o=Object.assign({},S);delete o.auth;return JSON.stringify(o)}
+async function makeBackup(kind){if(!cloudBackups())return null;const z=await gz(backupJSON());
+ const id="backup-"+(kind==="auto"?weekKey():kind==="pre"?"pre-"+Date.now().toString(36)+Math.random().toString(36).slice(2,5):todayISO()+"-"+Date.now().toString(36)+Math.random().toString(36).slice(2,5));
+ if(z.data.length>900000){toast("⚠️ Daten zu groß für Cloud-Backup – bitte Datei-Backup nutzen");return null}
+ await bkPut(id,{ts:Date.now(),z:z.z,data:z.data,n:S.tx.length,v:APP_VERSION,by:JIY?((JIY.me()||{}).name||""):""});
+ const l=await bkList();for(const b of l.slice(BK_KEEP))await bkDel(b.id);return id}
+function saveBackupFile(silent){const name="meingeld-backup-"+todayISO()+".json",data=JSON.stringify(JSON.parse(backupJSON()),null,1);let r="";
+ try{if(NATIVE&&AndroidApp.saveFile(name,data)==="ok")r="Downloads/"+name;else if(JIY&&JIY.saveFile)r=JIY.saveFile(name,data)||""}catch(e){}
+ if(r){lsSet("mg_file_last",String(Date.now()));if(!silent)toast("📁 Gespeichert: "+r)}else if(!silent)exportData("json");return r}
+async function autoBackup(){if(lsGet("mg_bk_auto")==="0"||locked)return;const last=+lsGet("mg_bk_last")||0;if(Date.now()-last<7*864e5)return;
+ if(!S.tx.length&&!S.goals.length)return;
+ try{const id=await makeBackup("auto");const f=saveBackupFile(true);lsSet("mg_bk_last",String(Date.now()));if(id||f)toast("🛡️ Wöchentliches Backup erstellt"+(f?" (+ Datei)":""))}catch(e){console.log(e)}
+ const nas=+lsGet("mg_nas_last")||0;const file=+lsGet("mg_file_last")||0;
+ if(file&&Date.now()-nas>30*864e5)setTimeout(()=>{if(locked||document.querySelector(".sheet-bg"))return;sheet(`<h3>🗄️ Backup aufs NAS / PC kopieren</h3><p class="sub" style="white-space:normal">Die neueste Sicherung liegt auf dem Handy unter <b>Downloads${JIY?"/JIY":""}</b> (meingeld-backup-….json). Kopiere sie auf deinen PC oder dein NAS – dann bist du auch geschützt, wenn das Handy verloren geht.</p><div class="actions"><button class="btn sec" data-l>Später</button><button class="btn" data-ok>✓ Erledigt</button></div>`,(el,close)=>{el.querySelector("[data-l]").onclick=()=>{lsSet("mg_nas_last",String(Date.now()-23*864e5));close()};el.querySelector("[data-ok]").onclick=()=>{lsSet("mg_nas_last",String(Date.now()));close();toast("Super 👍")}})},3500)}
+async function backupSheet(){const last=+lsGet("mg_bk_last")||0;
+ sheet(`<h3>🛡️ Sicherungen</h3><div class="card" style="background:var(--bg);box-shadow:none"><div class="between"><span>Letztes Auto-Backup</span><b>${last?new Date(last).toLocaleDateString("de-DE"):"noch keins"}</b></div>
+ <div class="settingrow" style="padding:8px 0 0"><span>Wöchentlich automatisch</span><select id="bka" style="width:auto"><option value="1" ${lsGet("mg_bk_auto")!=="0"?"selected":""}>An</option><option value="0" ${lsGet("mg_bk_auto")==="0"?"selected":""}>Aus</option></select></div></div>
+ <div class="flex"><button class="btn" data-now style="flex:1">☁️ Jetzt sichern</button><button class="btn sec" data-file style="flex:1">📁 Als Datei</button></div>
+ <label>${cloudBackups()?"Gespeicherte Sicherungen (max. "+BK_KEEP+")":"Cloud-Sicherungen nur im eigenen Profil verfügbar"}</label><div id="bkl"><span class="muted">Lade …</span></div>
+ <p class="sub" style="white-space:normal;margin-top:10px">Tipp: Datei-Backups ab und zu auf PC/NAS kopieren. Wiederherstellen legt vorher automatisch eine Sicherung des aktuellen Stands an.</p>`,async(el,close)=>{
+  el.querySelector("#bka").onchange=e=>lsSet("mg_bk_auto",e.target.value);
+  el.querySelector("[data-file]").onclick=()=>saveBackupFile(false);
+  const draw=async()=>{const box=el.querySelector("#bkl");try{const l=await bkList();
+   box.innerHTML=l.length?`<ul class="list">${l.map(b=>`<li class="item" style="cursor:default"><div class="grow"><div class="ttl">${new Date(b.ts).toLocaleString("de-DE",{dateStyle:"medium",timeStyle:"short"})}${b.id.includes("-w")?' <span class="pill">auto</span>':b.id.includes("pre-")?' <span class="pill">vor Wiederherst.</span>':""}</div><div class="sub">${b.n||0} Buchungen · ${Math.max(1,Math.round((b.size||0)/1024))} KB</div></div><button class="btn sm sec" data-res="${b.id}">↩️</button></li>`).join("")}</ul>`:`<div class="empty">Noch keine Sicherung.</div>`;
+   box.querySelectorAll("[data-res]").forEach(x=>x.onclick=()=>confirmBox("Daten auf diesen Stand zurücksetzen? Der aktuelle Stand wird vorher gesichert."+(JIY&&S.accounts.some(a=>a.shared)?" Achtung: betrifft auch Gemeinschaftskonten.":""),async()=>{
+    try{const b=await bkGet(x.dataset.res);if(!b)return toast("Nicht gefunden");const json=await ungz(b);await makeBackup("pre");const d=JSON.parse(json);S=Object.assign(blank(),d);persist();render();close();toast("✅ Wiederhergestellt")}catch(e){console.log(e);toast("Fehler beim Wiederherstellen")}},"Wiederherstellen"))}
+   catch(e){box.innerHTML=`<div class="muted">Konnte Sicherungen nicht laden.</div>`}};
+  el.querySelector("[data-now]").onclick=async()=>{const b=el.querySelector("[data-now]");b.disabled=true;b.textContent="Sichere …";try{const id=await makeBackup("manual");if(id){lsSet("mg_bk_last",String(Date.now()));toast("☁️ Gesichert")}}catch(e){toast("Fehler beim Sichern")}b.disabled=false;b.textContent="☁️ Jetzt sichern";draw()};
+  draw()})}
+
 // ---------- Export / Import ----------
 function csv(){const rows=[["Datum","Typ","Betrag","Konto","Zielkonto","Kategorie","Notiz","Tags"]];
  for(const t of sorted())rows.push([t.date,{in:"Einnahme",out:"Ausgabe",tr:"Umbuchung"}[t.type],String(t.amount).replace(".",","),(acc(t.acc)||{}).name||"",t.to?(acc(t.to)||{}).name||"":"",t.cat?cat(t.cat).name:"",t.note||"",t.tags||""]);
@@ -837,7 +881,7 @@ function demo(){const k=ym(todayISO());const add=(type,amount,cat,day,note,mOff=
 
 // ---------- Bindings ----------
 function bindView(){const v=$("#view");
- v.onclick=e=>{const el=e.target.closest("[data-tx],[data-go],[data-acc],[data-rec],[data-addbudget],[data-budget],[data-addrec],[data-addgoal],[data-goal],[data-adddebt],[data-debt],[data-addacc],[data-editacc],[data-transfer],[data-addcat],[data-editcat],[data-export],[data-import],[data-reset],[data-demo],[data-calc],[data-ft],[data-fm],[data-m],[data-sm],[data-statcat],[data-ai],[data-aitip],[data-aistat],[data-stmt],[data-lock],[data-qr],[data-logout],[data-update],[data-key]");if(el&&"key" in el.dataset)return keySheet();if(el&&"update" in el.dataset)return updateSheet();if(!el)return;const d=el.dataset;
+ v.onclick=e=>{const el=e.target.closest("[data-tx],[data-go],[data-acc],[data-rec],[data-addbudget],[data-budget],[data-addrec],[data-addgoal],[data-goal],[data-adddebt],[data-debt],[data-addacc],[data-editacc],[data-transfer],[data-addcat],[data-editcat],[data-export],[data-import],[data-reset],[data-demo],[data-calc],[data-ft],[data-fm],[data-m],[data-sm],[data-statcat],[data-ai],[data-aitip],[data-aistat],[data-stmt],[data-lock],[data-qr],[data-logout],[data-update],[data-key],[data-backup]");if(el&&"backup" in el.dataset)return backupSheet();if(el&&"key" in el.dataset)return keySheet();if(el&&"update" in el.dataset)return updateSheet();if(!el)return;const d=el.dataset;
   if("stmt" in d)return statementSheet();if("lock" in d)return lockSetup();if("qr" in d)return qrSheet();if("logout" in d){setUnlocked(false);locked=true;return showLock()}
   if("ai" in d)return aiSheet();if("aitip" in d)return aiTip();if("aistat" in d)return aiSheet("Analysiere meine Ausgaben im "+monthName(ui.statMonth)+" und sag mir, wo ich am meisten sparen kann.");
   if(d.tx)txEditor(S.tx.find(t=>t.id===d.tx));
@@ -876,6 +920,7 @@ window.addEventListener("hashchange",()=>{const h=location.hash.slice(1);if(h.st
 loadLocal();
 const h0=location.hash.slice(1);if(V[h0])ui.view=h0;
 runRecurring();render();checkLock();handleHashLogin();autoUpdateCheck();whatsNew();initCloud();
+if(!JIY)setTimeout(autoBackup,12000);
 })();
 </script>
 </body>

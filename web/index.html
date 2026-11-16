@@ -934,6 +934,10 @@ window.JIYFin={
   set:(id,v,sc)=>setDoc(finRef(id,sc),v),
   watch:(id,cb,sc)=>onSnapshot(finRef(id,sc),x=>{if(!x.metadata.hasPendingWrites) cb(x.exists()?x.data():null)}),
   me:()=>{const m=member(S.meId);return m?{name:m.name,role:roleOf(m)}:{name:'',role:''}},
+  // Sicherungen liegen im privaten Bereich: financeUser/{uid}/docs/backup-*
+  list:async(prefix,sc)=>{if(sc==='s'||geldAccess()!=='full') return [];const q=await getDocs(collection(fs,'financeUser',S.uid,'docs'));
+    return q.docs.filter(d=>d.id.startsWith(prefix)).map(d=>{const x=d.data();return {id:d.id,ts:x.ts||0,n:x.n||0,size:(x.data||'').length}})},
+  del:(id,sc)=>deleteDoc(finRef(id,sc)),
   saveFile:(name,text)=>{try{return window.JIYNative?JIYNative.saveFile(name,text):''}catch{return ''}},
   close:()=>{if(history.state&&history.state.geld) history.back();else closeGeld()}
 };
