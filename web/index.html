@@ -965,7 +965,16 @@ function openGeld(){
   try{history.pushState({geld:1},'',location.href)}catch{}
 }
 function closeGeld(){const b=document.getElementById('geldFrame');if(b) b.remove()}
-window.addEventListener('popstate',()=>closeGeld());
+window.addEventListener('popstate',()=>{closeGeld();if($('#weltFrame')){closeWelt();if(K.scr==='welt') kidGo('games')}});
+/* 🧱 Bauwelt 3D (web/welt.html) – eigenes Vollbild-Fenster, speichert pro Kind */
+function openWelt(){if($('#weltFrame')) return;const box=document.createElement('div');box.id='weltFrame';
+  box.style.cssText='position:fixed;inset:0;z-index:9000;background:#8fd3ff';
+  box.innerHTML=`<iframe src="welt.html?lang=${K.lang}&k=${encodeURIComponent(kidStoreKey('welt'))}" title="Bauwelt" style="border:0;width:100%;height:100%;display:block" allow="autoplay"></iframe>`;
+  document.body.appendChild(box);try{history.pushState({welt:1},'',location.href)}catch{}}
+function closeWelt(){const b=$('#weltFrame');if(b) b.remove()}
+window.addEventListener('message',e=>{if(e.origin!==location.origin) return;const d=e.data||{};
+  if(d.jiyKid==='say'){if(K.voice==='off') return;if(K.voice==='de') kidSay(d.de,'de');else if(K.voice==='ar') kidSay(d.ar,'ar');else{kidSay(d.de,'de');if(d.ar) kidSay(d.ar,'ar',true)}}
+  else if(d.jiyKid==='close'){if(history.state&&history.state.welt) history.back();else{closeWelt();if(K.scr==='welt') kidGo('games')}}});
 
 /* ---- Fotos/Videos ---- */
 async function compressImage(file,max=1280){
@@ -3416,7 +3425,7 @@ const KID_SCR={
     kidCard('🧩',kt('Puzzle','أحجية'),kt('Thema und Schwierigkeit wählen','اختر الصورة ومستوى الصعوبة'),'puzzle','#FFEEDC')+
     kidCard('🧠',kt('Memory','لعبة الذاكرة'),kt('Allein oder zu zweit','لاعب واحد أو لاعبان'),'memory','#E9F1E8')+
     kidCard('🧭',kt('Labyrinth','المتاهة'),kt('Finde den Ausgang','اعثر على المخرج'),'maze','#EAE9F7')+
-    kidCard('🏡',kt('Villa bauen','بناء المنزل'),kt('3D-Haus und Bauteile','منزل ثلاثي الأبعاد وقطع البناء'),'villa','#E4F2F0')+
+    kidCard('🧱',kt('Bauwelt 3D','عالم البناء ثلاثي الأبعاد'),kt('Herumlaufen, bauen und Auto fahren','امشِ وابنِ وقُد السيارة'),'welt','#E4F2F0')+
     kidCard('🚗',kt('Auto fahren','قيادة السيارة'),kt('Fahre sicher bis zum Ziel','قد سيارتك حتى خط النهاية'),'car','#FFF3C9')},
   puzzle(){if(!KS.puz) kidPuzNew();const p=KS.puz,ic=KID_PUZ[p.theme],done=kidPuzSolved();
     return kidHead('🧩 '+kt('Puzzle','أحجية'),'games')+
@@ -3476,6 +3485,8 @@ const KID_SCR={
     d.ar.map((a,i)=>`<div class="kq-ay ${v[i]?'ok':''}" id="kq-${i}" data-nospeak="1"><div class="kq-ar" lang="ar">${esc(a.t)} <span class="kq-no">﴿${arDigits(a.i)}﴾</span></div><div class="kq-de" dir="ltr" lang="de">${a.i}. ${esc(d.de[i]||'')}</div>
       <div class="kq-btns" dir="ltr"><button data-k="q-play" data-v="${i}">▶ ${kt('Hören','استمع')}</button><button data-k="q-rep" data-v="${i}">🔁 3×</button><button data-k="q-mean" data-v="${i}">🇩🇪 ${kt('Bedeutung','المعنى')}</button><button data-k="q-ok" data-v="${i}" class="${v[i]?'ok':''}">✓ ${v[i]?kt('Kann ich','أحفظها'):kt('Gelernt?','حفظت؟')}</button></div></div>`).join('')+
     `<p class="hint" style="text-align:center">${kt('Rezitation: Mishary Alafasy · Übersetzung: Bubenheim/Elyas','التلاوة: مشاري العفاسي')}</p>`},
+  welt(){return kidHead('🧱 '+kt('Bauwelt 3D','عالم البناء'),'games')+`<div class="kid-note" style="background:#E4F2F0">${kt('Laufe mit dem Joystick, tippe auf Blöcke zum Bauen, 🎒 öffnet das Inventar, 🚗 zum Einsteigen ins Auto, 🕊️ zum Fliegen.','امشِ بعصا التحكم، اضغط على المكعبات للبناء، 🎒 تفتح الحقيبة، 🚗 لركوب السيارة، 🕊️ للطيران.')}</div>
+    <div class="kid-actions"><button class="btn primary" data-k="welt-open">▶ ${kt('Bauwelt öffnen','افتح عالم البناء')}</button></div>`},
   wudu(){return kidSteps('wudu',KID_WUDU,'🧼 '+kt('Wudu – Gebetswaschung','الوضوء'),kt('Lerne die Gebetswaschung Schritt für Schritt. Ein Erwachsener zeigt dir die genaue Ausführung.','تعلّم الوضوء خطوة بخطوة، واطلب من شخص بالغ أن يريك الطريقة الصحيحة.'),'#DDF0EB',true)},
   salat(){return kidSteps('salat',KID_SALAT,'🕌 '+kt('Salat Schritt für Schritt','الصلاة خطوة بخطوة'),kt('Lerne die Gebetshaltungen gemeinsam mit einem Erwachsenen.','تعلّم حركات الصلاة مع شخص بالغ.'),'#F2EAF8',false)},
 };
@@ -3579,6 +3590,7 @@ function kidQChain(i,learn){const d=KS.qd;if(!d||i>=d.ar.length){KS.qChain=null;
 let kidMV=false;
 function kidLoadMV(){if(kidMV) return;kidMV=true;const s=document.createElement('script');s.type='module';s.src='https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js';document.head.append(s)}
 const KID_AFTER={
+  welt(){openWelt()},
   qsurah(){if(!(KS.qd&&KS.qd.n===KS.qs)&&!KS.qload){KS.qload=true;KS.qerr=false;kidQLoad(KS.qs).then(()=>{KS.qload=false;if(K.scr==='qsurah') renderKid()}).catch(()=>{KS.qload=false;KS.qerr=true;if(K.scr==='qsurah') renderKid()})}},
   trace:kidTraceInit,
   villa:kidLoadMV,
@@ -3603,6 +3615,7 @@ $('#kidBox').addEventListener('click',e=>{
   if(k==='q-all'){kidStop();return kidQChain(0,false)}
   if(k==='q-learn'){kidStop();const vv=JSON.parse(ls(kidStoreKey('q-'+KS.qs))||'[]');const start=Math.max(0,(KS.qd?KS.qd.ar.findIndex((_,i)=>!vv[i]):0));return kidQChain(start<0?0:start,true)}
   if(k==='q-stop') return kidStop();
+  if(k==='welt-open') return openWelt();
   if(k==='q-ok'){const key=kidStoreKey('q-'+KS.qs),vv=JSON.parse(ls(key)||'[]');vv[+v]=!vv[+v];lsSet(key,JSON.stringify(vv));
     const d=KS.qd,info=KID_QURAN.find(x=>x[0]===KS.qs)||[];
     if(d&&d.ar.every((_,i)=>vv[i])){kidAwardOnce('quran-'+KS.qs,3,'Sure '+(info[1]||KS.qs)+' gelernt');toast('🎉 '+kt('MashaAllah! Sure gelernt!','ما شاء الله! حفظت السورة!'));kidSpeakText(kt('MashaAllah! Du hast die Sure gelernt!','ما شاء الله! لقد حفظت السورة!'))}
@@ -3828,7 +3841,7 @@ function kidGameBlock(){
   if(r.learnFirst&&!ls(kidStoreKey('learned-'+today()))) return kt('Schreibe zuerst einen Buchstaben unter „Lernen“ – dann darfst du spielen.','اكتب حرفاً أولاً في «التعلّم» ثم العب.');
   return '';
 }
-const KID_GAME_SCR=['puzzle','memory','maze','villa','car'];
+const KID_GAME_SCR=['puzzle','memory','maze','villa','car','welt'];
 setInterval(()=>{if(S.view==='kinder'&&KID_GAME_SCR.includes(K.scr)&&!document.hidden){const k=kidStoreKey('play-'+today());lsSet(k,String(+(ls(k)||0)+15));
   const r=kidRules();if(r.maxMin&&kidPlayedMin()>=r.maxMin) kidGo('games')}},15000);
 /* Gesundheitsheft */

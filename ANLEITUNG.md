@@ -81,7 +81,7 @@ Ohne Kreditkarte gehen Fotos (werden verkleinert). Für **Videos**:
 Die frühere Yanis-App „Kleine Entdecker“ ist jetzt **in JIY eingebaut** – keine zweite App mehr nötig.
 
 - Sichtbar **nur für Profile mit der Rolle „🧒 Kind“** (unten Tab **🎒 Entdecker**, außerdem unter *Mehr*).
-- Inhalt: Lernwerkstatt (Deutsch A–Z, Arabisch ا–ي, Vorlesen, Schreiben üben), Puzzle, Memory (1–2 Spieler), Labyrinth, 3D-Villa, Auto fahren, Wudu und Salat Schritt für Schritt.
+- Inhalt: Lernwerkstatt (Deutsch A–Z, Arabisch ا–ي, Vorlesen, Schreiben üben), Puzzle, Memory (1–2 Spieler), Labyrinth, **🧱 Bauwelt 3D**, Auto fahren, Wudu und Salat Schritt für Schritt.
 - **📖 Quran lernen** (unter *Mein Leben*): 12 kurze Suren (Al-Fatiha, An-Nas, Al-Falaq, Al-Ikhlas …) Vers für Vers –
   Rezitation (Alafasy), 🔁 3× wiederholen, 🇩🇪 Bedeutung vorlesen, ✓ „Kann ich“. **Lernmodus** spielt jeden Vers 3× und liest die Bedeutung vor.
   Für jede gelernte Sure gibt es 3 Sterne.
@@ -132,3 +132,15 @@ allgemeinen Familien-Regel ausgenommen). Die Vorlage steht in `firestore.rules` 
 - **📺 Fernseher (Samsung, ab ca. 2018):** Fernbedienung mit Ein/Aus, Lautstärke, Programm, Pfeiltasten, Quelle,
   Netflix/YouTube/Prime/Disney+. Beim ersten Mal am Fernseher „Zulassen“ bestätigen.
   Fürs **Einschalten** am Fernseher *Allgemein → Netzwerk → Experteneinstellungen → „Mit Mobilgerät einschalten“* aktivieren.
+
+## 🧱 Bauwelt 3D (Kinderbereich → Spielen)
+
+Eigene kleine 3D-Welt (läuft offline, ohne Internet), gespeichert pro Kind auf dem Handy.
+
+- **Laufen:** Joystick links · **Umschauen:** auf dem Bildschirm wischen · **Springen:** ⬆️ (kleine Stufen steigt man automatisch hoch)
+- **Bauen/Abbauen:** 🧱 / ⛏️ umschalten, dann auf einen Block tippen
+- **🎒 Inventar:** 52 Blöcke (Bauen, Natur, 14 Farben, Schätze wie Gold/Diamant, Spaß), Auswahl kommt in die Leiste unten
+- **🚗 Auto:** steht an der Straße – hingehen, 🚗 tippen, mit dem Joystick fahren; 🚶 zum Aussteigen
+- **🕊️ Fliegen** zum Bauen in der Höhe · **👀** Ansicht von hinten · **⚙️** neue Welt anfangen
+- Welt: Starthaus, Straßenring mit Querstraße, See, Wald, Hügel mit Schnee und versteckten Schätzen
+- Zählt zur Spielzeit (Spielzeit-Regeln gelten wie bei den anderen Spielen).
