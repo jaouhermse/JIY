@@ -50,11 +50,16 @@ Am Ende hast du:
 
 ## Updates machen
 
-- **Aussehen/Funktionen ändern:** auf GitHub `web/index.html` öffnen → ✏️ bearbeiten → *Commit changes*.
-  Nach ca. 1 Minute ist die Änderung in der App (App einmal schließen und neu öffnen).
+JIY ist eine **echte Android-App**: die komplette Oberfläche (Ordner `web/`) steckt **in der APK**.
+Die App lädt nichts mehr von einer Webseite nach und funktioniert auch offline
+(nur Chat/Kalender-Abgleich, Quran-Audio, Gebetszeiten-Ort usw. brauchen Internet).
+
+- **Etwas ändern:** Datei im Ordner `web/` oder `android/` auf GitHub ändern → *Commit changes*.
+  GitHub baut automatisch eine neue APK (ca. 5 Minuten) und legt sie unter *Releases* ab.
+- **Auf den Handys:** JIY zeigt unter *Mehr* „Update verfügbar“ → antippen → neue Version wird installiert.
+  Anmeldung und alle Daten bleiben erhalten.
 - **Neue E-Mail freischalten:** Fingerabdruck (SHA-256 der klein geschriebenen E-Mail) in `web/index.html` bei `ALLOWED_HASHES` ergänzen **und** die E-Mail in Firebase bei den Firestore-Regeln eintragen.
-- **Neue APK** brauchst du nur, wenn sich etwas im Ordner `android` ändert. Sie landet automatisch unter *Releases*
-  und lässt sich über die alte App drüber installieren.
+- GitHub Pages wird weiterhin veröffentlicht – nur noch für das Kalender-Abo und als Reserve.
 
 ## Videos im Chat einschalten (optional)
 
@@ -76,7 +81,13 @@ Ohne Kreditkarte gehen Fotos (werden verkleinert). Für **Videos**:
 Die frühere Yanis-App „Kleine Entdecker“ ist jetzt **in JIY eingebaut** – keine zweite App mehr nötig.
 
 - Sichtbar **nur für Profile mit der Rolle „🧒 Kind“** (unten Tab **🎒 Entdecker**, außerdem unter *Mehr*).
-- Inhalt: Lernwerkstatt (Deutsch A–Z, Arabisch ا–ي, Vorlesen, Schreiben üben), Puzzle, Memory (1–2 Spieler), Labyrinth, 3D-Villa, Auto fahren, Wudu und Salat Schritt für Schritt. Gebetszeiten und Quran laufen über den Tab *Gebet*.
+- Inhalt: Lernwerkstatt (Deutsch A–Z, Arabisch ا–ي, Vorlesen, Schreiben üben), Puzzle, Memory (1–2 Spieler), Labyrinth, 3D-Villa, Auto fahren, Wudu und Salat Schritt für Schritt.
+- **📖 Quran lernen** (unter *Mein Leben*): 12 kurze Suren (Al-Fatiha, An-Nas, Al-Falaq, Al-Ikhlas …) Vers für Vers –
+  Rezitation (Alafasy), 🔁 3× wiederholen, 🇩🇪 Bedeutung vorlesen, ✓ „Kann ich“. **Lernmodus** spielt jeden Vers 3× und liest die Bedeutung vor.
+  Für jede gelernte Sure gibt es 3 Sterne.
+- **🔊 Vorlesen:** oben rechts im Kinderbereich – *DE+ع* (beides), *DE*, *ع* oder aus. Alles, was Yanis antippt, wird vorgelesen; beim Öffnen einer Seite wird die Überschrift vorgelesen.
+  Für Arabisch muss auf dem Handy die arabische Stimme installiert sein: *Einstellungen → Sprache → Sprachausgabe → Google → Sprachdaten installieren → Arabisch*
+  (fehlt sie, bietet JIY „Installieren“ an).
 - Sterne aus den Spielen landen automatisch bei **Punkte & Belohnungen** des Kindes (höchstens 3× pro Spiel und Tag).
 - Für die 3D-Villa muss die Datei `web/villa.gltf` mit hochgeladen sein.
 

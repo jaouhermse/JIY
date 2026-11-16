@@ -476,6 +476,17 @@ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
 .kid-lang{display:flex;border:1.5px solid var(--line);border-radius:999px;overflow:hidden;background:#fff;flex:none}
 .kid-lang button{border:0;background:none;padding:6px 10px;font-weight:900;font-size:13px}
 .kid-lang button.on{background:var(--kg);color:#fff}
+.kid-voice{border:1.5px solid var(--line);border-radius:999px;background:#fff;padding:5px 10px;font-weight:900;font-size:13px;flex:none;margin-inline-start:6px}
+.kid-voice.on{background:#FFF3C9;border-color:#E8C55A}
+.kq-ay{background:var(--card,#fff);border:1.5px solid var(--line);border-radius:18px;padding:12px 14px;margin:10px 0}
+.kq-ay.playing{border-color:var(--kg);box-shadow:0 0 0 3px rgba(63,122,94,.18)}
+.kq-ay.ok{background:#EEF7EE}
+.kq-ar{font-size:27px;line-height:2.1;text-align:right;direction:rtl;font-weight:600}
+.kq-no{display:inline-block;min-width:30px;font-size:15px;color:var(--kg);font-weight:900}
+.kq-de{font-size:14px;color:var(--muted,#666);margin-top:4px;line-height:1.45}
+.kq-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.kq-btns button{border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:8px 12px;font-weight:800;font-size:14px}
+.kq-btns button.ok{background:var(--kg);color:#fff;border-color:var(--kg)}
 .kid-hero{display:flex;align-items:center;gap:14px;padding:18px;border-radius:24px;background:linear-gradient(135deg,#E7F1E8,#FFEFD9)}
 .kid-hero .big{font-size:52px;line-height:1}
 .kid-hero b{display:block;font-size:22px;font-weight:900;color:#2F5A45}
@@ -3329,7 +3340,10 @@ const ACT={
 
 /* ---------- Kleine Entdecker – Kinderbereich (nur Kind-Profile) ---------- */
 const K={lang:ls('jiy-kid-lang')==='ar'?'ar':'de',scr:'home',timer:null,keys:null};
-const kt=(de,ar)=>K.lang==='ar'?ar:de;
+const KT_PAIRS=new Map();// angezeigter Text → [Deutsch, Arabisch] (für Vorlesen in beiden Sprachen)
+const kt=(de,ar)=>{if(de&&ar&&de.length<400){KT_PAIRS.set(de,[de,ar]);KT_PAIRS.set(ar,[de,ar])}return K.lang==='ar'?ar:de};
+K.voice=ls('jiy-kid-voice')||'both';// off | de | ar | both
+const KID_VOICE_IC={off:'🔇',de:'🔊 DE',ar:'🔊 ع',both:'🔊 DE+ع'};
 const KID_DE=[['A','Apfel 🍎'],['B','Ball ⚽'],['C','Clown 🤡'],['D','Dino 🦕'],['E','Elefant 🐘'],['F','Fisch 🐟'],['G','Giraffe 🦒'],['H','Haus 🏠'],['I','Igel 🦔'],['J','Jacke 🧥'],['K','Katze 🐱'],['L','Löwe 🦁'],['M','Mond 🌙'],['N','Nase 👃'],['O','Orange 🍊'],['P','Panda 🐼'],['Q','Qualle 🪼'],['R','Regenbogen 🌈'],['S','Sonne ☀️'],['T','Tiger 🐯'],['U','Uhr ⏰'],['V','Vogel 🐦'],['W','Wolke ☁️'],['X','Xylophon 🎼'],['Y','Yo-Yo 🪀'],['Z','Zebra 🦓']];
 const KID_AR=[['ا','أَسَد 🦁'],['ب','بَطَّة 🦆'],['ت','تُفَّاحَة 🍎'],['ث','ثَعْلَب 🦊'],['ج','جَمَل 🐪'],['ح','حِصَان 🐴'],['خ','خَرُوف 🐑'],['د','دُبّ 🐻'],['ذ','ذِئْب 🐺'],['ر','رُمَّان'],['ز','زَهْرَة 🌷'],['س','سَمَكَة 🐟'],['ش','شَمْس ☀️'],['ص','صَقْر 🦅'],['ض','ضِفْدَع 🐸'],['ط','طَائِرَة ✈️'],['ظ','ظَرْف ✉️'],['ع','عِنَب 🍇'],['غ','غَيْمَة ☁️'],['ف','فَرَاشَة 🦋'],['ق','قَمَر 🌙'],['ك','كِتَاب 📘'],['ل','لَيْمُون 🍋'],['م','مَوْز 🍌'],['ن','نَمِر 🐯'],['ه','هِلال 🌙'],['و','وَرْدَة 🌹'],['ي','يَد ✋']];
 const KID_PUZ={Tiere:['🐻','🐼','🦁','🐯','🐸','🦊','🐰','🐵','🐨','🐧'],Fahrzeuge:['🚗','🚕','🚌','🚓','🚑','🚒','🚜','🚲','🚀','🚁'],Meer:['🐠','🐬','🐳','🦀','🐙','🦈','🐢','🪼','🦭','🐡'],Weltraum:['🚀','🪐','🌙','⭐','☄️','🛸','🌍','👨‍🚀','🌌','🛰️']};
@@ -3338,6 +3352,7 @@ const KID_MEM={Tiere:['🐻','🐼','🦁','🐯','🐸','🦊','🐰','🐨'],M
 const KID_MEM_AR={Tiere:'حيوانات',Meer:'البحر',Fahrzeuge:'مركبات'};
 const KID_VILLA=[['Ziegelwand','🧱','جدار طوب'],['Glaswand','🪟','جدار زجاجي'],['Fenster','🪟','نافذة'],['Tür','🚪','باب'],['Dach','🏠','سقف'],['Balkon','🌇','شرفة'],['Gartenzaun','🌳','سياج'],['Pool','🏊','مسبح']];
 const KID_WUDU=[['🙌','Hände waschen','Beide Hände bis zu den Handgelenken waschen.','غسل اليدين','اغسل اليدين إلى الرسغين.'],['💧','Mund ausspülen','Wasser in den Mund nehmen und vorsichtig ausspülen.','المضمضة','خذ قليلاً من الماء وتمضمض بلطف.'],['👃','Nase reinigen','Vorsichtig Wasser an die Nase führen und reinigen.','الاستنشاق','استنشق الماء بلطف ونظّف الأنف.'],['😊','Gesicht waschen','Das ganze Gesicht waschen.','غسل الوجه','اغسل الوجه كاملاً.'],['💪','Arme waschen','Rechten, dann linken Arm bis zum Ellenbogen waschen.','غسل الذراعين','اغسل الذراع اليمنى ثم اليسرى إلى المرفقين.'],['🧑','Kopf streichen','Mit feuchten Händen über den Kopf streichen.','مسح الرأس','امسح الرأس بيدين مبللتين.'],['👂','Ohren reinigen','Die Ohren sanft mit feuchten Fingern reinigen.','مسح الأذنين','امسح الأذنين برفق بأصابع مبللة.'],['🦶','Füße waschen','Rechten, dann linken Fuß bis zu den Knöcheln waschen.','غسل القدمين','اغسل القدم اليمنى ثم اليسرى إلى الكعبين.']];
+const KID_QURAN=[[1,'Al-Fatiha','الفاتحة','Die Eröffnende'],[114,'An-Nas','الناس','Die Menschen'],[113,'Al-Falaq','الفلق','Das Morgengrauen'],[112,'Al-Ikhlas','الإخلاص','Die Aufrichtigkeit'],[111,'Al-Masad','المسد','Die Palmfaser'],[110,'An-Nasr','النصر','Die Hilfe'],[109,'Al-Kafirun','الكافرون','Die Ungläubigen'],[108,'Al-Kawthar','الكوثر','Die Fülle'],[107,"Al-Ma'un",'الماعون','Die Hilfeleistung'],[106,'Quraisch','قريش','Quraisch'],[105,'Al-Fil','الفيل','Der Elefant'],[103,"Al-'Asr",'العصر','Die Zeit']];
 const KID_SALAT=[['💧','Wudu machen','Bereite dich mit der Gebetswaschung vor.','الوضوء','توضأ قبل الصلاة.'],['🧭','Gebetsrichtung finden','Stelle dich in Richtung Qibla.','استقبال القبلة','استقبل القبلة.'],['🙌','Gebet beginnen','Beginne mit dem Takbir: Allahu akbar.','تكبيرة الإحرام','ابدأ الصلاة بقول: الله أكبر.'],['🧍','Stehen und rezitieren','Stehe ruhig und rezitiere.','القيام والقراءة','قف بخشوع واقرأ ما تيسّر.'],['🙇','Ruku – Verbeugung','Beuge dich und halte den Rücken ruhig.','الركوع','اركع واطمئن في ركوعك.'],['🧍','Aufrichten','Richte dich wieder auf.','الاعتدال','ارفع من الركوع واعتدل قائماً.'],['🕌','Sujud – Niederwerfung','Gehe in die Niederwerfung.','السجود','اسجد لله تعالى.'],['🧎','Sitzen','Setze dich zwischen den Niederwerfungen.','الجلوس','اجلس بين السجدتين.'],['🕌','Zweite Niederwerfung','Gehe erneut in Sujud.','السجدة الثانية','اسجد مرة أخرى.'],['👋','Abschluss','Lerne Tashahhud und Salam mit deiner Familie.','التشهد والسلام','تعلّم التشهد والتسليم مع عائلتك.']];
 
 function kidStoreKey(s){return 'jiy-kid-'+(S.meId||'x')+'-'+s}
@@ -3352,11 +3367,12 @@ async function kidAward(game,n,label){
   return ok;
 }
 async function kidAwardOnce(topic,n,label){const k=kidStoreKey('t-'+topic);if(ls(k)) return false;const ok=await kidAward('t-'+topic,n,label);if(ok) lsSet(k,'1');return ok}
-function kidStop(){clearInterval(K.timer);K.timer=null;try{speechSynthesis.cancel()}catch{}if(K.keys){document.removeEventListener('keydown',K.keys);K.keys=null}}
-function kidGo(scr){kidStop();if(KID_GAME_SCR.includes(scr)){const bl=kidGameBlock();if(bl){K.block=bl;scr='blocked'}}K.scr=scr;renderKid();window.scrollTo(0,0)}
+function kidStop(){clearInterval(K.timer);K.timer=null;KS.qChain=null;if(K.qa){try{K.qa.pause()}catch{}}try{if(NATIVE&&window.JIYNative.ttsStop) JIYNative.ttsStop()}catch{}try{speechSynthesis.cancel()}catch{}if(K.keys){document.removeEventListener('keydown',K.keys);K.keys=null}}
+function kidGo(scr){kidStop();if(KID_GAME_SCR.includes(scr)){const bl=kidGameBlock();if(bl){K.block=bl;scr='blocked'}}K.scr=scr;renderKid();window.scrollTo(0,0);
+  if(K.voice!=='off'){const h=document.querySelector('#kidBox .kid-top h2');if(h) setTimeout(()=>kidSpeakEl(h),150)}}
 function kidHead(title,back){
   return `<div class="kid-top">${back?`<button class="icon-btn" data-k="go" data-v="${back}" aria-label="Zurück">${K.lang==='ar'?'→':'←'}</button>`:''}<h2>${title}</h2>
-    <div class="kid-lang"><button data-k="lang" data-v="de" class="${K.lang==='de'?'on':''}">DE</button><button data-k="lang" data-v="ar" class="${K.lang==='ar'?'on':''}">ع</button></div></div>`;
+    <div class="kid-lang"><button data-k="lang" data-v="de" class="${K.lang==='de'?'on':''}">DE</button><button data-k="lang" data-v="ar" class="${K.lang==='ar'?'on':''}">ع</button></div><button class="kid-voice ${K.voice!=='off'?'on':''}" data-k="voice" aria-label="Vorlesen">${KID_VOICE_IC[K.voice]||'🔊'}</button></div>`;
 }
 function kidCard(ic,t,s,go,tint){return `<button class="kid-card" data-k="go" data-v="${go}" style="--t:${tint}"><span class="ic">${ic}</span><span><b>${t}</b><small>${s}</small></span><span class="go">${K.lang==='ar'?'‹':'›'}</span></button>`}
 function renderKid(){
@@ -3441,7 +3457,21 @@ const KID_SCR={
     `<div class="kid-note" style="background:#ECEAF7">${kt('Gemeinsam entdecken: Wudu, Salat und Quran. Lerne Schritt für Schritt mit deiner Familie.','نتعلّم معاً الوضوء والصلاة والقرآن خطوة بخطوة مع عائلتك.')}</div>`+
     kidCard('🧼',kt('Wudu – Gebetswaschung','الوضوء'),kt('Schritt für Schritt lernen','تعلّم خطوات الوضوء'),'wudu','#E4F2F0')+
     kidCard('🕌',kt('Salat lernen','تعلّم الصلاة'),kt('Gebetshaltungen der Reihe nach','حركات الصلاة بالترتيب'),'salat','#F2EAF8')+
+    kidCard('📖',kt('Quran lernen','تعلّم القرآن'),kt('Kurze Suren Vers für Vers','سور قصيرة آية بآية'),'quran','#FFF1DD')+
     `<button class="kid-card" data-act="tab" data-id="gebet" style="--t:#FFF1DD"><span class="ic">📍</span><span><b>${kt('Gebetszeiten & Quran','مواقيت الصلاة والقرآن')}</b><small>${kt('Zeiten, Qibla und Quran hören','الأوقات والقبلة والاستماع إلى القرآن')}</small></span><span class="go">${K.lang==='ar'?'‹':'›'}</span></button>`},
+  quran(){return kidHead('📖 '+kt('Quran lernen','تعلّم القرآن'),'life')+
+    `<div class="kid-note" style="background:#FFF1DD">${kt('Hör dir jeden Vers an, sprich ihn nach und tippe auf ✓, wenn du ihn kannst. Für jede gelernte Sure gibt es 3 Sterne.','استمع إلى كل آية، ثم ردّدها، واضغط ✓ عندما تحفظها. لكل سورة تحفظها ثلاث نجوم.')}</div>`+
+    KID_QURAN.map(([n,tr,ar,de])=>{const got=JSON.parse(ls(kidStoreKey('q-'+n))||'[]').filter(Boolean).length,tot=+(ls('jiy-kq-n-'+n)||0),done=tot&&got>=tot;
+      return `<button class="kid-card" data-k="q-open" data-v="${n}" style="--t:${done?'#E9F1E8':'#FFF7EA'}"><span class="ic">${done?'⭐':'📖'}</span><span><b>${kt(tr+' · '+de,ar)}</b><small>${tot?kt(got+' von '+tot+' Versen gelernt','حفظت '+got+' من '+tot+' آيات'):kt('Antippen zum Lernen','اضغط للتعلّم')}</small></span><span class="go">${K.lang==='ar'?'‹':'›'}</span></button>`}).join('')},
+  qsurah(){const n=KS.qs,info=KID_QURAN.find(x=>x[0]===n)||[n,'','',''],d=KS.qd&&KS.qd.n===n?KS.qd:null;
+    const head=kidHead('📖 '+kt(info[1],info[2]),'quran');
+    if(!d) return head+`<div class="empty">${KS.qerr?kt('Konnte nicht laden – bitte Internet einschalten.','تعذّر التحميل – يرجى تشغيل الإنترنت.'):kt('Lade …','جارٍ التحميل …')}</div>`;
+    const v=JSON.parse(ls(kidStoreKey('q-'+n))||'[]'),got=d.ar.filter((_,i)=>v[i]).length;
+    return head+`<div class="kid-actions" style="margin-top:0"><button class="btn primary" data-k="q-all">▶ ${kt('Ganze Sure anhören','استمع إلى السورة كاملة')}</button><button class="btn soft" data-k="q-learn">🎓 ${kt('Lernmodus','وضع الحفظ')}</button><button class="btn ghost" data-k="q-stop">⏹</button></div>
+    <div class="kid-prog"><i style="width:${Math.round(got/d.ar.length*100)}%"></i></div><p style="text-align:center;font-weight:800;margin:4px 0">${kt('Gelernt','محفوظ')}: ${got} / ${d.ar.length}</p>`+
+    d.ar.map((a,i)=>`<div class="kq-ay ${v[i]?'ok':''}" id="kq-${i}" data-nospeak="1"><div class="kq-ar" lang="ar">${esc(a.t)} <span class="kq-no">﴿${arDigits(a.i)}﴾</span></div><div class="kq-de" dir="ltr" lang="de">${a.i}. ${esc(d.de[i]||'')}</div>
+      <div class="kq-btns" dir="ltr"><button data-k="q-play" data-v="${i}">▶ ${kt('Hören','استمع')}</button><button data-k="q-rep" data-v="${i}">🔁 3×</button><button data-k="q-mean" data-v="${i}">🇩🇪 ${kt('Bedeutung','المعنى')}</button><button data-k="q-ok" data-v="${i}" class="${v[i]?'ok':''}">✓ ${v[i]?kt('Kann ich','أحفظها'):kt('Gelernt?','حفظت؟')}</button></div></div>`).join('')+
+    `<p class="hint" style="text-align:center">${kt('Rezitation: Mishary Alafasy · Übersetzung: Bubenheim/Elyas','التلاوة: مشاري العفاسي')}</p>`},
   wudu(){return kidSteps('wudu',KID_WUDU,'🧼 '+kt('Wudu – Gebetswaschung','الوضوء'),kt('Lerne die Gebetswaschung Schritt für Schritt. Ein Erwachsener zeigt dir die genaue Ausführung.','تعلّم الوضوء خطوة بخطوة، واطلب من شخص بالغ أن يريك الطريقة الصحيحة.'),'#DDF0EB',true)},
   salat(){return kidSteps('salat',KID_SALAT,'🕌 '+kt('Salat Schritt für Schritt','الصلاة خطوة بخطوة'),kt('Lerne die Gebetshaltungen gemeinsam mit einem Erwachsenen.','تعلّم حركات الصلاة مع شخص بالغ.'),'#F2EAF8',false)},
 };
@@ -3512,12 +3542,40 @@ function kidTraceInit(){const cv=$('#kidCanvas');if(!cv) return;const r=cv.getBo
   cv.onpointerdown=e=>{down=true;cv.setPointerCapture(e.pointerId);const [a,b]=pos(e);x.beginPath();x.moveTo(a,b)};
   cv.onpointermove=e=>{if(!down) return;const [a,b]=pos(e);x.lineTo(a,b);x.stroke();KS.pts++};
   cv.onpointerup=cv.onpointercancel=()=>{down=false}}
-function kidSay(text,lang){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang=lang==='ar'?'ar-SA':'de-DE';u.rate=.8;u.pitch=1.05;
+function kidSay(text,lang,queue){text=String(text||'').replace(/\p{Extended_Pictographic}|\uFE0F|\u200D/gu,'').replace(/\s+/g,' ').trim();if(!text) return;
+  if(NATIVE&&window.JIYNative.speak){try{if(JIYNative.speak(text,lang,.85,!!queue)) return;
+    const st=JIYNative.ttsCheck?JIYNative.ttsCheck(lang):'';
+    if(st==='missing'){toast(lang==='ar'?'Arabische Stimme fehlt auf dem Handy':'Deutsche Stimme fehlt',{label:'Installieren',fn:()=>{try{JIYNative.ttsInstall()}catch{}}});return}
+    if(st==='off'){setTimeout(()=>{try{JIYNative.speak(text,lang,.85,!!queue)}catch{}},800);return}}catch{}}
+  try{if(!queue) speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang=lang==='ar'?'ar-SA':'de-DE';u.rate=.8;u.pitch=1.05;
   const v=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.toLowerCase().startsWith(lang));if(v) u.voice=v;speechSynthesis.speak(u)}
   catch{toast(kt('Vorlesen geht auf diesem Gerät leider nicht.','القراءة غير متاحة على هذا الجهاز.'))}}
+/* Vorlesen: Text eines Elements auf Deutsch, Arabisch oder beidem */
+function kidBilingual(text){const keys=[...KT_PAIRS.keys()].filter(k=>k&&text.includes(k)).sort((a,b)=>b.length-a.length);
+  let de=text,ar=text;const seen=new Set();
+  for(const k of keys){if(seen.has(k)) continue;const p=KT_PAIRS.get(k);seen.add(p[0]);seen.add(p[1]);de=de.split(k).join(p[0]);ar=ar.split(k).join(p[1])}
+  return [de,ar]}
+function kidSpeakText(text){if(K.voice==='off'||!text) return;const [de,ar]=kidBilingual(text);
+  if(K.voice==='de') kidSay(de,'de');else if(K.voice==='ar') kidSay(ar,'ar');else{kidSay(de,'de');if(ar!==de) kidSay(ar,'ar',true)}}
+function kidSpeakEl(el){if(!el||el.closest('[data-nospeak]')) return;const c=el.cloneNode(true);c.querySelectorAll('.go,.ic,i').forEach(x=>x.remove());
+  kidSpeakText(c.innerText||c.textContent||'')}
+/* Quran lernen */
+async function kidQLoad(n){const j=await cachedJson('jiy-kq-'+n,`https://api.alquran.cloud/v1/surah/${n}/editions/quran-uthmani,de.bubenheim`);
+  const ar=j.data[0].ayahs,de=j.data[1].ayahs;lsSet('jiy-kq-n-'+n,String(ar.length));
+  KS.qd={n,ar:ar.map(a=>({t:a.text,g:a.number,i:a.numberInSurah})),de:de.map(a=>a.text)};return KS.qd}
+function kidQMark(i){document.querySelectorAll('.kq-ay.playing').forEach(x=>x.classList.remove('playing'));const el=$('#kq-'+i);if(el){el.classList.add('playing');el.scrollIntoView({behavior:'smooth',block:'center'})}}
+function kidQPlay(i,times,then){const d=KS.qd;if(!d||!d.ar[i]) return;if(!K.qa) K.qa=new Audio();const au=K.qa;let left=times||1;
+  try{if(NATIVE&&window.JIYNative.ttsStop) JIYNative.ttsStop()}catch{}
+  kidQMark(i);au.onended=()=>{left--;if(left>0){setTimeout(()=>{au.currentTime=0;au.play().catch(()=>{})},700)}else{document.querySelectorAll('.kq-ay.playing').forEach(x=>x.classList.remove('playing'));if(then) then()}};
+  au.onerror=()=>toast(kt('Audio konnte nicht geladen werden','تعذّر تحميل الصوت'));
+  au.src=`https://cdn.islamic.network/quran/audio/128/ar.alafasy/${d.ar[i].g}.mp3`;au.play().catch(()=>toast(kt('Bitte nochmal tippen','اضغط مرة أخرى')))}
+function kidQChain(i,learn){const d=KS.qd;if(!d||i>=d.ar.length){KS.qChain=null;return}const tok=KS.qChain={};
+  kidQPlay(i,learn?3:1,()=>{if(KS.qChain!==tok) return;const next=()=>{if(KS.qChain===tok) setTimeout(()=>kidQChain(i+1,learn),learn?1200:300)};
+    if(learn&&d.de[i]&&K.voice!=='ar'){kidSay(d.de[i],'de');setTimeout(next,Math.min(9000,1500+d.de[i].length*70))}else next()})}
 let kidMV=false;
 function kidLoadMV(){if(kidMV) return;kidMV=true;const s=document.createElement('script');s.type='module';s.src='https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js';document.head.append(s)}
 const KID_AFTER={
+  qsurah(){if(!(KS.qd&&KS.qd.n===KS.qs)&&!KS.qload){KS.qload=true;KS.qerr=false;kidQLoad(KS.qs).then(()=>{KS.qload=false;if(K.scr==='qsurah') renderKid()}).catch(()=>{KS.qload=false;KS.qerr=true;if(K.scr==='qsurah') renderKid()})}},
   trace:kidTraceInit,
   villa:kidLoadMV,
   maze(){K.keys=e=>{const d={ArrowUp:-11,ArrowDown:11,ArrowLeft:-1,ArrowRight:1}[e.key];if(d){e.preventDefault();kidMazeMove(d)}};document.addEventListener('keydown',K.keys);
@@ -3528,8 +3586,23 @@ const KID_AFTER={
 };
 function kidSteer(d){const c=KS.car;if(!c||c.fin) return;c.lane=Math.max(-1,Math.min(1,c.lane+d));kidCarDraw()}
 $('#kidBox').addEventListener('click',e=>{
-  const t=e.target.closest('[data-k]');if(!t||t.dataset.k==='step') return;const k=t.dataset.k,v=t.dataset.v;
+  const t=e.target.closest('[data-k]');
+  if(K.voice!=='off'&&(!t||!/^(go|abc|say|voice|lang|q-|mem|puz|mv|steer)/.test(t.dataset.k||''))){const sp=e.target.closest('[data-k],.kid-card,.kid-note,.kid-step,.kid-hero,.kid-win,h2,h3,b,p,small,label');if(sp&&!sp.closest('[data-nospeak]')) kidSpeakEl(sp)}
+  if(!t||t.dataset.k==='step') return;const k=t.dataset.k,v=t.dataset.v;
   if(k==='go') return kidGo(v);
+  if(k==='voice'){const o=['both','de','ar','off'];K.voice=o[(o.indexOf(K.voice)+1)%o.length];lsSet('jiy-kid-voice',K.voice);renderKid();
+    if(K.voice!=='off'){const m={both:['Vorlesen auf Deutsch und Arabisch','القراءة بالألمانية والعربية'],de:['Vorlesen auf Deutsch','القراءة بالألمانية'],ar:['Vorlesen auf Arabisch','القراءة بالعربية']}[K.voice];kidSpeakText(kt(m[0],m[1]))}else kidStop();return}
+  if(k==='q-open'){KS.qs=+v;if(!(KS.qd&&KS.qd.n===KS.qs)) KS.qd=null;return kidGo('qsurah')}
+  if(k==='q-play'){KS.qChain=null;return kidQPlay(+v,1,()=>{const d=KS.qd;if(d&&d.de[+v]&&K.voice!=='off'&&K.voice!=='ar') kidSay(d.de[+v],'de')})}
+  if(k==='q-rep'){KS.qChain=null;return kidQPlay(+v,3)}
+  if(k==='q-mean'){const d=KS.qd;if(d&&d.de[+v]) kidSay(d.de[+v],'de');return}
+  if(k==='q-all'){kidStop();return kidQChain(0,false)}
+  if(k==='q-learn'){kidStop();const vv=JSON.parse(ls(kidStoreKey('q-'+KS.qs))||'[]');const start=Math.max(0,(KS.qd?KS.qd.ar.findIndex((_,i)=>!vv[i]):0));return kidQChain(start<0?0:start,true)}
+  if(k==='q-stop') return kidStop();
+  if(k==='q-ok'){const key=kidStoreKey('q-'+KS.qs),vv=JSON.parse(ls(key)||'[]');vv[+v]=!vv[+v];lsSet(key,JSON.stringify(vv));
+    const d=KS.qd,info=KID_QURAN.find(x=>x[0]===KS.qs)||[];
+    if(d&&d.ar.every((_,i)=>vv[i])){kidAwardOnce('quran-'+KS.qs,3,'Sure '+(info[1]||KS.qs)+' gelernt');toast('🎉 '+kt('MashaAllah! Sure gelernt!','ما شاء الله! حفظت السورة!'));kidSpeakText(kt('MashaAllah! Du hast die Sure gelernt!','ما شاء الله! لقد حفظت السورة!'))}
+    const y=window.scrollY;renderKid();window.scrollTo(0,y);return}
   if(k==='lang'){K.lang=v;lsSet('jiy-kid-lang',v);return renderKid()}
   if(k==='abc'){KS[t.dataset.l]=v;kidSay(v+'. '+(t.dataset.l==='ar'?KID_AR:KID_DE).find(x=>x[0]===v)[1].replace(/\p{Extended_Pictographic}/gu,''),t.dataset.l);return renderKid()}
   if(k==='say'){const l=t.dataset.l,cur=l==='ar'?KID_AR.find(x=>x[0]===(KS.ar||'ا')):KID_DE.find(x=>x[0]===(KS.de||'A'));return kidSay(cur[0]+'. '+cur[1].replace(/\p{Extended_Pictographic}/gu,''),l)}

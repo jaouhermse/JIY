@@ -194,4 +194,36 @@ public class NativeBridge {
     public void schedule(String json) {
         Scheduler.replaceAll(ctx, json);
     }
+
+    /** Vorlesen (Kinderbereich): lang = "de" oder "ar" */
+    @JavascriptInterface
+    public boolean speak(String text, String lang, double rate, boolean queue) {
+        return Speaker.speak(text, lang, rate, queue);
+    }
+
+    @JavascriptInterface
+    public String ttsCheck(String lang) {
+        return Speaker.check(lang);
+    }
+
+    @JavascriptInterface
+    public void ttsStop() {
+        Speaker.stop();
+    }
+
+    /** Öffnet die Android-Einstellungen, um Sprachpakete (z. B. Arabisch) zu installieren. */
+    @JavascriptInterface
+    public void ttsInstall() {
+        try {
+            android.content.Intent i = new android.content.Intent(android.speech.tts.TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+            i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+            ctx.startActivity(i);
+        } catch (Exception e) {
+            try {
+                android.content.Intent j = new android.content.Intent("com.android.settings.TTS_SETTINGS");
+                j.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                ctx.startActivity(j);
+            } catch (Exception ignored) { }
+        }
+    }
 }
