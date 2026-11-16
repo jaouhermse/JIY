@@ -88,25 +88,22 @@ Die frühere Yanis-App „Kleine Entdecker“ ist jetzt **in JIY eingebaut** –
 
 ## 💶 Mein Geld (Haushaltsbuch)
 
-Unter **Mehr → 💶 Mein Geld**.
+Unter **Mehr → 💶 Mein Geld** – nur für **Mama und Papa** (Kinder und Gäste sehen es nicht).
 
-- **Papa** (Konto in `GELD_HASHES`, Administrator-Profil): sieht **alles** – private Konten und Gemeinschaftskonto.
-- **Mama**: sieht **nur Konten mit Häkchen „👨‍👩‍👦 Gemeinsames Konto“** (z. B. Gemeinschaftskonto), deren Buchungen,
-  Daueraufträge und gemeinsame Sparziele. Private Konten, Gehalt usw. sieht sie nicht.
-- **Kinder und Gäste**: sehen „Mein Geld“ gar nicht.
-- Konto freigeben: *Mein Geld → Mehr → Konten → Konto antippen → „Gemeinsames Konto“*.
-  Sparziel teilen: beim Sparziel „Gemeinsames Sparziel“ anhaken.
-- Daten: `finance/` = privat (nur dein Konto), `financeShared/` = gemeinsam (Mama + Papa).
+- **Jeder hat einen privaten Bereich:** Papa legt seine Konten an, Mama ihre. Papas private Konten sieht
+  Mama nicht – und Mamas private Konten sieht Papa nicht.
+- **Gemeinschaftskonto:** Konto antippen → Häkchen „👨‍👩‍👦 Gemeinsames Konto“ → beide sehen es,
+  inkl. Buchungen, Daueraufträge (👤 zeigt, wer gebucht hat). Sparziele lassen sich genauso teilen.
+- Umbuchung vom privaten aufs Gemeinschaftskonto: der andere sieht nur „🔒 Privat → Gemeinschaftskonto“.
+- Privat geht nur mit dem **eigenen Profil auf dem eigenen Konto**. Ist auf einem Handy das Profil des
+  anderen aktiv, zeigt „Mein Geld“ nur die Gemeinschaftskonten.
+- Daten in Firebase: `financeUser/{uid}/docs/` = privat (pro Person), `financeShared/` = gemeinsam.
 
-**Einmalig in Firebase eintragen (wichtig!):** Firestore → *Regeln* → den Inhalt aus `firestore.rules` übernehmen
-und in `geld()` **deine** E-Mail, in `eltern()` **deine und Mamas** E-Mail eintragen (klein geschrieben) → *Veröffentlichen*.
-Ohne diese Regeln könnte Mamas Konto deine privaten Daten technisch lesen.
+**Einmalig in Firebase eintragen (wichtig!):** Firestore → *Regeln* → Inhalt aus `firestore.rules` übernehmen,
+bei `family()` und `eltern()` eure beiden E-Mails eintragen (klein geschrieben) → *Veröffentlichen*.
+Erst dann sind die privaten Bereiche auch technisch voneinander getrennt.
 
-- Wer es sehen darf, steht in `web/index.html` bei `GELD_HASHES` (Standard: nur `OWNER_HASH`)
-  **und** in den Firestore-Regeln bei `geld()`. Beides muss passen.
-- Sichtbar nur, wenn auf dem Handy das Administrator-Profil aktiv ist (wechselt jemand auf Yanis' Profil, verschwindet es).
-- Konten, Buchungen, Budgets, Daueraufträge, Sparziele, Schulden, Statistiken, Export (landet in *Downloads/JIY*).
-- Anmeldung läuft über das JIY-Konto – kein extra Passwort. Daten in Firebase unter `finance/`.
+- Export landet in *Downloads/JIY*. Anmeldung über das JIY-Konto – kein extra Passwort.
 - **KI** (Kontoauszug-Diagnose, Beleg scannen, Spartipps, Assistent): in *Mein Geld → Mehr → 🔑 KI-Schlüssel*
   einen eigenen Anthropic-API-Schlüssel eintragen (console.anthropic.com). Ohne Schlüssel geht alles außer der KI.
 - Die App selbst ist `web/geld.html` – Änderungen dort sind wie gewohnt nach ca. 1 Minute in JIY.

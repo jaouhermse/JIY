@@ -865,8 +865,6 @@ const ALLOWED_HASHES = [
   "d7b30f1d913ddeefd6ab5624dec3b8ae58803999432149b4a2a1e20cb87afcad",
   "1e7464b8aa86e759b582a5fad12ba6764b4b7c568b36eeb96b4fc1b16a5a24f8"
 ];
-// 💶 Mein Geld – voller Zugriff NUR für diese Konten (Standard: Besitzer). Mama sieht nur Konten mit „Gemeinsames Konto“.
-const GELD_HASHES = [OWNER_HASH];
 // Videos & Fotos über Firebase Storage? (braucht Tarif "Blaze"). false = Fotos verkleinert, keine Videos.
 const USE_STORAGE = false;
 /* ===================================================================== */
@@ -916,12 +914,20 @@ function Cref(col){return Object.assign(Qref(col),{
 const DB={doc:p=>Dref(doc(fs,p)),collection:p=>Cref(collection(fs,p))};
 
 /* ---- Mein Geld (Haushaltsbuch, web/geld.html) ----
-   Papa (GELD_HASHES + Admin-Profil): alles.  Mama (Eltern-Konto + Eltern-Profil): nur gemeinsame Konten.
-   Daten: finance/* = privat (nur Papa), financeShared/* = Gemeinschaftskonto (Papa + Mama) */
-function geldAllowed(){return !!S.db&&!!S.emailHash&&GELD_HASHES.includes(S.emailHash)&&amAdmin()}
-function geldSharedAllowed(){if(!S.db||!S.emailHash) return false;if(!(S.emailHash===OWNER_HASH||ALLOWED_HASHES.includes(S.emailHash))) return false;const me=member(S.meId);return !!me&&isParentRole(roleOf(me))}
-function geldAccess(){return geldAllowed()?'full':geldSharedAllowed()?'shared':null}
-function finRef(id,sc){const a=geldAccess();if(!a) throw new Error('Kein Zugriff');if(sc!=='s'&&a!=='full') throw new Error('Kein Zugriff');if(!/^[a-z0-9-]+$/.test(id)) throw new Error('ID');return doc(fs,sc==='s'?'financeShared':'finance',id)}
+   Jeder Elternteil (eigenes E-Mail-Konto + eigenes Eltern-Profil) hat einen PRIVATEN Bereich,
+   den nur er/sie sieht:  financeUser/{uid}/docs/*
+   Konten mit „Gemeinsames Konto“ sehen Mama UND Papa:  financeShared/*
+   Kinder/Gäste: kein Zugriff. Fremdes Eltern-Profil auf dem Handy aktiv → nur Gemeinschaftskonto. */
+function geldAccess(){
+  if(!S.db||!S.uid||!S.emailHash) return null;
+  if(!(S.emailHash===OWNER_HASH||ALLOWED_HASHES.includes(S.emailHash))) return null;
+  const me=member(S.meId);if(!me||!isParentRole(roleOf(me))) return null;
+  return me.uid===S.uid?'full':'shared';
+}
+function finRef(id,sc){const a=geldAccess();if(!a) throw new Error('Kein Zugriff');if(!/^[a-z0-9-]+$/.test(id)) throw new Error('ID');
+  if(sc==='s') return doc(fs,'financeShared',id);
+  if(a!=='full') throw new Error('Kein Zugriff');
+  return doc(fs,'financeUser',S.uid,'docs',id)}
 window.JIYFin={
   access:()=>geldAccess(),
   get:async(id,sc)=>{const x=await getDoc(finRef(id,sc));return x.exists()?x.data():null},

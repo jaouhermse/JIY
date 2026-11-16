@@ -169,7 +169,7 @@ const fmt=n=>{const s=Math.abs(n).toLocaleString("de-DE",{minimumFractionDigits:
 
 // ---------- JIY-Familienmodus (eingebettet in JIY Family) ----------
 const JIY=(()=>{try{return window.parent!==window&&window.parent.JIYFin?window.parent.JIYFin:null}catch(e){return null}})();
-// Modus: "full" = alles (Papa), "shared" = nur gemeinsame Konten (Mama)
+// Modus: "full" = eigene private Konten + Gemeinschaftskonten, "shared" = nur Gemeinschaftskonten
 const JIYMODE=JIY?((JIY.access&&JIY.access())||"full"):null;
 let jiyTs={p:0,s:0},jiyCache={p:{},s:{}},jiySig={p:"",s:""},jiyReloadT=null;
 async function jiyLoadScope(sc){const main=await JIY.get("main",sc);if(!main||!main.json)return null;const base=JSON.parse(main.json);let tx=[];const cache={};
@@ -475,7 +475,7 @@ function catEditor(c,type){const isNew=!c;c=c?{...c}:{id:"c_"+uid(),name:"",icon
 function accEditor(a){const isNew=!a;a=a?{...a}:{id:"a_"+uid(),name:"",icon:"🏦",start:0,archived:false};
  sheet(`<h3>${isNew?"Neues Konto":"Konto bearbeiten"}</h3><label>Name</label><input id="n" value="${esc(a.name)}" placeholder="z. B. Sparkasse, PayPal, Kreditkarte">
  <label>Startsaldo (Kontostand bei Beginn)</label><input id="s" inputmode="decimal" value="${String(a.start).replace(".",",")}">
- ${JIYMODE==="full"?`<label class="flex" style="margin-top:12px"><input type="checkbox" id="sh" style="width:auto" ${a.shared?"checked":""}> 👨‍👩‍👦 Gemeinsames Konto (Mama sieht es)</label>`:""}
+ ${JIYMODE==="full"?`<label class="flex" style="margin-top:12px"><input type="checkbox" id="sh" style="width:auto" ${a.shared?"checked":""}> 👨‍👩‍👦 Gemeinsames Konto (Mama &amp; Papa sehen es)</label>`:""}
  <label>Symbol</label><div class="chips">${["🏦","💶","💳","🅿️","📈","🐷","🪙","💼","👨‍👩‍👦"].map(e=>`<button class="chip ${a.icon===e?"on":""}" data-e="${e}">${e}</button>`).join("")}</div>
  ${isNew?"":`<label class="flex" style="margin-top:12px"><input type="checkbox" id="ar" style="width:auto" ${a.archived?"checked":""}> Archiviert (ausblenden)</label>
  <label>Aktueller Kontostand laut Bank (Abgleich)</label><div class="flex"><input id="real" inputmode="decimal" placeholder="${fmt(accBalance(a.id))}"><button class="btn sm sec" data-rec>Abgleichen</button></div>`}
@@ -514,7 +514,7 @@ function goalEditor(g){const isNew=!g;g=g?JSON.parse(JSON.stringify(g)):{id:uid(
  ${isNew?"":`<div class="card" style="background:var(--bg);box-shadow:none"><b>${fmt(goalSaved(g))}</b> <span class="muted">von ${fmt(g.target)}</span><div class="flex" style="margin-top:8px"><input id="dep" inputmode="decimal" placeholder="Betrag"><button class="btn sm" data-dep="1">+ Einzahlen</button><button class="btn sm sec" data-dep="-1">− Entnehmen</button></div></div>`}
  <label>Name</label><input id="n" value="${esc(g.name)}" placeholder="z. B. Urlaub Tunesien">
  <div class="grid2"><div><label>Zielbetrag</label><input id="t" inputmode="decimal" value="${g.target?String(g.target).replace(".",","):""}"></div><div><label>Bis (optional)</label><input type="date" id="d" value="${g.deadline}"></div></div>
- ${JIYMODE==="full"?`<label class="flex" style="margin-top:12px"><input type="checkbox" id="gsh" style="width:auto" ${g.shared?"checked":""}> 👨‍👩‍👦 Gemeinsames Sparziel (Mama sieht es)</label>`:""}
+ ${JIYMODE==="full"?`<label class="flex" style="margin-top:12px"><input type="checkbox" id="gsh" style="width:auto" ${g.shared?"checked":""}> 👨‍👩‍👦 Gemeinsames Sparziel (Mama &amp; Papa sehen es)</label>`:""}
  <label>Symbol</label><div class="chips">${["🎯","🏖️","🚗","🏠","💍","🎓","🛟","💻","🎄","👶"].map(e=>`<button class="chip ${g.icon===e?"on":""}" data-e="${e}">${e}</button>`).join("")}</div>
  ${g.deposits.length?`<label>Verlauf</label><ul class="list">${g.deposits.slice().reverse().slice(0,8).map(d=>`<li class="item" style="cursor:default"><div class="grow sub">${new Date(d.date).toLocaleDateString("de-DE")}</div><div class="amt ${d.amount<0?"out":"in"}">${fmt(d.amount)}</div></li>`).join("")}</ul>`:""}
  <div class="actions">${isNew?"":`<button class="btn danger" data-del>Löschen</button>`}<button class="btn" data-save>Speichern</button></div>`,(el,close)=>{

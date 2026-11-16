@@ -13,13 +13,6 @@ service cloud.firestore {
         ];
     }
 
-    // 💶 Mein Geld: NUR dieses eine Konto (deine E-Mail, klein geschrieben)
-    function geld() {
-      return request.auth != null
-        && request.auth.token.email_verified == true
-        && request.auth.token.email.lower() == 'deine.email@gmail.com';
-    }
-
     // Kalender-Abo: nur mit geheimer Adresse lesbar (keine Liste), schreiben nur Familie
     match /ics/{token} {
       allow get: if true;
@@ -27,7 +20,7 @@ service cloud.firestore {
       allow write: if family();
     }
 
-    // Mama + Papa (für das Gemeinschaftskonto)
+    // Mama + Papa (Haushaltsbuch)
     function eltern() {
       return request.auth != null
         && request.auth.token.email_verified == true
@@ -37,19 +30,19 @@ service cloud.firestore {
         ];
     }
 
-    // Haushaltsbuch privat – NUR dein Konto
-    match /finance/{doc} {
-      allow read, write: if geld();
+    // 💶 Privates Haushaltsbuch: jeder NUR sein eigenes (Mama sieht Papas nicht und umgekehrt)
+    match /financeUser/{uid}/{document=**} {
+      allow read, write: if eltern() && request.auth.uid == uid;
     }
 
-    // Gemeinschaftskonto – Mama und Papa
+    // 👨‍👩‍👦 Gemeinschaftskonten: Mama und Papa
     match /financeShared/{doc} {
       allow read, write: if eltern();
     }
 
     // Alles andere: ganze Familie (außer Haushaltsbuch!)
     match /{col}/{document=**} {
-      allow read, write: if family() && col != 'finance' && col != 'financeShared';
+      allow read, write: if family() && !(col in ['finance', 'financeUser', 'financeShared']);
     }
   }
 }
