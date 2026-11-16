@@ -110,9 +110,8 @@ Unter **Mehr → 💶 Mein Geld** – nur für **Mama und Papa** (Kinder und Gä
   anderen aktiv, zeigt „Mein Geld“ nur die Gemeinschaftskonten.
 - Daten in Firebase: `financeUser/{uid}/docs/` = privat (pro Person), `financeShared/` = gemeinsam.
 
-**Einmalig in Firebase eintragen (wichtig!):** Firestore → *Regeln* → Inhalt aus `firestore.rules` übernehmen,
-bei `family()` und `eltern()` eure beiden E-Mails eintragen (klein geschrieben) → *Veröffentlichen*.
-Erst dann sind die privaten Bereiche auch technisch voneinander getrennt.
+**Firebase-Regeln:** sind eingetragen (`financeUser` privat pro Person, `financeShared` nur Eltern, beide aus der
+allgemeinen Familien-Regel ausgenommen). Die Vorlage steht in `firestore.rules` – die echten E-Mails nur in der Konsole.
 
 - Export landet in *Downloads/JIY*. Anmeldung über das JIY-Konto – kein extra Passwort.
 - **KI** (Kontoauszug-Diagnose, Beleg scannen, Spartipps, Assistent): in *Mein Geld → Mehr → 🔑 KI-Schlüssel*
