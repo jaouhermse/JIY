@@ -226,4 +226,105 @@ public class NativeBridge {
             } catch (Exception ignored) { }
         }
     }
+
+    /* ===== Heimnetz (IT-Ecke, nur Administrator in der Oberfläche) ===== */
+
+    private void async(final String cb, final java.util.concurrent.Callable<String> job) {
+        HomeNet.EX.execute(() -> {
+            String r;
+            try {
+                r = job.call();
+            } catch (Exception e) {
+                r = HomeNet.err(e);
+            }
+            MainActivity.callback(cb, r);
+        });
+    }
+
+    @JavascriptInterface
+    public String netInfo() {
+        try {
+            org.json.JSONObject o = HomeNet.netInfo(ctx);
+            return o == null ? "{}" : o.toString();
+        } catch (Exception e) {
+            return "{}";
+        }
+    }
+
+    @JavascriptInterface
+    public void netScan(String cb) {
+        async(cb, () -> HomeNet.scan(ctx));
+    }
+
+    @JavascriptInterface
+    public String fritzSave(String host, String user, String pw) {
+        try {
+            HomeNet.fritzSave(ctx, host, user, pw);
+            return "ok";
+        } catch (Exception e) {
+            return "error: " + e.getMessage();
+        }
+    }
+
+    @JavascriptInterface
+    public boolean fritzHas() {
+        return HomeNet.fritzHas(ctx);
+    }
+
+    @JavascriptInterface
+    public String fritzHost() {
+        return HomeNet.prefs(ctx).getString("fritz_host", "fritz.box") + "|" + HomeNet.prefs(ctx).getString("fritz_user", "");
+    }
+
+    @JavascriptInterface
+    public void fritzForget() {
+        HomeNet.fritzForget(ctx);
+    }
+
+    @JavascriptInterface
+    public void fritz(String cb, String what, String arg) {
+        async(cb, () -> HomeNet.fritz(ctx, what, arg));
+    }
+
+    @JavascriptInterface
+    public void tvSet(String ip, String mac) {
+        SamsungTv.setTv(ctx, ip == null ? "" : ip, mac);
+    }
+
+    @JavascriptInterface
+    public void tvInfo(String cb) {
+        async(cb, () -> SamsungTv.info(ctx));
+    }
+
+    @JavascriptInterface
+    public void tvKey(String key) {
+        HomeNet.EX.execute(() -> {
+            try {
+                SamsungTv.key(ctx, key);
+            } catch (Exception e) {
+                MainActivity.callback("tv", HomeNet.err(e));
+            }
+        });
+    }
+
+    @JavascriptInterface
+    public void tvApp(String appId) {
+        HomeNet.EX.execute(() -> {
+            try {
+                SamsungTv.app(ctx, appId);
+            } catch (Exception e) {
+                MainActivity.callback("tv", HomeNet.err(e));
+            }
+        });
+    }
+
+    @JavascriptInterface
+    public void tvWake(String cb) {
+        async(cb, () -> SamsungTv.wake(ctx));
+    }
+
+    @JavascriptInterface
+    public void tvClose() {
+        SamsungTv.close();
+    }
 }

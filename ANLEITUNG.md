@@ -118,3 +118,18 @@ Erst dann sind die privaten Bereiche auch technisch voneinander getrennt.
 - **KI** (Kontoauszug-Diagnose, Beleg scannen, Spartipps, Assistent): in *Mein Geld → Mehr → 🔑 KI-Schlüssel*
   einen eigenen Anthropic-API-Schlüssel eintragen (console.anthropic.com). Ohne Schlüssel geht alles außer der KI.
 - Die App selbst ist `web/geld.html` – Änderungen dort sind wie gewohnt nach ca. 1 Minute in JIY.
+
+## 🏠 Heimnetz (IT-Ecke, nur Administrator, nur in der App)
+
+*Mehr → IT-Ecke → 🏠 Heimnetz.* Funktioniert nur, wenn das Handy im **Heim-WLAN** ist.
+
+- **🔍 Geräte:** sucht alle Geräte im WLAN (Name, IP, Art: FRITZ!Box, Fernseher, Drucker, NAS, PC …).
+  Mit ＋ ins IT-Inventar übernehmen. Mit eingerichteter FRITZ!Box kommen alle bekannten Geräte mit Namen dazu.
+- **📶 FRITZ!Box:** Modell, FRITZ!OS, Internet-Status und Geschwindigkeit, **Gäste-WLAN ein/aus**,
+  **Internet für ein Gerät sperren/freigeben** (⛔ in der Geräteliste, z. B. Tablet abends), **Neustart**.
+  Einmalig in der FRITZ!Box: *System → FRITZ!Box-Benutzer* → eigenen Benutzer (z. B. „jiy“) mit Recht
+  *FRITZ!Box Einstellungen* anlegen und unter *Heimnetz → Netzwerk → Netzwerkeinstellungen*
+  „Zugriff für Anwendungen zulassen“ einschalten. Das Passwort liegt **verschlüsselt nur auf dem Handy**.
+- **📺 Fernseher (Samsung, ab ca. 2018):** Fernbedienung mit Ein/Aus, Lautstärke, Programm, Pfeiltasten, Quelle,
+  Netflix/YouTube/Prime/Disney+. Beim ersten Mal am Fernseher „Zulassen“ bestätigen.
+  Fürs **Einschalten** am Fernseher *Allgemein → Netzwerk → Experteneinstellungen → „Mit Mobilgerät einschalten“* aktivieren.

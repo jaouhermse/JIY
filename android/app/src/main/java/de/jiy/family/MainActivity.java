@@ -41,6 +41,7 @@ public class MainActivity extends Activity {
     private ValueCallback<Uri[]> fileCallback;
     private String appHost;
     private String appBase = "/";
+    private static MainActivity inst;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +53,7 @@ public class MainActivity extends Activity {
         String bp = Uri.parse(url).getPath();
         appBase = (bp == null || bp.isEmpty()) ? "/" : (bp.endsWith("/") ? bp : bp + "/");
         Speaker.init(this);
+        inst = this;
 
         web = new WebView(this);
         setContentView(web);
@@ -275,6 +277,22 @@ public class MainActivity extends Activity {
         } else {
             super.onBackPressed();
         }
+    }
+
+    /** Antwort an die Oberfläche: window.__jiyNet(cb, json) */
+    static void callback(String cb, String json) {
+        final MainActivity a = inst;
+        if (a == null) return;
+        final String js = "window.__jiyNet&&window.__jiyNet(" + org.json.JSONObject.quote(cb) + "," + org.json.JSONObject.quote(json) + ")";
+        a.runOnUiThread(() -> {
+            if (a.web != null) a.web.evaluateJavascript(js, null);
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (inst == this) inst = null;
+        super.onDestroy();
     }
 
     @Override

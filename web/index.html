@@ -478,6 +478,9 @@ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
 .kid-lang button.on{background:var(--kg);color:#fff}
 .kid-voice{border:1.5px solid var(--line);border-radius:999px;background:#fff;padding:5px 10px;font-weight:900;font-size:13px;flex:none;margin-inline-start:6px}
 .kid-voice.on{background:#FFF3C9;border-color:#E8C55A}
+.tv-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
+.tv-remote .row{margin:6px 0;gap:6px}.tv-remote .btn{min-height:48px;flex:1}
+#netSeg button.on{background:var(--card,#fff);font-weight:800}
 .kq-ay{background:var(--card,#fff);border:1.5px solid var(--line);border-radius:18px;padding:12px 14px;margin:10px 0}
 .kq-ay.playing{border-color:var(--kg);box-shadow:0 0 0 3px rgba(63,122,94,.18)}
 .kq-ay.ok{background:#EEF7EE}
@@ -3323,6 +3326,7 @@ const ACT={
   'bak-restore':(t,id)=>confirmBtn(t,'Sicher? ↩️',async()=>{t.disabled=true;try{await bakRestore(await bakLoad(id))}catch{toast('Wiederherstellen fehlgeschlagen')}t.disabled=false}),
   'clock':()=>clockModal(),
   'geld':()=>openGeld(),
+  'net-open':()=>openNet(),
   'clock-toggle':(t,id)=>clockToggle(id),
   'clock-del':(t,id)=>clockDel(id),
   'announce-food':()=>sendAnnounce('🍽️ Essen ist fertig!'),
@@ -3685,6 +3689,7 @@ function openIt(){
   const list=[...(S.it||[])].sort((a,b)=>String(a.due||'9999').localeCompare(String(b.due||'9999'))||String(a.name).localeCompare(String(b.name)));
   modal(`<h3>🖥️ IT-Ecke</h3><p class="muted" style="margin-top:-6px">Geräte, Backups, Lizenzen der Familie. <b>Keine Passwörter</b> eintragen – dafür einen Passwort-Manager nutzen.</p>
     <button class="btn primary" style="width:100%" data-act="x-it-edit">+ Neuer Eintrag</button>
+    ${NATIVE?'<button class="btn soft" style="width:100%;margin-top:8px" data-act="net-open">🏠 Heimnetz: Geräte suchen · FRITZ!Box · Fernseher</button>':''}
     <div style="margin-top:10px">${list.length?list.map(i=>{const late=i.due&&i.due<today(),soon=i.due&&!late&&i.due<=addDays(today(),7);
       return `<button class="ev-row" style="--c:${late?'#C2410C':soon?'#E3A33A':'#2F6F6A'}" data-act="x-it-edit" data-id="${esc(i.id)}"><span class="ev-ic">${esc(i.icon||'🖥️')}</span><span class="ev-main"><b>${esc(i.name)}</b><small>${esc(i.info||'')}${i.due?` · ${late?'⚠️ überfällig':'fällig'} ${xDate(i.due)}`:''}</small></span></button>`}).join(''):'<div class="empty">Noch nichts eingetragen – z. B. „NAS-Backup prüfen“ oder „Router-Update“.</div>'}</div>`);
 }
@@ -3705,6 +3710,99 @@ function openItEdit(id){
   const del=$('#xItDel');if(del) del.onclick=e=>xDel(e.currentTarget,'it/'+id);
   const dn=$('#xItDone');if(dn) dn.onclick=async()=>{let due='';if(+i.every){const d=parse(i.due>today()?i.due:today());d.setMonth(d.getMonth()+(+i.every));due=iso(d)}
     if(await w(()=>S.db.doc('it/'+id).update({due,lastDone:Date.now()}))){toast(due?'✓ Nächste Prüfung '+xDate(due):'✓ Erledigt');openIt()}};
+}
+/* ---------- Heimnetz (nur Android-App, nur Administrator) ---------- */
+const NET_CB={};let netSeq=0;
+window.__jiyNet=(cb,json)=>{let d;try{d=JSON.parse(json)}catch{d={error:'Antwort unlesbar'}}if(cb==='tv'){netTvEvent(d);return}const f=NET_CB[cb];if(f){delete NET_CB[cb];f(d)}};
+function netCall(fn,...args){return new Promise(res=>{const id='n'+(++netSeq);NET_CB[id]=res;try{window.JIYNative[fn](id,...args)}catch(e){delete NET_CB[id];res({error:'Funktion fehlt – bitte JIY aktualisieren'})}})}
+function netOk(){return NATIVE&&window.JIYNative&&typeof window.JIYNative.netScan==='function'}
+function ipNum(ip){return String(ip||'').split('.').reduce((a,x)=>a*256+(+x||0),0)}
+function openNet(tab){
+  if(!amAdmin()) return;
+  if(!netOk()){modal(`<h3>🏠 Heimnetz</h3><p class="muted">Das gibt es nur in der neuesten JIY-App. Bitte unter <b>Mehr → Update</b> die neue Version installieren.</p>`);return}
+  S.netTab=tab||S.netTab||'geraete';
+  modal(`<h3>🏠 Heimnetz</h3><div class="seg" id="netSeg">${[['geraete','🔍 Geräte'],['fritz','📶 FRITZ!Box'],['tv','📺 Fernseher']].map(([k,t])=>`<button data-net="${k}" class="${S.netTab===k?'on':''}">${t}</button>`).join('')}</div><div id="netBox" style="margin-top:10px"></div>`);
+  $('#netSeg').onclick=e=>{const b=e.target.closest('[data-net]');if(b) openNet(b.dataset.net)};
+  ({geraete:netDevices,fritz:netFritz,tv:netTv})[S.netTab]();
+}
+function netDevHtml(list){if(!list.length) return '<div class="empty">Keine Geräte gefunden.</div>';
+  const fr=window.JIYNative.fritzHas&&window.JIYNative.fritzHas();
+  return `<div class="muted" style="margin-bottom:6px">${list.length} Geräte · ${list.filter(d=>d.active!==false).length} online</div>`+list.map((d,i)=>`<div class="ev-row" style="--c:${d.active===false?'#9CA3AF':'#2F6F6A'};cursor:default"><span class="ev-ic">${esc(d.icon||'🧩')}</span><span class="ev-main"><b>${esc(d.name||d.kind||'Gerät')}</b><small>${esc(d.ip||'')}${d.name&&d.kind?' · '+esc(d.kind):''}${d.model?' · '+esc(d.model):''}${d.active===false?' · offline':''}</small></span>
+    <span style="display:flex;gap:4px">${d.kind==='Samsung-Fernseher'?`<button class="btn soft sm" data-netact="tv" data-i="${i}" title="Fernbedienung">📺</button>`:''}${fr&&d.ip&&d.kind!=='FRITZ!Box / AVM'&&d.kind!=='Dieses Handy'?`<button class="btn ghost sm" data-netact="block" data-i="${i}" title="Internet sperren/freigeben">⛔</button>`:''}<button class="btn ghost sm" data-netact="add" data-i="${i}" title="In die IT-Ecke übernehmen">＋</button></span></div>`).join('')}
+async function netDevices(){
+  const box=$('#netBox');let ni={};try{ni=JSON.parse(window.JIYNative.netInfo())}catch{}
+  box.innerHTML=`<p class="muted" style="margin-top:0">${ni.wifi?`Dein Handy: ${esc(ni.ip||'')} · Router: ${esc(ni.gateway||'')}`:'⚠️ Nicht im WLAN – die Suche geht nur zu Hause.'}</p>
+    <button class="btn primary" style="width:100%" id="netScanBtn">🔍 Heimnetz durchsuchen</button><div id="netRes" style="margin-top:10px">${S.netLast?netDevHtml(S.netLast):''}</div>
+    <p class="hint">Findet Geräte im WLAN. Ist die FRITZ!Box eingerichtet, kommen alle ihr bekannten Geräte mit Namen dazu – auch ausgeschaltete.</p>`;
+  $('#netScanBtn').onclick=async e=>{const b=e.currentTarget;b.disabled=true;b.textContent='🔍 Suche … (ca. 20 Sekunden)';
+    const fh=window.JIYNative.fritzHas()?netCall('fritz','hosts',''):Promise.resolve(null);
+    const [sc,fr]=await Promise.all([netCall('netScan'),fh]);
+    b.disabled=false;b.textContent='🔍 Nochmal suchen';
+    if(sc.error&&!(fr&&fr.hosts)){$('#netRes').innerHTML=`<div class="empty">${esc(sc.error)}</div>`;return}
+    const map=new Map();(sc.devices||[]).forEach(d=>map.set(d.ip,{...d}));
+    ((fr&&fr.hosts)||[]).forEach(h=>{if(!h.ip&&!h.name) return;const k=h.ip||h.mac;const d=map.get(k)||{ip:h.ip,kind:'',icon:/802\.11|WLAN/i.test(h.type||'')?'📶':'🔌',ports:[]};
+      d.name=h.name||d.name;d.mac=h.mac||d.mac;d.active=map.has(k)?true:!!h.active;map.set(k,d)});
+    const list=[...map.values()].sort((a,b)=>((b.active!==false)-(a.active!==false))||ipNum(a.ip)-ipNum(b.ip));
+    S.netLast=list;$('#netRes').innerHTML=netDevHtml(list)};
+  box.onclick=async e=>{const t=e.target.closest('[data-netact]');if(!t) return;const d=(S.netLast||[])[+t.dataset.i];if(!d) return;
+    if(t.dataset.netact==='add'){if(await w(()=>S.db.collection('it').add({icon:d.icon||'🧩',name:(d.name||d.kind||'Gerät').slice(0,60),info:[d.ip,d.model,d.mac].filter(Boolean).join(' · ').slice(0,120),due:'',every:0,note:'',ts:Date.now(),by:S.meId||null}))){t.textContent='✓';t.disabled=true;toast('In die IT-Ecke übernommen')}}
+    else if(t.dataset.netact==='tv'){window.JIYNative.tvSet(d.ip,d.mac||'');openNet('tv')}
+    else if(t.dataset.netact==='block') netBlock(d)};
+}
+function netBlock(d){
+  modal(`<h3>⛔ Internet für „${esc(d.name||d.ip)}“</h3><p class="muted">Sperrt nur den <b>Internetzugang</b> dieses Geräts (z. B. Tablet zur Schlafenszeit). Im Heimnetz bleibt es erreichbar.</p>
+    <div class="actions"><button class="btn soft" id="nbOff">✅ Freigeben</button><span class="sp"></span><button class="btn primary" id="nbOn">⛔ Sperren</button></div>`);
+  const go=async on=>{const x=await netCall('fritz','block',d.ip+'|'+(on?'1':'0'));toast(x.error?'❌ '+x.error:(on?'⛔ Internet gesperrt':'✅ Internet freigegeben'));openNet('geraete')};
+  $('#nbOn').onclick=()=>go(true);$('#nbOff').onclick=()=>go(false);
+}
+async function netFritz(){
+  const box=$('#netBox');
+  if(!window.JIYNative.fritzHas()){const [h,u]=String(window.JIYNative.fritzHost()||'fritz.box|').split('|');
+    box.innerHTML=`<p class="muted" style="margin-top:0"><b>Einmalig in der FRITZ!Box</b> (fritz.box im Browser):<br>1. <b>System → FRITZ!Box-Benutzer</b>: neuen Benutzer anlegen, z. B. „jiy“, Recht <b>FRITZ!Box Einstellungen</b>.<br>2. <b>Heimnetz → Netzwerk → Netzwerkeinstellungen</b>: „Zugriff für Anwendungen zulassen“ einschalten.</p>
+      <form id="frForm" autocomplete="off"><label>Adresse<input name="h" value="${esc(h||'fritz.box')}"></label><label>Benutzer<input name="u" value="${esc(u||'')}" autocomplete="username"></label><label>Passwort<input name="p" type="password" required autocomplete="current-password"></label><button class="btn primary" style="width:100%">Verbinden</button></form>
+      <p class="hint">🔒 Das Passwort wird verschlüsselt (Android Keystore) nur auf diesem Handy gespeichert – nicht in der Cloud.</p>`;
+    $('#frForm').onsubmit=async e=>{e.preventDefault();const f=e.target,b=f.querySelector('button');b.disabled=true;b.textContent='Verbinde …';
+      const r0=window.JIYNative.fritzSave(f.h.value,f.u.value,f.p.value);if(r0!=='ok'){toast('❌ '+r0);b.disabled=false;b.textContent='Verbinden';return}
+      const r=await netCall('fritz','info','');if(r.error){window.JIYNative.fritzForget();toast('❌ '+r.error);b.disabled=false;b.textContent='Verbinden';return}
+      toast('✅ FRITZ!Box verbunden');netFritz()};
+    return}
+  box.innerHTML='<div class="empty">Lade …</div>';const r=await netCall('fritz','info','');
+  if(r.error){box.innerHTML=`<div class="empty">${esc(r.error)}<br><small>Bist du im Heim-WLAN?</small></div><button class="btn ghost" id="frReset" style="width:100%">Zugangsdaten neu eingeben</button>`;$('#frReset').onclick=()=>{window.JIYNative.fritzForget();netFritz()};return}
+  const mb=x=>x?Math.round(+x/1e6)+' Mbit/s':'–',up=+r.uptime||0;
+  box.innerHTML=`<div class="card"><b>📶 ${esc(r.model||'FRITZ!Box')}</b><div class="muted">FRITZ!OS ${esc(r.version||'')} · läuft seit ${Math.floor(up/86400)} Tagen</div>
+    <div style="margin-top:6px">🌍 Internet: <b>${r.link==='Up'?'✅ verbunden':esc(r.link||'?')}</b>${r.down?` · ⬇️ ${mb(r.down)} · ⬆️ ${mb(r.up)}`:''}</div></div>
+    ${r.guestSsid!==undefined?`<div class="card" style="margin-top:8px"><b>👋 Gäste-WLAN</b> <span class="muted">${esc(r.guestSsid||'')}</span><div style="margin-top:8px"><button class="btn ${r.guest?'primary':'soft'}" id="frGuest" style="width:100%">${r.guest?'✅ Ist an – jetzt ausschalten':'Einschalten'}</button></div></div>`:''}
+    <div class="row" style="margin-top:8px"><button class="btn soft" id="frHosts">🔍 Alle Geräte</button><button class="btn ghost danger" id="frReboot">🔄 Neu starten</button></div>
+    <button class="btn ghost sm" id="frForget" style="margin-top:8px">Zugangsdaten auf diesem Handy löschen</button>`;
+  const g=$('#frGuest');if(g) g.onclick=async e=>{e.currentTarget.disabled=true;const x=await netCall('fritz','guest',r.guest?'0':'1');toast(x.error?'❌ '+x.error:(x.guest?'✅ Gäste-WLAN an':'Gäste-WLAN aus'));netFritz()};
+  $('#frHosts').onclick=()=>{openNet('geraete');setTimeout(()=>{const b=$('#netScanBtn');if(b) b.click()},100)};
+  $('#frReboot').onclick=e=>confirmBtn(e.currentTarget,'Sicher? Internet ca. 3 Min. weg',async()=>{const x=await netCall('fritz','reboot','');toast(x.error?'❌ '+x.error:'🔄 FRITZ!Box startet neu')});
+  $('#frForget').onclick=()=>{window.JIYNative.fritzForget();toast('Zugangsdaten gelöscht');netFritz()};
+}
+const TV_APPS=[['Netflix','3201907018807','🎬'],['YouTube','111299001912','▶️'],['Prime Video','3201910019365','📦'],['Disney+','3201901017640','🏰']];
+function netTvEvent(d){const st=$('#tvState');if(!st) return;
+  if(d.event==='connected') st.innerHTML='✅ Verbunden';
+  else if(d.event==='connecting') st.innerHTML=d.paired?'🔄 Verbinde …':'📺 Bitte am Fernseher <b>„Zulassen“</b> bestätigen';
+  else if(d.event==='denied') st.innerHTML='❌ Am Fernseher abgelehnt – in den TV-Einstellungen unter „Geräteverbindungsmanager“ JIY erlauben';
+  else if(d.event==='error'||d.error) st.innerHTML='⚠️ Keine Verbindung – ist der Fernseher an und im selben WLAN?'}
+async function netTv(){
+  const box=$('#netBox');box.innerHTML='<div class="empty">Lade …</div>';const r=await netCall('tvInfo');
+  if(r.error||!r.ip){box.innerHTML=`<div class="empty">Noch kein Fernseher ausgewählt.</div><button class="btn primary" style="width:100%" id="tvFind">🔍 Fernseher suchen</button><p class="hint">Fernseher einschalten, dann suchen und beim Fernseher auf 📺 tippen.</p>`;
+    $('#tvFind').onclick=()=>{openNet('geraete');setTimeout(()=>{const b=$('#netScanBtn');if(b) b.click()},100)};return}
+  const kb=(k,l,cls)=>`<button class="btn ${cls||'soft'}" data-tvk="${k}">${l}</button>`;
+  box.innerHTML=`<div class="card"><b>📺 ${esc(r.name||'Fernseher')}</b><div class="muted">${esc(r.model||'')} · ${esc(r.ip)}</div><div id="tvState" style="margin-top:4px">${r.on===false?'💤 Aus oder nicht erreichbar':r.paired?'Bereit':'Beim ersten Tastendruck am Fernseher „Zulassen“ bestätigen'}</div></div>
+    <div class="tv-remote">
+      <div class="row">${kb('KEY_POWER','⏻ Aus','ghost danger')}<button class="btn soft" id="tvOn">⚡ Ein</button>${kb('KEY_HOME','🏠 Home')}</div>
+      <div class="tv-pad"><span></span>${kb('KEY_UP','⬆️')}<span></span>${kb('KEY_LEFT','⬅️')}${kb('KEY_ENTER','OK','primary')}${kb('KEY_RIGHT','➡️')}${kb('KEY_RETURN','↩️ Zurück')}${kb('KEY_DOWN','⬇️')}${kb('KEY_MUTE','🔇')}</div>
+      <div class="row">${kb('KEY_VOLDOWN','🔉 Leiser')}${kb('KEY_VOLUP','🔊 Lauter')}</div>
+      <div class="row">${kb('KEY_CHDOWN','⏬ Prog −')}${kb('KEY_CHUP','⏫ Prog +')}</div>
+      <div class="row">${kb('KEY_SOURCE','🔌 Quelle')}${kb('KEY_PLAY','▶️')}${kb('KEY_PAUSE','⏸')}</div>
+      <div class="chips" style="margin-top:8px">${TV_APPS.map(([n,id,e])=>`<button class="chip" data-tvapp="${id}">${e} ${n}</button>`).join('')}</div>
+    </div><button class="btn ghost sm" id="tvOther" style="margin-top:8px">Anderen Fernseher wählen</button>`;
+  box.onclick=e=>{const k=e.target.closest('[data-tvk]');if(k){try{navigator.vibrate&&navigator.vibrate(15)}catch{}window.JIYNative.tvKey(k.dataset.tvk);return}
+    const a=e.target.closest('[data-tvapp]');if(a){window.JIYNative.tvApp(a.dataset.tvapp);toast('▶ Startet …')}};
+  $('#tvOn').onclick=async()=>{const x=await netCall('tvWake');toast(x.error?'⚠️ '+x.error:'⚡ Einschaltsignal gesendet')};
+  $('#tvOther').onclick=()=>{window.JIYNative.tvSet('','');openNet('geraete')};
 }
 /* Spielzeit-Regeln (Administrator) */
 function kidRules(){return S.kidRules||{}}

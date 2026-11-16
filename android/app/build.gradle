@@ -62,3 +62,8 @@ tasks.register('copyWeb', Copy) {
     into "$buildDir/generated/jiyweb/web"
 }
 preBuild.dependsOn copyWeb
+
+dependencies {
+    // WebSocket für die Samsung-TV-Fernbedienung
+    implementation "com.squareup.okhttp3:okhttp:4.12.0"
+}
