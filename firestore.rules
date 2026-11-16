@@ -2,15 +2,86 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Nur diese E-Mails gehören zur Familie (klein schreiben!).
-    // Vorlage – die echten E-Mails stehen nur in der Firebase-Konsole (nicht öffentlich).
-    function family() {
+    // Anmeldung mit Kuerzel & PIN (von den Eltern in JIY eingerichtet)
+    function kidLogin() {
       return request.auth != null
-        && request.auth.token.email_verified == true
-        && request.auth.token.email.lower() in [
-          'deine.email@gmail.com',
-          'email.deiner.frau@outlook.de'
-        ];
+        && request.auth.token.email.matches('kid-[a-z0-9]+-[a-f0-9]{8}@jiy-family[.]app');
+    }
+
+    function signedIn() {
+      return request.auth != null && (request.auth.token.email_verified == true || kidLogin());
+    }
+
+    function allowedDoc() {
+      return /databases/$(database)/documents/allowed/$(request.auth.token.email.lower());
+    }
+
+    // Eltern: fest eingetragene E-Mails ODER Eltern mit Kuerzel-Anmeldung
+    // Vorlage – die echten E-Mails stehen nur in der Firebase-Konsole (nicht öffentlich).
+    function parents() {
+      return request.auth != null && (
+        (request.auth.token.email_verified == true
+          && request.auth.token.email.lower() in [
+            'deine.email@gmail.com',
+            'email.deiner.frau@outlook.de'
+          ])
+        || (kidLogin() && exists(allowedDoc()) && get(allowedDoc()).data.get('admin', false) == true)
+      );
+    }
+
+    // Familie: Eltern + alle in JIY freigeschalteten E-Mails / Kuerzel
+    function family() {
+      return parents() || (signedIn() && exists(allowedDoc()));
+    }
+
+    // Freigeschaltete E-Mails: nur die Eltern duerfen sie aendern
+    match /allowed/{em} {
+      allow get: if signedIn() && (request.auth.token.email.lower() == em || family());
+      allow list: if family();
+      allow write: if parents();
+    }
+
+    // Zugangsdaten der Kuerzel-Anmeldung: nur Eltern
+    match /kidlogin/{id} {
+      allow read, write: if parents();
+    }
+
+    // Nur Eltern: Gesundheitsheft, IT-Ecke, Sicherungen (enthalten alle Daten)
+    match /health/{id} {
+      allow read, write: if parents();
+    }
+    match /it/{id} {
+      allow read, write: if parents();
+    }
+    match /backups/{doc=**} {
+      allow read, write: if parents();
+    }
+
+    // Einstellungen: Familie liest; Spielzeit-Regeln und Kalender-Abo aendern nur Eltern
+    match /config/{id} {
+      allow read: if family();
+      allow write: if parents() || (family() && !(id in ['kid', 'ics']));
+    }
+
+    // Profile: anlegen, loeschen, Rollen aendern nur Eltern.
+    // Jeder darf nur das eigene Profil mit seinem Konto verknuepfen und seine PIN setzen.
+    match /members/{id} {
+      allow read: if family();
+      allow create, delete: if parents();
+      allow update: if parents() || (family()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['uid', 'pin'])
+        && (resource.data.get('uid', null) == request.auth.uid
+            || request.resource.data.get('uid', null) == request.auth.uid));
+    }
+
+    // 💶 Mein Geld – privat: jeder Elternteil sieht NUR sein eigenes Haushaltsbuch
+    match /financeUser/{uid}/{doc=**} {
+      allow read, write: if parents() && request.auth.uid == uid;
+    }
+
+    // 💶 Mein Geld – Gemeinschaftskonten: nur Mama und Papa
+    match /financeShared/{id} {
+      allow read, write: if parents();
     }
 
     // Kalender-Abo: nur mit geheimer Adresse lesbar (keine Liste), schreiben nur Familie
@@ -20,8 +91,8 @@ service cloud.firestore {
       allow write: if family();
     }
 
-    match /{document=**} {
-      allow read, write: if family();
+    match /{coll}/{doc=**} {
+      allow read, write: if !(coll in ['allowed', 'kidlogin', 'health', 'it', 'backups', 'config', 'members', 'finance', 'financeUser', 'financeShared']) && family();
     }
   }
 }

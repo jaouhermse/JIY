@@ -12,6 +12,7 @@ import android.webkit.PermissionRequest;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -21,9 +22,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * JIY Family – Android-Hülle.
- * Lädt die Web-App von GitHub Pages. Änderungen an web/index.html
- * erscheinen dadurch automatisch in der App, ohne neue APK.
+ * JIY Family – Android-App.
+ * Die komplette Oberfläche (Ordner web/) steckt IN der APK (assets/web).
+ * Anfragen an die bisherige Adresse werden aus der APK beantwortet – dadurch
+ * bleiben Anmeldung und gespeicherte Daten erhalten und die App läuft offline.
+ * Nur Dateien, die nicht in der APK sind (z. B. Kalender-Abo), kommen aus dem Netz.
  */
 public class MainActivity extends Activity {
 
@@ -37,6 +40,8 @@ public class MainActivity extends Activity {
     private WebView web;
     private ValueCallback<Uri[]> fileCallback;
     private String appHost;
+    private String appBase = "/";
+    private static MainActivity inst;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +50,10 @@ public class MainActivity extends Activity {
         String url = getString(R.string.app_url);
         String h = Uri.parse(url).getHost();
         appHost = h == null ? "" : h.toLowerCase();
+        String bp = Uri.parse(url).getPath();
+        appBase = (bp == null || bp.isEmpty()) ? "/" : (bp.endsWith("/") ? bp : bp + "/");
+        Speaker.init(this);
+        inst = this;
 
         web = new WebView(this);
         setContentView(web);
@@ -69,6 +78,11 @@ public class MainActivity extends Activity {
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, true);
 
         web.setWebViewClient(new WebViewClient() {
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                return fromApk(request);
+            }
+
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 return openOutside(request.getUrl());
@@ -154,6 +168,54 @@ public class MainActivity extends Activity {
         }
     }
 
+    /** Liefert Dateien der App aus der APK (assets/web/…) statt aus dem Internet. */
+    private WebResourceResponse fromApk(WebResourceRequest request) {
+        try {
+            if (!"GET".equalsIgnoreCase(request.getMethod())) return null;
+            Uri u = request.getUrl();
+            String host = u.getHost() == null ? "" : u.getHost().toLowerCase();
+            if (!host.equals(appHost)) return null;
+            String path = u.getPath() == null ? "/" : u.getPath();
+            if (!path.startsWith(appBase)) {
+                if ((path + "/").equals(appBase)) path = appBase; else return null;
+            }
+            String rel = path.substring(appBase.length());
+            if (rel.isEmpty() || rel.endsWith("/")) rel = rel + "index.html";
+            if (rel.contains("..")) return null;
+            java.io.InputStream in;
+            try {
+                in = getAssets().open("web/" + rel);
+            } catch (java.io.IOException notInApk) {
+                return null; // nicht in der APK → normal aus dem Netz laden
+            }
+            WebResourceResponse r = new WebResourceResponse(mime(rel), "UTF-8", in);
+            java.util.Map<String, String> hd = new java.util.HashMap<>();
+            hd.put("Cache-Control", "no-cache");
+            hd.put("Access-Control-Allow-Origin", "*");
+            r.setResponseHeaders(hd);
+            return r;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static String mime(String f) {
+        String n = f.toLowerCase();
+        if (n.endsWith(".html") || n.endsWith(".htm")) return "text/html";
+        if (n.endsWith(".js") || n.endsWith(".mjs")) return "application/javascript";
+        if (n.endsWith(".css")) return "text/css";
+        if (n.endsWith(".json")) return "application/json";
+        if (n.endsWith(".webmanifest")) return "application/manifest+json";
+        if (n.endsWith(".png")) return "image/png";
+        if (n.endsWith(".jpg") || n.endsWith(".jpeg")) return "image/jpeg";
+        if (n.endsWith(".svg")) return "image/svg+xml";
+        if (n.endsWith(".gltf")) return "model/gltf+json";
+        if (n.endsWith(".glb")) return "model/gltf-binary";
+        if (n.endsWith(".mp3")) return "audio/mpeg";
+        if (n.endsWith(".ics")) return "text/calendar";
+        return "application/octet-stream";
+    }
+
     /** Eigene Seiten und Firebase bleiben in der App, alles andere (Google Kalender, Outlook, Jitsi) öffnet extern. */
     private boolean openOutside(Uri uri) {
         String scheme = uri.getScheme();
@@ -215,6 +277,22 @@ public class MainActivity extends Activity {
         } else {
             super.onBackPressed();
         }
+    }
+
+    /** Antwort an die Oberfläche: window.__jiyNet(cb, json) */
+    static void callback(String cb, String json) {
+        final MainActivity a = inst;
+        if (a == null) return;
+        final String js = "window.__jiyNet&&window.__jiyNet(" + org.json.JSONObject.quote(cb) + "," + org.json.JSONObject.quote(json) + ")";
+        a.runOnUiThread(() -> {
+            if (a.web != null) a.web.evaluateJavascript(js, null);
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (inst == this) inst = null;
+        super.onDestroy();
     }
 
     @Override

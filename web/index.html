@@ -476,6 +476,20 @@ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
 .kid-lang{display:flex;border:1.5px solid var(--line);border-radius:999px;overflow:hidden;background:#fff;flex:none}
 .kid-lang button{border:0;background:none;padding:6px 10px;font-weight:900;font-size:13px}
 .kid-lang button.on{background:var(--kg);color:#fff}
+.kid-voice{border:1.5px solid var(--line);border-radius:999px;background:#fff;padding:5px 10px;font-weight:900;font-size:13px;flex:none;margin-inline-start:6px}
+.kid-voice.on{background:#FFF3C9;border-color:#E8C55A}
+.tv-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
+.tv-remote .row{margin:6px 0;gap:6px}.tv-remote .btn{min-height:48px;flex:1}
+#netSeg button.on{background:var(--card,#fff);font-weight:800}
+.kq-ay{background:var(--card,#fff);border:1.5px solid var(--line);border-radius:18px;padding:12px 14px;margin:10px 0}
+.kq-ay.playing{border-color:var(--kg);box-shadow:0 0 0 3px rgba(63,122,94,.18)}
+.kq-ay.ok{background:#EEF7EE}
+.kq-ar{font-size:27px;line-height:2.1;text-align:right;direction:rtl;font-weight:600}
+.kq-no{display:inline-block;min-width:30px;font-size:15px;color:var(--kg);font-weight:900}
+.kq-de{font-size:14px;color:var(--muted,#666);margin-top:4px;line-height:1.45}
+.kq-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.kq-btns button{border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:8px 12px;font-weight:800;font-size:14px}
+.kq-btns button.ok{background:var(--kg);color:#fff;border-color:var(--kg)}
 .kid-hero{display:flex;align-items:center;gap:14px;padding:18px;border-radius:24px;background:linear-gradient(135deg,#E7F1E8,#FFEFD9)}
 .kid-hero .big{font-size:52px;line-height:1}
 .kid-hero b{display:block;font-size:22px;font-weight:900;color:#2F5A45}
@@ -806,6 +820,7 @@ main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
         <button class="more-btn" data-act="clock"><span class="mi">⏰</span><b>Wecker</b><small id="moreClockHint">Weckzeiten für alle</small></button>
         <button class="more-btn" data-act="announce"><span class="mi">📣</span><b>Durchsage</b><small>z. B. „Essen ist fertig!“</small></button>
         <button class="more-btn" data-act="tab" data-id="haushalt" id="hhTab"><span class="mi">💸</span><b>Haushalt</b><small id="moreBillHint">Rechnungen &amp; Fixkosten</small></button>
+        <button class="more-btn" data-act="geld" id="geldTab"><span class="mi">💶</span><b>Mein Geld</b><small>Haushaltsbuch, Budgets &amp; KI</small></button>
         <button class="more-btn" data-act="tab" data-id="fristen" id="fristTab"><span class="mi">🚗</span><b>Auto &amp; Fristen</b><small id="moreFristHint">TÜV, Pass, Verträge</small></button>
         <button class="more-btn" data-act="tab" data-id="kinder" id="kidGameBtn" hidden><span class="mi">🎮</span><b>Kleine Entdecker</b><small>Lernen &amp; Spielen</small></button>
         <button class="more-btn" data-act="x-report" id="xReportBtn" hidden><span class="mi">📊</span><b>Wochenbericht</b><small>Kinder, Termine, Rechnungen</small></button>
@@ -911,6 +926,46 @@ function Cref(col){return Object.assign(Qref(col),{
   path:col.path, doc:id=>Dref(id?doc(col,id):doc(col)), add:d=>addDoc(col,d)
 })}
 const DB={doc:p=>Dref(doc(fs,p)),collection:p=>Cref(collection(fs,p))};
+
+/* ---- Mein Geld (Haushaltsbuch, web/geld.html) ----
+   Jeder Elternteil (eigenes E-Mail-Konto + eigenes Eltern-Profil) hat einen PRIVATEN Bereich,
+   den nur er/sie sieht:  financeUser/{uid}/docs/*
+   Konten mit „Gemeinsames Konto“ sehen Mama UND Papa:  financeShared/*
+   Kinder/Gäste: kein Zugriff. Fremdes Eltern-Profil auf dem Handy aktiv → nur Gemeinschaftskonto. */
+function geldAccess(){
+  if(!S.db||!S.uid||!S.emailHash) return null;
+  if(!(S.emailHash===OWNER_HASH||ALLOWED_HASHES.includes(S.emailHash))) return null;
+  const me=member(S.meId);if(!me||!isParentRole(roleOf(me))) return null;
+  return me.uid===S.uid?'full':'shared';
+}
+function finRef(id,sc){const a=geldAccess();if(!a) throw new Error('Kein Zugriff');if(!/^[a-z0-9-]+$/.test(id)) throw new Error('ID');
+  if(sc==='s') return doc(fs,'financeShared',id);
+  if(a!=='full') throw new Error('Kein Zugriff');
+  return doc(fs,'financeUser',S.uid,'docs',id)}
+window.JIYFin={
+  access:()=>geldAccess(),
+  get:async(id,sc)=>{const x=await getDoc(finRef(id,sc));return x.exists()?x.data():null},
+  set:(id,v,sc)=>setDoc(finRef(id,sc),v),
+  watch:(id,cb,sc)=>onSnapshot(finRef(id,sc),x=>{if(!x.metadata.hasPendingWrites) cb(x.exists()?x.data():null)}),
+  me:()=>{const m=member(S.meId);return m?{name:m.name,role:roleOf(m)}:{name:'',role:''}},
+  // Sicherungen liegen im privaten Bereich: financeUser/{uid}/docs/backup-*
+  list:async(prefix,sc)=>{if(sc==='s'||geldAccess()!=='full') return [];const q=await getDocs(collection(fs,'financeUser',S.uid,'docs'));
+    return q.docs.filter(d=>d.id.startsWith(prefix)).map(d=>{const x=d.data();return {id:d.id,ts:x.ts||0,n:x.n||0,size:(x.data||'').length}})},
+  del:(id,sc)=>deleteDoc(finRef(id,sc)),
+  saveFile:(name,text)=>{try{return window.JIYNative?JIYNative.saveFile(name,text):''}catch{return ''}},
+  close:()=>{if(history.state&&history.state.geld) history.back();else closeGeld()}
+};
+function openGeld(){
+  if(!geldAccess()){toast('Kein Zugriff');return}
+  if(document.getElementById('geldFrame')) return;
+  const box=document.createElement('div');box.id='geldFrame';
+  box.style.cssText='position:fixed;inset:0;z-index:9000;background:#f4f6f5';
+  box.innerHTML='<iframe src="geld.html" title="Mein Geld" style="border:0;width:100%;height:100%;display:block" allow="clipboard-write"></iframe>';
+  document.body.appendChild(box);
+  try{history.pushState({geld:1},'',location.href)}catch{}
+}
+function closeGeld(){const b=document.getElementById('geldFrame');if(b) b.remove()}
+window.addEventListener('popstate',()=>closeGeld());
 
 /* ---- Fotos/Videos ---- */
 async function compressImage(file,max=1280){
@@ -1026,7 +1081,7 @@ async function allowEmail(em){
     await S.db.doc('allowed/'+em).set({email:em,by:S.uid,ts:Date.now()});toast('✅ '+em+' ist freigeschaltet')}catch(e){console.warn('allow',e)}
 }
 function applyAdmin(){try{renderExtrasHints()}catch{}const kid=isKid();const kg=$('#kidGameBtn');if(kg) kg.hidden=!kid;const ktb=$('#kidTab');if(ktb) ktb.hidden=!kid;if(!kid&&S.view==='kinder') show('kalender');const ok=amAdmin();$('#famTab').hidden=!ok;if(!ok&&S.view==='familie') show('kalender');
-  const hh=amAdmin()||(!isGuest()&&!isKid());const hb=$('#hhTab');if(hb) hb.hidden=!hh;const fb=$('#fristTab');if(fb) fb.hidden=!hh;if(!hh&&S.view==='fristen') show('kalender');if(!hh&&S.view==='haushalt') show('kalender')}
+  const hh=amAdmin()||(!isGuest()&&!isKid());const hb=$('#hhTab');if(hb) hb.hidden=!hh;const fb=$('#fristTab');if(fb) fb.hidden=!hh;const gb=$('#geldTab');const ga=geldAccess();if(gb) gb.hidden=!ga;if(!ga) closeGeld();if(!hh&&S.view==='fristen') show('kalender');if(!hh&&S.view==='haushalt') show('kalender')}
 function syncRole(form,hintEl){
   const minor=form.birth.value&&ageOf(form.birth.value)<18;
   if(minor&&isParentRole(form.role.value)) form.role.value='user';
@@ -3270,6 +3325,8 @@ const ACT={
   'bak-dl':async(t,id)=>{try{const b=await bakLoad(id);bakSave('JIY-Sicherung-'+id+'.json',JSON.stringify(b))}catch{toast('Nicht gefunden')}},
   'bak-restore':(t,id)=>confirmBtn(t,'Sicher? ↩️',async()=>{t.disabled=true;try{await bakRestore(await bakLoad(id))}catch{toast('Wiederherstellen fehlgeschlagen')}t.disabled=false}),
   'clock':()=>clockModal(),
+  'geld':()=>openGeld(),
+  'net-open':()=>openNet(),
   'clock-toggle':(t,id)=>clockToggle(id),
   'clock-del':(t,id)=>clockDel(id),
   'announce-food':()=>sendAnnounce('🍽️ Essen ist fertig!'),
@@ -3287,7 +3344,10 @@ const ACT={
 
 /* ---------- Kleine Entdecker – Kinderbereich (nur Kind-Profile) ---------- */
 const K={lang:ls('jiy-kid-lang')==='ar'?'ar':'de',scr:'home',timer:null,keys:null};
-const kt=(de,ar)=>K.lang==='ar'?ar:de;
+const KT_PAIRS=new Map();// angezeigter Text → [Deutsch, Arabisch] (für Vorlesen in beiden Sprachen)
+const kt=(de,ar)=>{if(de&&ar&&de.length<400){KT_PAIRS.set(de,[de,ar]);KT_PAIRS.set(ar,[de,ar])}return K.lang==='ar'?ar:de};
+K.voice=ls('jiy-kid-voice')||'both';// off | de | ar | both
+const KID_VOICE_IC={off:'🔇',de:'🔊 DE',ar:'🔊 ع',both:'🔊 DE+ع'};
 const KID_DE=[['A','Apfel 🍎'],['B','Ball ⚽'],['C','Clown 🤡'],['D','Dino 🦕'],['E','Elefant 🐘'],['F','Fisch 🐟'],['G','Giraffe 🦒'],['H','Haus 🏠'],['I','Igel 🦔'],['J','Jacke 🧥'],['K','Katze 🐱'],['L','Löwe 🦁'],['M','Mond 🌙'],['N','Nase 👃'],['O','Orange 🍊'],['P','Panda 🐼'],['Q','Qualle 🪼'],['R','Regenbogen 🌈'],['S','Sonne ☀️'],['T','Tiger 🐯'],['U','Uhr ⏰'],['V','Vogel 🐦'],['W','Wolke ☁️'],['X','Xylophon 🎼'],['Y','Yo-Yo 🪀'],['Z','Zebra 🦓']];
 const KID_AR=[['ا','أَسَد 🦁'],['ب','بَطَّة 🦆'],['ت','تُفَّاحَة 🍎'],['ث','ثَعْلَب 🦊'],['ج','جَمَل 🐪'],['ح','حِصَان 🐴'],['خ','خَرُوف 🐑'],['د','دُبّ 🐻'],['ذ','ذِئْب 🐺'],['ر','رُمَّان'],['ز','زَهْرَة 🌷'],['س','سَمَكَة 🐟'],['ش','شَمْس ☀️'],['ص','صَقْر 🦅'],['ض','ضِفْدَع 🐸'],['ط','طَائِرَة ✈️'],['ظ','ظَرْف ✉️'],['ع','عِنَب 🍇'],['غ','غَيْمَة ☁️'],['ف','فَرَاشَة 🦋'],['ق','قَمَر 🌙'],['ك','كِتَاب 📘'],['ل','لَيْمُون 🍋'],['م','مَوْز 🍌'],['ن','نَمِر 🐯'],['ه','هِلال 🌙'],['و','وَرْدَة 🌹'],['ي','يَد ✋']];
 const KID_PUZ={Tiere:['🐻','🐼','🦁','🐯','🐸','🦊','🐰','🐵','🐨','🐧'],Fahrzeuge:['🚗','🚕','🚌','🚓','🚑','🚒','🚜','🚲','🚀','🚁'],Meer:['🐠','🐬','🐳','🦀','🐙','🦈','🐢','🪼','🦭','🐡'],Weltraum:['🚀','🪐','🌙','⭐','☄️','🛸','🌍','👨‍🚀','🌌','🛰️']};
@@ -3296,6 +3356,7 @@ const KID_MEM={Tiere:['🐻','🐼','🦁','🐯','🐸','🦊','🐰','🐨'],M
 const KID_MEM_AR={Tiere:'حيوانات',Meer:'البحر',Fahrzeuge:'مركبات'};
 const KID_VILLA=[['Ziegelwand','🧱','جدار طوب'],['Glaswand','🪟','جدار زجاجي'],['Fenster','🪟','نافذة'],['Tür','🚪','باب'],['Dach','🏠','سقف'],['Balkon','🌇','شرفة'],['Gartenzaun','🌳','سياج'],['Pool','🏊','مسبح']];
 const KID_WUDU=[['🙌','Hände waschen','Beide Hände bis zu den Handgelenken waschen.','غسل اليدين','اغسل اليدين إلى الرسغين.'],['💧','Mund ausspülen','Wasser in den Mund nehmen und vorsichtig ausspülen.','المضمضة','خذ قليلاً من الماء وتمضمض بلطف.'],['👃','Nase reinigen','Vorsichtig Wasser an die Nase führen und reinigen.','الاستنشاق','استنشق الماء بلطف ونظّف الأنف.'],['😊','Gesicht waschen','Das ganze Gesicht waschen.','غسل الوجه','اغسل الوجه كاملاً.'],['💪','Arme waschen','Rechten, dann linken Arm bis zum Ellenbogen waschen.','غسل الذراعين','اغسل الذراع اليمنى ثم اليسرى إلى المرفقين.'],['🧑','Kopf streichen','Mit feuchten Händen über den Kopf streichen.','مسح الرأس','امسح الرأس بيدين مبللتين.'],['👂','Ohren reinigen','Die Ohren sanft mit feuchten Fingern reinigen.','مسح الأذنين','امسح الأذنين برفق بأصابع مبللة.'],['🦶','Füße waschen','Rechten, dann linken Fuß bis zu den Knöcheln waschen.','غسل القدمين','اغسل القدم اليمنى ثم اليسرى إلى الكعبين.']];
+const KID_QURAN=[[1,'Al-Fatiha','الفاتحة','Die Eröffnende'],[114,'An-Nas','الناس','Die Menschen'],[113,'Al-Falaq','الفلق','Das Morgengrauen'],[112,'Al-Ikhlas','الإخلاص','Die Aufrichtigkeit'],[111,'Al-Masad','المسد','Die Palmfaser'],[110,'An-Nasr','النصر','Die Hilfe'],[109,'Al-Kafirun','الكافرون','Die Ungläubigen'],[108,'Al-Kawthar','الكوثر','Die Fülle'],[107,"Al-Ma'un",'الماعون','Die Hilfeleistung'],[106,'Quraisch','قريش','Quraisch'],[105,'Al-Fil','الفيل','Der Elefant'],[103,"Al-'Asr",'العصر','Die Zeit']];
 const KID_SALAT=[['💧','Wudu machen','Bereite dich mit der Gebetswaschung vor.','الوضوء','توضأ قبل الصلاة.'],['🧭','Gebetsrichtung finden','Stelle dich in Richtung Qibla.','استقبال القبلة','استقبل القبلة.'],['🙌','Gebet beginnen','Beginne mit dem Takbir: Allahu akbar.','تكبيرة الإحرام','ابدأ الصلاة بقول: الله أكبر.'],['🧍','Stehen und rezitieren','Stehe ruhig und rezitiere.','القيام والقراءة','قف بخشوع واقرأ ما تيسّر.'],['🙇','Ruku – Verbeugung','Beuge dich und halte den Rücken ruhig.','الركوع','اركع واطمئن في ركوعك.'],['🧍','Aufrichten','Richte dich wieder auf.','الاعتدال','ارفع من الركوع واعتدل قائماً.'],['🕌','Sujud – Niederwerfung','Gehe in die Niederwerfung.','السجود','اسجد لله تعالى.'],['🧎','Sitzen','Setze dich zwischen den Niederwerfungen.','الجلوس','اجلس بين السجدتين.'],['🕌','Zweite Niederwerfung','Gehe erneut in Sujud.','السجدة الثانية','اسجد مرة أخرى.'],['👋','Abschluss','Lerne Tashahhud und Salam mit deiner Familie.','التشهد والسلام','تعلّم التشهد والتسليم مع عائلتك.']];
 
 function kidStoreKey(s){return 'jiy-kid-'+(S.meId||'x')+'-'+s}
@@ -3310,11 +3371,12 @@ async function kidAward(game,n,label){
   return ok;
 }
 async function kidAwardOnce(topic,n,label){const k=kidStoreKey('t-'+topic);if(ls(k)) return false;const ok=await kidAward('t-'+topic,n,label);if(ok) lsSet(k,'1');return ok}
-function kidStop(){clearInterval(K.timer);K.timer=null;try{speechSynthesis.cancel()}catch{}if(K.keys){document.removeEventListener('keydown',K.keys);K.keys=null}}
-function kidGo(scr){kidStop();if(KID_GAME_SCR.includes(scr)){const bl=kidGameBlock();if(bl){K.block=bl;scr='blocked'}}K.scr=scr;renderKid();window.scrollTo(0,0)}
+function kidStop(){clearInterval(K.timer);K.timer=null;KS.qChain=null;if(K.qa){try{K.qa.pause()}catch{}}try{if(NATIVE&&window.JIYNative.ttsStop) JIYNative.ttsStop()}catch{}try{speechSynthesis.cancel()}catch{}if(K.keys){document.removeEventListener('keydown',K.keys);K.keys=null}}
+function kidGo(scr){kidStop();if(KID_GAME_SCR.includes(scr)){const bl=kidGameBlock();if(bl){K.block=bl;scr='blocked'}}K.scr=scr;renderKid();window.scrollTo(0,0);
+  if(K.voice!=='off'){const h=document.querySelector('#kidBox .kid-top h2');if(h) setTimeout(()=>kidSpeakEl(h),150)}}
 function kidHead(title,back){
   return `<div class="kid-top">${back?`<button class="icon-btn" data-k="go" data-v="${back}" aria-label="Zurück">${K.lang==='ar'?'→':'←'}</button>`:''}<h2>${title}</h2>
-    <div class="kid-lang"><button data-k="lang" data-v="de" class="${K.lang==='de'?'on':''}">DE</button><button data-k="lang" data-v="ar" class="${K.lang==='ar'?'on':''}">ع</button></div></div>`;
+    <div class="kid-lang"><button data-k="lang" data-v="de" class="${K.lang==='de'?'on':''}">DE</button><button data-k="lang" data-v="ar" class="${K.lang==='ar'?'on':''}">ع</button></div><button class="kid-voice ${K.voice!=='off'?'on':''}" data-k="voice" aria-label="Vorlesen">${KID_VOICE_IC[K.voice]||'🔊'}</button></div>`;
 }
 function kidCard(ic,t,s,go,tint){return `<button class="kid-card" data-k="go" data-v="${go}" style="--t:${tint}"><span class="ic">${ic}</span><span><b>${t}</b><small>${s}</small></span><span class="go">${K.lang==='ar'?'‹':'›'}</span></button>`}
 function renderKid(){
@@ -3399,7 +3461,21 @@ const KID_SCR={
     `<div class="kid-note" style="background:#ECEAF7">${kt('Gemeinsam entdecken: Wudu, Salat und Quran. Lerne Schritt für Schritt mit deiner Familie.','نتعلّم معاً الوضوء والصلاة والقرآن خطوة بخطوة مع عائلتك.')}</div>`+
     kidCard('🧼',kt('Wudu – Gebetswaschung','الوضوء'),kt('Schritt für Schritt lernen','تعلّم خطوات الوضوء'),'wudu','#E4F2F0')+
     kidCard('🕌',kt('Salat lernen','تعلّم الصلاة'),kt('Gebetshaltungen der Reihe nach','حركات الصلاة بالترتيب'),'salat','#F2EAF8')+
+    kidCard('📖',kt('Quran lernen','تعلّم القرآن'),kt('Kurze Suren Vers für Vers','سور قصيرة آية بآية'),'quran','#FFF1DD')+
     `<button class="kid-card" data-act="tab" data-id="gebet" style="--t:#FFF1DD"><span class="ic">📍</span><span><b>${kt('Gebetszeiten & Quran','مواقيت الصلاة والقرآن')}</b><small>${kt('Zeiten, Qibla und Quran hören','الأوقات والقبلة والاستماع إلى القرآن')}</small></span><span class="go">${K.lang==='ar'?'‹':'›'}</span></button>`},
+  quran(){return kidHead('📖 '+kt('Quran lernen','تعلّم القرآن'),'life')+
+    `<div class="kid-note" style="background:#FFF1DD">${kt('Hör dir jeden Vers an, sprich ihn nach und tippe auf ✓, wenn du ihn kannst. Für jede gelernte Sure gibt es 3 Sterne.','استمع إلى كل آية، ثم ردّدها، واضغط ✓ عندما تحفظها. لكل سورة تحفظها ثلاث نجوم.')}</div>`+
+    KID_QURAN.map(([n,tr,ar,de])=>{const got=JSON.parse(ls(kidStoreKey('q-'+n))||'[]').filter(Boolean).length,tot=+(ls('jiy-kq-n-'+n)||0),done=tot&&got>=tot;
+      return `<button class="kid-card" data-k="q-open" data-v="${n}" style="--t:${done?'#E9F1E8':'#FFF7EA'}"><span class="ic">${done?'⭐':'📖'}</span><span><b>${kt(tr+' · '+de,ar)}</b><small>${tot?kt(got+' von '+tot+' Versen gelernt','حفظت '+got+' من '+tot+' آيات'):kt('Antippen zum Lernen','اضغط للتعلّم')}</small></span><span class="go">${K.lang==='ar'?'‹':'›'}</span></button>`}).join('')},
+  qsurah(){const n=KS.qs,info=KID_QURAN.find(x=>x[0]===n)||[n,'','',''],d=KS.qd&&KS.qd.n===n?KS.qd:null;
+    const head=kidHead('📖 '+kt(info[1],info[2]),'quran');
+    if(!d) return head+`<div class="empty">${KS.qerr?kt('Konnte nicht laden – bitte Internet einschalten.','تعذّر التحميل – يرجى تشغيل الإنترنت.'):kt('Lade …','جارٍ التحميل …')}</div>`;
+    const v=JSON.parse(ls(kidStoreKey('q-'+n))||'[]'),got=d.ar.filter((_,i)=>v[i]).length;
+    return head+`<div class="kid-actions" style="margin-top:0"><button class="btn primary" data-k="q-all">▶ ${kt('Ganze Sure anhören','استمع إلى السورة كاملة')}</button><button class="btn soft" data-k="q-learn">🎓 ${kt('Lernmodus','وضع الحفظ')}</button><button class="btn ghost" data-k="q-stop">⏹</button></div>
+    <div class="kid-prog"><i style="width:${Math.round(got/d.ar.length*100)}%"></i></div><p style="text-align:center;font-weight:800;margin:4px 0">${kt('Gelernt','محفوظ')}: ${got} / ${d.ar.length}</p>`+
+    d.ar.map((a,i)=>`<div class="kq-ay ${v[i]?'ok':''}" id="kq-${i}" data-nospeak="1"><div class="kq-ar" lang="ar">${esc(a.t)} <span class="kq-no">﴿${arDigits(a.i)}﴾</span></div><div class="kq-de" dir="ltr" lang="de">${a.i}. ${esc(d.de[i]||'')}</div>
+      <div class="kq-btns" dir="ltr"><button data-k="q-play" data-v="${i}">▶ ${kt('Hören','استمع')}</button><button data-k="q-rep" data-v="${i}">🔁 3×</button><button data-k="q-mean" data-v="${i}">🇩🇪 ${kt('Bedeutung','المعنى')}</button><button data-k="q-ok" data-v="${i}" class="${v[i]?'ok':''}">✓ ${v[i]?kt('Kann ich','أحفظها'):kt('Gelernt?','حفظت؟')}</button></div></div>`).join('')+
+    `<p class="hint" style="text-align:center">${kt('Rezitation: Mishary Alafasy · Übersetzung: Bubenheim/Elyas','التلاوة: مشاري العفاسي')}</p>`},
   wudu(){return kidSteps('wudu',KID_WUDU,'🧼 '+kt('Wudu – Gebetswaschung','الوضوء'),kt('Lerne die Gebetswaschung Schritt für Schritt. Ein Erwachsener zeigt dir die genaue Ausführung.','تعلّم الوضوء خطوة بخطوة، واطلب من شخص بالغ أن يريك الطريقة الصحيحة.'),'#DDF0EB',true)},
   salat(){return kidSteps('salat',KID_SALAT,'🕌 '+kt('Salat Schritt für Schritt','الصلاة خطوة بخطوة'),kt('Lerne die Gebetshaltungen gemeinsam mit einem Erwachsenen.','تعلّم حركات الصلاة مع شخص بالغ.'),'#F2EAF8',false)},
 };
@@ -3470,12 +3546,40 @@ function kidTraceInit(){const cv=$('#kidCanvas');if(!cv) return;const r=cv.getBo
   cv.onpointerdown=e=>{down=true;cv.setPointerCapture(e.pointerId);const [a,b]=pos(e);x.beginPath();x.moveTo(a,b)};
   cv.onpointermove=e=>{if(!down) return;const [a,b]=pos(e);x.lineTo(a,b);x.stroke();KS.pts++};
   cv.onpointerup=cv.onpointercancel=()=>{down=false}}
-function kidSay(text,lang){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang=lang==='ar'?'ar-SA':'de-DE';u.rate=.8;u.pitch=1.05;
+function kidSay(text,lang,queue){text=String(text||'').replace(/\p{Extended_Pictographic}|\uFE0F|\u200D/gu,'').replace(/\s+/g,' ').trim();if(!text) return;
+  if(NATIVE&&window.JIYNative.speak){try{if(JIYNative.speak(text,lang,.85,!!queue)) return;
+    const st=JIYNative.ttsCheck?JIYNative.ttsCheck(lang):'';
+    if(st==='missing'){toast(lang==='ar'?'Arabische Stimme fehlt auf dem Handy':'Deutsche Stimme fehlt',{label:'Installieren',fn:()=>{try{JIYNative.ttsInstall()}catch{}}});return}
+    if(st==='off'){setTimeout(()=>{try{JIYNative.speak(text,lang,.85,!!queue)}catch{}},800);return}}catch{}}
+  try{if(!queue) speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang=lang==='ar'?'ar-SA':'de-DE';u.rate=.8;u.pitch=1.05;
   const v=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.toLowerCase().startsWith(lang));if(v) u.voice=v;speechSynthesis.speak(u)}
   catch{toast(kt('Vorlesen geht auf diesem Gerät leider nicht.','القراءة غير متاحة على هذا الجهاز.'))}}
+/* Vorlesen: Text eines Elements auf Deutsch, Arabisch oder beidem */
+function kidBilingual(text){const keys=[...KT_PAIRS.keys()].filter(k=>k&&text.includes(k)).sort((a,b)=>b.length-a.length);
+  let de=text,ar=text;const seen=new Set();
+  for(const k of keys){if(seen.has(k)) continue;const p=KT_PAIRS.get(k);seen.add(p[0]);seen.add(p[1]);de=de.split(k).join(p[0]);ar=ar.split(k).join(p[1])}
+  return [de,ar]}
+function kidSpeakText(text){if(K.voice==='off'||!text) return;const [de,ar]=kidBilingual(text);
+  if(K.voice==='de') kidSay(de,'de');else if(K.voice==='ar') kidSay(ar,'ar');else{kidSay(de,'de');if(ar!==de) kidSay(ar,'ar',true)}}
+function kidSpeakEl(el){if(!el||el.closest('[data-nospeak]')) return;const c=el.cloneNode(true);c.querySelectorAll('.go,.ic,i').forEach(x=>x.remove());
+  kidSpeakText(c.innerText||c.textContent||'')}
+/* Quran lernen */
+async function kidQLoad(n){const j=await cachedJson('jiy-kq-'+n,`https://api.alquran.cloud/v1/surah/${n}/editions/quran-uthmani,de.bubenheim`);
+  const ar=j.data[0].ayahs,de=j.data[1].ayahs;lsSet('jiy-kq-n-'+n,String(ar.length));
+  KS.qd={n,ar:ar.map(a=>({t:a.text,g:a.number,i:a.numberInSurah})),de:de.map(a=>a.text)};return KS.qd}
+function kidQMark(i){document.querySelectorAll('.kq-ay.playing').forEach(x=>x.classList.remove('playing'));const el=$('#kq-'+i);if(el){el.classList.add('playing');el.scrollIntoView({behavior:'smooth',block:'center'})}}
+function kidQPlay(i,times,then){const d=KS.qd;if(!d||!d.ar[i]) return;if(!K.qa) K.qa=new Audio();const au=K.qa;let left=times||1;
+  try{if(NATIVE&&window.JIYNative.ttsStop) JIYNative.ttsStop()}catch{}
+  kidQMark(i);au.onended=()=>{left--;if(left>0){setTimeout(()=>{au.currentTime=0;au.play().catch(()=>{})},700)}else{document.querySelectorAll('.kq-ay.playing').forEach(x=>x.classList.remove('playing'));if(then) then()}};
+  au.onerror=()=>toast(kt('Audio konnte nicht geladen werden','تعذّر تحميل الصوت'));
+  au.src=`https://cdn.islamic.network/quran/audio/128/ar.alafasy/${d.ar[i].g}.mp3`;au.play().catch(()=>toast(kt('Bitte nochmal tippen','اضغط مرة أخرى')))}
+function kidQChain(i,learn){const d=KS.qd;if(!d||i>=d.ar.length){KS.qChain=null;return}const tok=KS.qChain={};
+  kidQPlay(i,learn?3:1,()=>{if(KS.qChain!==tok) return;const next=()=>{if(KS.qChain===tok) setTimeout(()=>kidQChain(i+1,learn),learn?1200:300)};
+    if(learn&&d.de[i]&&K.voice!=='ar'){kidSay(d.de[i],'de');setTimeout(next,Math.min(9000,1500+d.de[i].length*70))}else next()})}
 let kidMV=false;
 function kidLoadMV(){if(kidMV) return;kidMV=true;const s=document.createElement('script');s.type='module';s.src='https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js';document.head.append(s)}
 const KID_AFTER={
+  qsurah(){if(!(KS.qd&&KS.qd.n===KS.qs)&&!KS.qload){KS.qload=true;KS.qerr=false;kidQLoad(KS.qs).then(()=>{KS.qload=false;if(K.scr==='qsurah') renderKid()}).catch(()=>{KS.qload=false;KS.qerr=true;if(K.scr==='qsurah') renderKid()})}},
   trace:kidTraceInit,
   villa:kidLoadMV,
   maze(){K.keys=e=>{const d={ArrowUp:-11,ArrowDown:11,ArrowLeft:-1,ArrowRight:1}[e.key];if(d){e.preventDefault();kidMazeMove(d)}};document.addEventListener('keydown',K.keys);
@@ -3486,8 +3590,23 @@ const KID_AFTER={
 };
 function kidSteer(d){const c=KS.car;if(!c||c.fin) return;c.lane=Math.max(-1,Math.min(1,c.lane+d));kidCarDraw()}
 $('#kidBox').addEventListener('click',e=>{
-  const t=e.target.closest('[data-k]');if(!t||t.dataset.k==='step') return;const k=t.dataset.k,v=t.dataset.v;
+  const t=e.target.closest('[data-k]');
+  if(K.voice!=='off'&&(!t||!/^(go|abc|say|voice|lang|q-|mem|puz|mv|steer)/.test(t.dataset.k||''))){const sp=e.target.closest('[data-k],.kid-card,.kid-note,.kid-step,.kid-hero,.kid-win,h2,h3,b,p,small,label');if(sp&&!sp.closest('[data-nospeak]')) kidSpeakEl(sp)}
+  if(!t||t.dataset.k==='step') return;const k=t.dataset.k,v=t.dataset.v;
   if(k==='go') return kidGo(v);
+  if(k==='voice'){const o=['both','de','ar','off'];K.voice=o[(o.indexOf(K.voice)+1)%o.length];lsSet('jiy-kid-voice',K.voice);renderKid();
+    if(K.voice!=='off'){const m={both:['Vorlesen auf Deutsch und Arabisch','القراءة بالألمانية والعربية'],de:['Vorlesen auf Deutsch','القراءة بالألمانية'],ar:['Vorlesen auf Arabisch','القراءة بالعربية']}[K.voice];kidSpeakText(kt(m[0],m[1]))}else kidStop();return}
+  if(k==='q-open'){KS.qs=+v;if(!(KS.qd&&KS.qd.n===KS.qs)) KS.qd=null;return kidGo('qsurah')}
+  if(k==='q-play'){KS.qChain=null;return kidQPlay(+v,1,()=>{const d=KS.qd;if(d&&d.de[+v]&&K.voice!=='off'&&K.voice!=='ar') kidSay(d.de[+v],'de')})}
+  if(k==='q-rep'){KS.qChain=null;return kidQPlay(+v,3)}
+  if(k==='q-mean'){const d=KS.qd;if(d&&d.de[+v]) kidSay(d.de[+v],'de');return}
+  if(k==='q-all'){kidStop();return kidQChain(0,false)}
+  if(k==='q-learn'){kidStop();const vv=JSON.parse(ls(kidStoreKey('q-'+KS.qs))||'[]');const start=Math.max(0,(KS.qd?KS.qd.ar.findIndex((_,i)=>!vv[i]):0));return kidQChain(start<0?0:start,true)}
+  if(k==='q-stop') return kidStop();
+  if(k==='q-ok'){const key=kidStoreKey('q-'+KS.qs),vv=JSON.parse(ls(key)||'[]');vv[+v]=!vv[+v];lsSet(key,JSON.stringify(vv));
+    const d=KS.qd,info=KID_QURAN.find(x=>x[0]===KS.qs)||[];
+    if(d&&d.ar.every((_,i)=>vv[i])){kidAwardOnce('quran-'+KS.qs,3,'Sure '+(info[1]||KS.qs)+' gelernt');toast('🎉 '+kt('MashaAllah! Sure gelernt!','ما شاء الله! حفظت السورة!'));kidSpeakText(kt('MashaAllah! Du hast die Sure gelernt!','ما شاء الله! لقد حفظت السورة!'))}
+    const y=window.scrollY;renderKid();window.scrollTo(0,y);return}
   if(k==='lang'){K.lang=v;lsSet('jiy-kid-lang',v);return renderKid()}
   if(k==='abc'){KS[t.dataset.l]=v;kidSay(v+'. '+(t.dataset.l==='ar'?KID_AR:KID_DE).find(x=>x[0]===v)[1].replace(/\p{Extended_Pictographic}/gu,''),t.dataset.l);return renderKid()}
   if(k==='say'){const l=t.dataset.l,cur=l==='ar'?KID_AR.find(x=>x[0]===(KS.ar||'ا')):KID_DE.find(x=>x[0]===(KS.de||'A'));return kidSay(cur[0]+'. '+cur[1].replace(/\p{Extended_Pictographic}/gu,''),l)}
@@ -3570,6 +3689,7 @@ function openIt(){
   const list=[...(S.it||[])].sort((a,b)=>String(a.due||'9999').localeCompare(String(b.due||'9999'))||String(a.name).localeCompare(String(b.name)));
   modal(`<h3>🖥️ IT-Ecke</h3><p class="muted" style="margin-top:-6px">Geräte, Backups, Lizenzen der Familie. <b>Keine Passwörter</b> eintragen – dafür einen Passwort-Manager nutzen.</p>
     <button class="btn primary" style="width:100%" data-act="x-it-edit">+ Neuer Eintrag</button>
+    ${NATIVE?'<button class="btn soft" style="width:100%;margin-top:8px" data-act="net-open">🏠 Heimnetz: Geräte suchen · FRITZ!Box · Fernseher</button>':''}
     <div style="margin-top:10px">${list.length?list.map(i=>{const late=i.due&&i.due<today(),soon=i.due&&!late&&i.due<=addDays(today(),7);
       return `<button class="ev-row" style="--c:${late?'#C2410C':soon?'#E3A33A':'#2F6F6A'}" data-act="x-it-edit" data-id="${esc(i.id)}"><span class="ev-ic">${esc(i.icon||'🖥️')}</span><span class="ev-main"><b>${esc(i.name)}</b><small>${esc(i.info||'')}${i.due?` · ${late?'⚠️ überfällig':'fällig'} ${xDate(i.due)}`:''}</small></span></button>`}).join(''):'<div class="empty">Noch nichts eingetragen – z. B. „NAS-Backup prüfen“ oder „Router-Update“.</div>'}</div>`);
 }
@@ -3590,6 +3710,99 @@ function openItEdit(id){
   const del=$('#xItDel');if(del) del.onclick=e=>xDel(e.currentTarget,'it/'+id);
   const dn=$('#xItDone');if(dn) dn.onclick=async()=>{let due='';if(+i.every){const d=parse(i.due>today()?i.due:today());d.setMonth(d.getMonth()+(+i.every));due=iso(d)}
     if(await w(()=>S.db.doc('it/'+id).update({due,lastDone:Date.now()}))){toast(due?'✓ Nächste Prüfung '+xDate(due):'✓ Erledigt');openIt()}};
+}
+/* ---------- Heimnetz (nur Android-App, nur Administrator) ---------- */
+const NET_CB={};let netSeq=0;
+window.__jiyNet=(cb,json)=>{let d;try{d=JSON.parse(json)}catch{d={error:'Antwort unlesbar'}}if(cb==='tv'){netTvEvent(d);return}const f=NET_CB[cb];if(f){delete NET_CB[cb];f(d)}};
+function netCall(fn,...args){return new Promise(res=>{const id='n'+(++netSeq);NET_CB[id]=res;try{window.JIYNative[fn](id,...args)}catch(e){delete NET_CB[id];res({error:'Funktion fehlt – bitte JIY aktualisieren'})}})}
+function netOk(){return NATIVE&&window.JIYNative&&typeof window.JIYNative.netScan==='function'}
+function ipNum(ip){return String(ip||'').split('.').reduce((a,x)=>a*256+(+x||0),0)}
+function openNet(tab){
+  if(!amAdmin()) return;
+  if(!netOk()){modal(`<h3>🏠 Heimnetz</h3><p class="muted">Das gibt es nur in der neuesten JIY-App. Bitte unter <b>Mehr → Update</b> die neue Version installieren.</p>`);return}
+  S.netTab=tab||S.netTab||'geraete';
+  modal(`<h3>🏠 Heimnetz</h3><div class="seg" id="netSeg">${[['geraete','🔍 Geräte'],['fritz','📶 FRITZ!Box'],['tv','📺 Fernseher']].map(([k,t])=>`<button data-net="${k}" class="${S.netTab===k?'on':''}">${t}</button>`).join('')}</div><div id="netBox" style="margin-top:10px"></div>`);
+  $('#netSeg').onclick=e=>{const b=e.target.closest('[data-net]');if(b) openNet(b.dataset.net)};
+  ({geraete:netDevices,fritz:netFritz,tv:netTv})[S.netTab]();
+}
+function netDevHtml(list){if(!list.length) return '<div class="empty">Keine Geräte gefunden.</div>';
+  const fr=window.JIYNative.fritzHas&&window.JIYNative.fritzHas();
+  return `<div class="muted" style="margin-bottom:6px">${list.length} Geräte · ${list.filter(d=>d.active!==false).length} online</div>`+list.map((d,i)=>`<div class="ev-row" style="--c:${d.active===false?'#9CA3AF':'#2F6F6A'};cursor:default"><span class="ev-ic">${esc(d.icon||'🧩')}</span><span class="ev-main"><b>${esc(d.name||d.kind||'Gerät')}</b><small>${esc(d.ip||'')}${d.name&&d.kind?' · '+esc(d.kind):''}${d.model?' · '+esc(d.model):''}${d.active===false?' · offline':''}</small></span>
+    <span style="display:flex;gap:4px">${d.kind==='Samsung-Fernseher'?`<button class="btn soft sm" data-netact="tv" data-i="${i}" title="Fernbedienung">📺</button>`:''}${fr&&d.ip&&d.kind!=='FRITZ!Box / AVM'&&d.kind!=='Dieses Handy'?`<button class="btn ghost sm" data-netact="block" data-i="${i}" title="Internet sperren/freigeben">⛔</button>`:''}<button class="btn ghost sm" data-netact="add" data-i="${i}" title="In die IT-Ecke übernehmen">＋</button></span></div>`).join('')}
+async function netDevices(){
+  const box=$('#netBox');let ni={};try{ni=JSON.parse(window.JIYNative.netInfo())}catch{}
+  box.innerHTML=`<p class="muted" style="margin-top:0">${ni.wifi?`Dein Handy: ${esc(ni.ip||'')} · Router: ${esc(ni.gateway||'')}`:'⚠️ Nicht im WLAN – die Suche geht nur zu Hause.'}</p>
+    <button class="btn primary" style="width:100%" id="netScanBtn">🔍 Heimnetz durchsuchen</button><div id="netRes" style="margin-top:10px">${S.netLast?netDevHtml(S.netLast):''}</div>
+    <p class="hint">Findet Geräte im WLAN. Ist die FRITZ!Box eingerichtet, kommen alle ihr bekannten Geräte mit Namen dazu – auch ausgeschaltete.</p>`;
+  $('#netScanBtn').onclick=async e=>{const b=e.currentTarget;b.disabled=true;b.textContent='🔍 Suche … (ca. 20 Sekunden)';
+    const fh=window.JIYNative.fritzHas()?netCall('fritz','hosts',''):Promise.resolve(null);
+    const [sc,fr]=await Promise.all([netCall('netScan'),fh]);
+    b.disabled=false;b.textContent='🔍 Nochmal suchen';
+    if(sc.error&&!(fr&&fr.hosts)){$('#netRes').innerHTML=`<div class="empty">${esc(sc.error)}</div>`;return}
+    const map=new Map();(sc.devices||[]).forEach(d=>map.set(d.ip,{...d}));
+    ((fr&&fr.hosts)||[]).forEach(h=>{if(!h.ip&&!h.name) return;const k=h.ip||h.mac;const d=map.get(k)||{ip:h.ip,kind:'',icon:/802\.11|WLAN/i.test(h.type||'')?'📶':'🔌',ports:[]};
+      d.name=h.name||d.name;d.mac=h.mac||d.mac;d.active=map.has(k)?true:!!h.active;map.set(k,d)});
+    const list=[...map.values()].sort((a,b)=>((b.active!==false)-(a.active!==false))||ipNum(a.ip)-ipNum(b.ip));
+    S.netLast=list;$('#netRes').innerHTML=netDevHtml(list)};
+  box.onclick=async e=>{const t=e.target.closest('[data-netact]');if(!t) return;const d=(S.netLast||[])[+t.dataset.i];if(!d) return;
+    if(t.dataset.netact==='add'){if(await w(()=>S.db.collection('it').add({icon:d.icon||'🧩',name:(d.name||d.kind||'Gerät').slice(0,60),info:[d.ip,d.model,d.mac].filter(Boolean).join(' · ').slice(0,120),due:'',every:0,note:'',ts:Date.now(),by:S.meId||null}))){t.textContent='✓';t.disabled=true;toast('In die IT-Ecke übernommen')}}
+    else if(t.dataset.netact==='tv'){window.JIYNative.tvSet(d.ip,d.mac||'');openNet('tv')}
+    else if(t.dataset.netact==='block') netBlock(d)};
+}
+function netBlock(d){
+  modal(`<h3>⛔ Internet für „${esc(d.name||d.ip)}“</h3><p class="muted">Sperrt nur den <b>Internetzugang</b> dieses Geräts (z. B. Tablet zur Schlafenszeit). Im Heimnetz bleibt es erreichbar.</p>
+    <div class="actions"><button class="btn soft" id="nbOff">✅ Freigeben</button><span class="sp"></span><button class="btn primary" id="nbOn">⛔ Sperren</button></div>`);
+  const go=async on=>{const x=await netCall('fritz','block',d.ip+'|'+(on?'1':'0'));toast(x.error?'❌ '+x.error:(on?'⛔ Internet gesperrt':'✅ Internet freigegeben'));openNet('geraete')};
+  $('#nbOn').onclick=()=>go(true);$('#nbOff').onclick=()=>go(false);
+}
+async function netFritz(){
+  const box=$('#netBox');
+  if(!window.JIYNative.fritzHas()){const [h,u]=String(window.JIYNative.fritzHost()||'fritz.box|').split('|');
+    box.innerHTML=`<p class="muted" style="margin-top:0"><b>Einmalig in der FRITZ!Box</b> (fritz.box im Browser):<br>1. <b>System → FRITZ!Box-Benutzer</b>: neuen Benutzer anlegen, z. B. „jiy“, Recht <b>FRITZ!Box Einstellungen</b>.<br>2. <b>Heimnetz → Netzwerk → Netzwerkeinstellungen</b>: „Zugriff für Anwendungen zulassen“ einschalten.</p>
+      <form id="frForm" autocomplete="off"><label>Adresse<input name="h" value="${esc(h||'fritz.box')}"></label><label>Benutzer<input name="u" value="${esc(u||'')}" autocomplete="username"></label><label>Passwort<input name="p" type="password" required autocomplete="current-password"></label><button class="btn primary" style="width:100%">Verbinden</button></form>
+      <p class="hint">🔒 Das Passwort wird verschlüsselt (Android Keystore) nur auf diesem Handy gespeichert – nicht in der Cloud.</p>`;
+    $('#frForm').onsubmit=async e=>{e.preventDefault();const f=e.target,b=f.querySelector('button');b.disabled=true;b.textContent='Verbinde …';
+      const r0=window.JIYNative.fritzSave(f.h.value,f.u.value,f.p.value);if(r0!=='ok'){toast('❌ '+r0);b.disabled=false;b.textContent='Verbinden';return}
+      const r=await netCall('fritz','info','');if(r.error){window.JIYNative.fritzForget();toast('❌ '+r.error);b.disabled=false;b.textContent='Verbinden';return}
+      toast('✅ FRITZ!Box verbunden');netFritz()};
+    return}
+  box.innerHTML='<div class="empty">Lade …</div>';const r=await netCall('fritz','info','');
+  if(r.error){box.innerHTML=`<div class="empty">${esc(r.error)}<br><small>Bist du im Heim-WLAN?</small></div><button class="btn ghost" id="frReset" style="width:100%">Zugangsdaten neu eingeben</button>`;$('#frReset').onclick=()=>{window.JIYNative.fritzForget();netFritz()};return}
+  const mb=x=>x?Math.round(+x/1e6)+' Mbit/s':'–',up=+r.uptime||0;
+  box.innerHTML=`<div class="card"><b>📶 ${esc(r.model||'FRITZ!Box')}</b><div class="muted">FRITZ!OS ${esc(r.version||'')} · läuft seit ${Math.floor(up/86400)} Tagen</div>
+    <div style="margin-top:6px">🌍 Internet: <b>${r.link==='Up'?'✅ verbunden':esc(r.link||'?')}</b>${r.down?` · ⬇️ ${mb(r.down)} · ⬆️ ${mb(r.up)}`:''}</div></div>
+    ${r.guestSsid!==undefined?`<div class="card" style="margin-top:8px"><b>👋 Gäste-WLAN</b> <span class="muted">${esc(r.guestSsid||'')}</span><div style="margin-top:8px"><button class="btn ${r.guest?'primary':'soft'}" id="frGuest" style="width:100%">${r.guest?'✅ Ist an – jetzt ausschalten':'Einschalten'}</button></div></div>`:''}
+    <div class="row" style="margin-top:8px"><button class="btn soft" id="frHosts">🔍 Alle Geräte</button><button class="btn ghost danger" id="frReboot">🔄 Neu starten</button></div>
+    <button class="btn ghost sm" id="frForget" style="margin-top:8px">Zugangsdaten auf diesem Handy löschen</button>`;
+  const g=$('#frGuest');if(g) g.onclick=async e=>{e.currentTarget.disabled=true;const x=await netCall('fritz','guest',r.guest?'0':'1');toast(x.error?'❌ '+x.error:(x.guest?'✅ Gäste-WLAN an':'Gäste-WLAN aus'));netFritz()};
+  $('#frHosts').onclick=()=>{openNet('geraete');setTimeout(()=>{const b=$('#netScanBtn');if(b) b.click()},100)};
+  $('#frReboot').onclick=e=>confirmBtn(e.currentTarget,'Sicher? Internet ca. 3 Min. weg',async()=>{const x=await netCall('fritz','reboot','');toast(x.error?'❌ '+x.error:'🔄 FRITZ!Box startet neu')});
+  $('#frForget').onclick=()=>{window.JIYNative.fritzForget();toast('Zugangsdaten gelöscht');netFritz()};
+}
+const TV_APPS=[['Netflix','3201907018807','🎬'],['YouTube','111299001912','▶️'],['Prime Video','3201910019365','📦'],['Disney+','3201901017640','🏰']];
+function netTvEvent(d){const st=$('#tvState');if(!st) return;
+  if(d.event==='connected') st.innerHTML='✅ Verbunden';
+  else if(d.event==='connecting') st.innerHTML=d.paired?'🔄 Verbinde …':'📺 Bitte am Fernseher <b>„Zulassen“</b> bestätigen';
+  else if(d.event==='denied') st.innerHTML='❌ Am Fernseher abgelehnt – in den TV-Einstellungen unter „Geräteverbindungsmanager“ JIY erlauben';
+  else if(d.event==='error'||d.error) st.innerHTML='⚠️ Keine Verbindung – ist der Fernseher an und im selben WLAN?'}
+async function netTv(){
+  const box=$('#netBox');box.innerHTML='<div class="empty">Lade …</div>';const r=await netCall('tvInfo');
+  if(r.error||!r.ip){box.innerHTML=`<div class="empty">Noch kein Fernseher ausgewählt.</div><button class="btn primary" style="width:100%" id="tvFind">🔍 Fernseher suchen</button><p class="hint">Fernseher einschalten, dann suchen und beim Fernseher auf 📺 tippen.</p>`;
+    $('#tvFind').onclick=()=>{openNet('geraete');setTimeout(()=>{const b=$('#netScanBtn');if(b) b.click()},100)};return}
+  const kb=(k,l,cls)=>`<button class="btn ${cls||'soft'}" data-tvk="${k}">${l}</button>`;
+  box.innerHTML=`<div class="card"><b>📺 ${esc(r.name||'Fernseher')}</b><div class="muted">${esc(r.model||'')} · ${esc(r.ip)}</div><div id="tvState" style="margin-top:4px">${r.on===false?'💤 Aus oder nicht erreichbar':r.paired?'Bereit':'Beim ersten Tastendruck am Fernseher „Zulassen“ bestätigen'}</div></div>
+    <div class="tv-remote">
+      <div class="row">${kb('KEY_POWER','⏻ Aus','ghost danger')}<button class="btn soft" id="tvOn">⚡ Ein</button>${kb('KEY_HOME','🏠 Home')}</div>
+      <div class="tv-pad"><span></span>${kb('KEY_UP','⬆️')}<span></span>${kb('KEY_LEFT','⬅️')}${kb('KEY_ENTER','OK','primary')}${kb('KEY_RIGHT','➡️')}${kb('KEY_RETURN','↩️ Zurück')}${kb('KEY_DOWN','⬇️')}${kb('KEY_MUTE','🔇')}</div>
+      <div class="row">${kb('KEY_VOLDOWN','🔉 Leiser')}${kb('KEY_VOLUP','🔊 Lauter')}</div>
+      <div class="row">${kb('KEY_CHDOWN','⏬ Prog −')}${kb('KEY_CHUP','⏫ Prog +')}</div>
+      <div class="row">${kb('KEY_SOURCE','🔌 Quelle')}${kb('KEY_PLAY','▶️')}${kb('KEY_PAUSE','⏸')}</div>
+      <div class="chips" style="margin-top:8px">${TV_APPS.map(([n,id,e])=>`<button class="chip" data-tvapp="${id}">${e} ${n}</button>`).join('')}</div>
+    </div><button class="btn ghost sm" id="tvOther" style="margin-top:8px">Anderen Fernseher wählen</button>`;
+  box.onclick=e=>{const k=e.target.closest('[data-tvk]');if(k){try{navigator.vibrate&&navigator.vibrate(15)}catch{}window.JIYNative.tvKey(k.dataset.tvk);return}
+    const a=e.target.closest('[data-tvapp]');if(a){window.JIYNative.tvApp(a.dataset.tvapp);toast('▶ Startet …')}};
+  $('#tvOn').onclick=async()=>{const x=await netCall('tvWake');toast(x.error?'⚠️ '+x.error:'⚡ Einschaltsignal gesendet')};
+  $('#tvOther').onclick=()=>{window.JIYNative.tvSet('','');openNet('geraete')};
 }
 /* Spielzeit-Regeln (Administrator) */
 function kidRules(){return S.kidRules||{}}
@@ -3895,7 +4108,7 @@ let started=false;
 function startApp(user,hash){
   $('#login').hidden=true;
   if(started) return;started=true;
-  S.uid=user.uid;S.email=user.email;
+  S.uid=user.uid;S.email=user.email;S.emailHash=hash;
   S.isOwner=hash===OWNER_HASH;S.parentAcc=ALLOWED_HASHES.includes(hash);
   S.assets=makeAssets(user);S.sample=null;
   $('#chatPhotoLbl').hidden=false;$('#aiCard').hidden=true;

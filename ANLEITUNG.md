@@ -50,11 +50,16 @@ Am Ende hast du:
 
 ## Updates machen
 
-- **Aussehen/Funktionen ändern:** auf GitHub `web/index.html` öffnen → ✏️ bearbeiten → *Commit changes*.
-  Nach ca. 1 Minute ist die Änderung in der App (App einmal schließen und neu öffnen).
+JIY ist eine **echte Android-App**: die komplette Oberfläche (Ordner `web/`) steckt **in der APK**.
+Die App lädt nichts mehr von einer Webseite nach und funktioniert auch offline
+(nur Chat/Kalender-Abgleich, Quran-Audio, Gebetszeiten-Ort usw. brauchen Internet).
+
+- **Etwas ändern:** Datei im Ordner `web/` oder `android/` auf GitHub ändern → *Commit changes*.
+  GitHub baut automatisch eine neue APK (ca. 5 Minuten) und legt sie unter *Releases* ab.
+- **Auf den Handys:** JIY zeigt unter *Mehr* „Update verfügbar“ → antippen → neue Version wird installiert.
+  Anmeldung und alle Daten bleiben erhalten.
 - **Neue E-Mail freischalten:** Fingerabdruck (SHA-256 der klein geschriebenen E-Mail) in `web/index.html` bei `ALLOWED_HASHES` ergänzen **und** die E-Mail in Firebase bei den Firestore-Regeln eintragen.
-- **Neue APK** brauchst du nur, wenn sich etwas im Ordner `android` ändert. Sie landet automatisch unter *Releases*
-  und lässt sich über die alte App drüber installieren.
+- GitHub Pages wird weiterhin veröffentlicht – nur noch für das Kalender-Abo und als Reserve.
 
 ## Videos im Chat einschalten (optional)
 
@@ -76,7 +81,13 @@ Ohne Kreditkarte gehen Fotos (werden verkleinert). Für **Videos**:
 Die frühere Yanis-App „Kleine Entdecker“ ist jetzt **in JIY eingebaut** – keine zweite App mehr nötig.
 
 - Sichtbar **nur für Profile mit der Rolle „🧒 Kind“** (unten Tab **🎒 Entdecker**, außerdem unter *Mehr*).
-- Inhalt: Lernwerkstatt (Deutsch A–Z, Arabisch ا–ي, Vorlesen, Schreiben üben), Puzzle, Memory (1–2 Spieler), Labyrinth, 3D-Villa, Auto fahren, Wudu und Salat Schritt für Schritt. Gebetszeiten und Quran laufen über den Tab *Gebet*.
+- Inhalt: Lernwerkstatt (Deutsch A–Z, Arabisch ا–ي, Vorlesen, Schreiben üben), Puzzle, Memory (1–2 Spieler), Labyrinth, 3D-Villa, Auto fahren, Wudu und Salat Schritt für Schritt.
+- **📖 Quran lernen** (unter *Mein Leben*): 12 kurze Suren (Al-Fatiha, An-Nas, Al-Falaq, Al-Ikhlas …) Vers für Vers –
+  Rezitation (Alafasy), 🔁 3× wiederholen, 🇩🇪 Bedeutung vorlesen, ✓ „Kann ich“. **Lernmodus** spielt jeden Vers 3× und liest die Bedeutung vor.
+  Für jede gelernte Sure gibt es 3 Sterne.
+- **🔊 Vorlesen:** oben rechts im Kinderbereich – *DE+ع* (beides), *DE*, *ع* oder aus. Alles, was Yanis antippt, wird vorgelesen; beim Öffnen einer Seite wird die Überschrift vorgelesen.
+  Für Arabisch muss auf dem Handy die arabische Stimme installiert sein: *Einstellungen → Sprache → Sprachausgabe → Google → Sprachdaten installieren → Arabisch*
+  (fehlt sie, bietet JIY „Installieren“ an).
 - Sterne aus den Spielen landen automatisch bei **Punkte & Belohnungen** des Kindes (höchstens 3× pro Spiel und Tag).
 - Für die 3D-Villa muss die Datei `web/villa.gltf` mit hochgeladen sein.
 
@@ -85,3 +96,39 @@ Die frühere Yanis-App „Kleine Entdecker“ ist jetzt **in JIY eingebaut** –
 - **👑 Papa · Administrator** – alles, inkl. Familie, Profile und Kinderschutz.
 - **💜 Mama** – alle Eltern-Funktionen (Kalender, Haushalt, Fristen, Punkte, Profile mit PIN wechseln), nur Familie/Profile verwalten bleibt beim Administrator.
 - **🧒 Kind** – mit Kinderschutz und Kleine Entdecker. **👋 Gast** – Kalender, Chat, Einkauf, Essen, Gebet, WLAN.
+
+## 💶 Mein Geld (Haushaltsbuch)
+
+Unter **Mehr → 💶 Mein Geld** – nur für **Mama und Papa** (Kinder und Gäste sehen es nicht).
+
+- **Jeder hat einen privaten Bereich:** Papa legt seine Konten an, Mama ihre. Papas private Konten sieht
+  Mama nicht – und Mamas private Konten sieht Papa nicht.
+- **Gemeinschaftskonto:** Konto antippen → Häkchen „👨‍👩‍👦 Gemeinsames Konto“ → beide sehen es,
+  inkl. Buchungen, Daueraufträge (👤 zeigt, wer gebucht hat). Sparziele lassen sich genauso teilen.
+- Umbuchung vom privaten aufs Gemeinschaftskonto: der andere sieht nur „🔒 Privat → Gemeinschaftskonto“.
+- Privat geht nur mit dem **eigenen Profil auf dem eigenen Konto**. Ist auf einem Handy das Profil des
+  anderen aktiv, zeigt „Mein Geld“ nur die Gemeinschaftskonten.
+- Daten in Firebase: `financeUser/{uid}/docs/` = privat (pro Person), `financeShared/` = gemeinsam.
+
+**Firebase-Regeln:** sind eingetragen (`financeUser` privat pro Person, `financeShared` nur Eltern, beide aus der
+allgemeinen Familien-Regel ausgenommen). Die Vorlage steht in `firestore.rules` – die echten E-Mails nur in der Konsole.
+
+- Export landet in *Downloads/JIY*. Anmeldung über das JIY-Konto – kein extra Passwort.
+- **KI** (Kontoauszug-Diagnose, Beleg scannen, Spartipps, Assistent): in *Mein Geld → Mehr → 🔑 KI-Schlüssel*
+  einen eigenen Anthropic-API-Schlüssel eintragen (console.anthropic.com). Ohne Schlüssel geht alles außer der KI.
+- Die App selbst ist `web/geld.html` – Änderungen dort sind wie gewohnt nach ca. 1 Minute in JIY.
+
+## 🏠 Heimnetz (IT-Ecke, nur Administrator, nur in der App)
+
+*Mehr → IT-Ecke → 🏠 Heimnetz.* Funktioniert nur, wenn das Handy im **Heim-WLAN** ist.
+
+- **🔍 Geräte:** sucht alle Geräte im WLAN (Name, IP, Art: FRITZ!Box, Fernseher, Drucker, NAS, PC …).
+  Mit ＋ ins IT-Inventar übernehmen. Mit eingerichteter FRITZ!Box kommen alle bekannten Geräte mit Namen dazu.
+- **📶 FRITZ!Box:** Modell, FRITZ!OS, Internet-Status und Geschwindigkeit, **Gäste-WLAN ein/aus**,
+  **Internet für ein Gerät sperren/freigeben** (⛔ in der Geräteliste, z. B. Tablet abends), **Neustart**.
+  Einmalig in der FRITZ!Box: *System → FRITZ!Box-Benutzer* → eigenen Benutzer (z. B. „jiy“) mit Recht
+  *FRITZ!Box Einstellungen* anlegen und unter *Heimnetz → Netzwerk → Netzwerkeinstellungen*
+  „Zugriff für Anwendungen zulassen“ einschalten. Das Passwort liegt **verschlüsselt nur auf dem Handy**.
+- **📺 Fernseher (Samsung, ab ca. 2018):** Fernbedienung mit Ein/Aus, Lautstärke, Programm, Pfeiltasten, Quelle,
+  Netflix/YouTube/Prime/Disney+. Beim ersten Mal am Fernseher „Zulassen“ bestätigen.
+  Fürs **Einschalten** am Fernseher *Allgemein → Netzwerk → Experteneinstellungen → „Mit Mobilgerät einschalten“* aktivieren.

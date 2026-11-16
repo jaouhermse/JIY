@@ -44,8 +44,26 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
+    // Die komplette Oberfläche (Ordner web/) wird in die APK gepackt
+    sourceSets {
+        main {
+            assets.srcDirs += ["$buildDir/generated/jiyweb"]
+        }
+    }
+
     lint {
         checkReleaseBuilds false
         abortOnError false
     }
+}
+
+tasks.register('copyWeb', Copy) {
+    from "${rootDir}/../web"
+    into "$buildDir/generated/jiyweb/web"
+}
+preBuild.dependsOn copyWeb
+
+dependencies {
+    // WebSocket für die Samsung-TV-Fernbedienung
+    implementation "com.squareup.okhttp3:okhttp:4.12.0"
 }
