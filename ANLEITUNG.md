@@ -85,3 +85,14 @@ Die frühere Yanis-App „Kleine Entdecker“ ist jetzt **in JIY eingebaut** –
 - **👑 Papa · Administrator** – alles, inkl. Familie, Profile und Kinderschutz.
 - **💜 Mama** – alle Eltern-Funktionen (Kalender, Haushalt, Fristen, Punkte, Profile mit PIN wechseln), nur Familie/Profile verwalten bleibt beim Administrator.
 - **🧒 Kind** – mit Kinderschutz und Kleine Entdecker. **👋 Gast** – Kalender, Chat, Einkauf, Essen, Gebet, WLAN.
+
+## 💶 Mein Geld (Haushaltsbuch)
+
+Unter **Mehr → 💶 Mein Geld** – nur für **Papa und Mama** sichtbar (Kinder und Gäste sehen es nicht).
+
+- Gemeinsames Haushaltsbuch: was Papa bucht, sieht Mama sofort – und umgekehrt (👤 zeigt, wer gebucht hat).
+- Konten, Buchungen, Budgets, Daueraufträge, Sparziele, Schulden, Statistiken, Export (landet in *Downloads/JIY*).
+- Anmeldung läuft über das JIY-Konto – kein extra Passwort.
+- Daten liegen in eurer Firebase unter `finance/` (`main` = Einstellungen, `tx-JAHR` = Buchungen) und sind durch dieselben Firestore-Regeln geschützt wie der Rest.
+- **KI** (Kontoauszug-Diagnose, Beleg scannen, Spartipps, Assistent): in *Mein Geld → Mehr → 🔑 KI-Schlüssel* einen eigenen Anthropic-API-Schlüssel eintragen (console.anthropic.com, Abrechnung nach Verbrauch). Der Schlüssel bleibt nur auf dem jeweiligen Handy. Ohne Schlüssel geht alles außer der KI.
+- Die App selbst ist die Datei `web/geld.html` – Änderungen dort sind wie gewohnt nach ca. 1 Minute in JIY.
