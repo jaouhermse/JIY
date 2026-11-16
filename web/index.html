@@ -865,6 +865,8 @@ const ALLOWED_HASHES = [
   "d7b30f1d913ddeefd6ab5624dec3b8ae58803999432149b4a2a1e20cb87afcad",
   "1e7464b8aa86e759b582a5fad12ba6764b4b7c568b36eeb96b4fc1b16a5a24f8"
 ];
+// 💶 Mein Geld: NUR diese Konten (SHA-256 der E-Mail, klein geschrieben). Standard: nur der Besitzer.
+const GELD_HASHES = [OWNER_HASH];
 // Videos & Fotos über Firebase Storage? (braucht Tarif "Blaze"). false = Fotos verkleinert, keine Videos.
 const USE_STORAGE = false;
 /* ===================================================================== */
@@ -915,7 +917,7 @@ const DB={doc:p=>Dref(doc(fs,p)),collection:p=>Cref(collection(fs,p))};
 
 /* ---- Mein Geld (Haushaltsbuch, web/geld.html) – nur Papa & Mama ----
    Daten: Firestore finance/main (Einstellungen) + finance/tx-JAHR (Buchungen) */
-function geldAllowed(){return !!S.db&&(amAdmin()||(!isGuest()&&!isKid()))}
+function geldAllowed(){return !!S.db&&!!S.emailHash&&GELD_HASHES.includes(S.emailHash)&&amAdmin()}
 function finRef(id){if(!geldAllowed()) throw new Error('Kein Zugriff');if(!/^[a-z0-9-]+$/.test(id)) throw new Error('ID');return doc(fs,'finance',id)}
 window.JIYFin={
   get:async id=>{const x=await getDoc(finRef(id));return x.exists()?x.data():null},
@@ -926,7 +928,7 @@ window.JIYFin={
   close:()=>{if(history.state&&history.state.geld) history.back();else closeGeld()}
 };
 function openGeld(){
-  if(!geldAllowed()){toast('Nur für Mama & Papa');return}
+  if(!geldAllowed()){toast('Kein Zugriff');return}
   if(document.getElementById('geldFrame')) return;
   const box=document.createElement('div');box.id='geldFrame';
   box.style.cssText='position:fixed;inset:0;z-index:9000;background:#f4f6f5';
@@ -1051,7 +1053,7 @@ async function allowEmail(em){
     await S.db.doc('allowed/'+em).set({email:em,by:S.uid,ts:Date.now()});toast('✅ '+em+' ist freigeschaltet')}catch(e){console.warn('allow',e)}
 }
 function applyAdmin(){try{renderExtrasHints()}catch{}const kid=isKid();const kg=$('#kidGameBtn');if(kg) kg.hidden=!kid;const ktb=$('#kidTab');if(ktb) ktb.hidden=!kid;if(!kid&&S.view==='kinder') show('kalender');const ok=amAdmin();$('#famTab').hidden=!ok;if(!ok&&S.view==='familie') show('kalender');
-  const hh=amAdmin()||(!isGuest()&&!isKid());const hb=$('#hhTab');if(hb) hb.hidden=!hh;const fb=$('#fristTab');if(fb) fb.hidden=!hh;const gb=$('#geldTab');if(gb) gb.hidden=!hh;if(!hh) closeGeld();if(!hh&&S.view==='fristen') show('kalender');if(!hh&&S.view==='haushalt') show('kalender')}
+  const hh=amAdmin()||(!isGuest()&&!isKid());const hb=$('#hhTab');if(hb) hb.hidden=!hh;const fb=$('#fristTab');if(fb) fb.hidden=!hh;const gb=$('#geldTab');const ga=geldAllowed();if(gb) gb.hidden=!ga;if(!ga) closeGeld();if(!hh&&S.view==='fristen') show('kalender');if(!hh&&S.view==='haushalt') show('kalender')}
 function syncRole(form,hintEl){
   const minor=form.birth.value&&ageOf(form.birth.value)<18;
   if(minor&&isParentRole(form.role.value)) form.role.value='user';
@@ -3921,7 +3923,7 @@ let started=false;
 function startApp(user,hash){
   $('#login').hidden=true;
   if(started) return;started=true;
-  S.uid=user.uid;S.email=user.email;
+  S.uid=user.uid;S.email=user.email;S.emailHash=hash;
   S.isOwner=hash===OWNER_HASH;S.parentAcc=ALLOWED_HASHES.includes(hash);
   S.assets=makeAssets(user);S.sample=null;
   $('#chatPhotoLbl').hidden=false;$('#aiCard').hidden=true;

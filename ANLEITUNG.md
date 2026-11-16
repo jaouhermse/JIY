@@ -88,11 +88,18 @@ Die frühere Yanis-App „Kleine Entdecker“ ist jetzt **in JIY eingebaut** –
 
 ## 💶 Mein Geld (Haushaltsbuch)
 
-Unter **Mehr → 💶 Mein Geld** – nur für **Papa und Mama** sichtbar (Kinder und Gäste sehen es nicht).
+Unter **Mehr → 💶 Mein Geld** – **nur für ein bestimmtes Konto** (Standard: der Besitzer/Papa als Administrator).
+Mama, Kinder und Gäste sehen es nicht und können die Daten auch nicht aus der Datenbank lesen.
 
-- Gemeinsames Haushaltsbuch: was Papa bucht, sieht Mama sofort – und umgekehrt (👤 zeigt, wer gebucht hat).
+**Einmalig in Firebase eintragen (wichtig!):** Firestore → *Regeln* → den Inhalt aus `firestore.rules` übernehmen
+und in der Funktion `geld()` **deine** E-Mail eintragen (klein geschrieben) → *Veröffentlichen*.
+Ohne diese Regel könnte Mamas Konto die Daten technisch lesen.
+
+- Wer es sehen darf, steht in `web/index.html` bei `GELD_HASHES` (Standard: nur `OWNER_HASH`)
+  **und** in den Firestore-Regeln bei `geld()`. Beides muss passen.
+- Sichtbar nur, wenn auf dem Handy das Administrator-Profil aktiv ist (wechselt jemand auf Yanis' Profil, verschwindet es).
 - Konten, Buchungen, Budgets, Daueraufträge, Sparziele, Schulden, Statistiken, Export (landet in *Downloads/JIY*).
-- Anmeldung läuft über das JIY-Konto – kein extra Passwort.
-- Daten liegen in eurer Firebase unter `finance/` (`main` = Einstellungen, `tx-JAHR` = Buchungen) und sind durch dieselben Firestore-Regeln geschützt wie der Rest.
-- **KI** (Kontoauszug-Diagnose, Beleg scannen, Spartipps, Assistent): in *Mein Geld → Mehr → 🔑 KI-Schlüssel* einen eigenen Anthropic-API-Schlüssel eintragen (console.anthropic.com, Abrechnung nach Verbrauch). Der Schlüssel bleibt nur auf dem jeweiligen Handy. Ohne Schlüssel geht alles außer der KI.
-- Die App selbst ist die Datei `web/geld.html` – Änderungen dort sind wie gewohnt nach ca. 1 Minute in JIY.
+- Anmeldung läuft über das JIY-Konto – kein extra Passwort. Daten in Firebase unter `finance/`.
+- **KI** (Kontoauszug-Diagnose, Beleg scannen, Spartipps, Assistent): in *Mein Geld → Mehr → 🔑 KI-Schlüssel*
+  einen eigenen Anthropic-API-Schlüssel eintragen (console.anthropic.com). Ohne Schlüssel geht alles außer der KI.
+- Die App selbst ist `web/geld.html` – Änderungen dort sind wie gewohnt nach ca. 1 Minute in JIY.

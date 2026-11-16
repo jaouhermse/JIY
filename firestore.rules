@@ -13,6 +13,13 @@ service cloud.firestore {
         ];
     }
 
+    // 💶 Mein Geld: NUR dieses eine Konto (deine E-Mail, klein geschrieben)
+    function geld() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.lower() == 'deine.email@gmail.com';
+    }
+
     // Kalender-Abo: nur mit geheimer Adresse lesbar (keine Liste), schreiben nur Familie
     match /ics/{token} {
       allow get: if true;
@@ -20,8 +27,14 @@ service cloud.firestore {
       allow write: if family();
     }
 
-    match /{document=**} {
-      allow read, write: if family();
+    // Haushaltsbuch – nicht für Mama, Kinder oder Gäste
+    match /finance/{doc} {
+      allow read, write: if geld();
+    }
+
+    // Alles andere: ganze Familie (außer finance!)
+    match /{col}/{document=**} {
+      allow read, write: if family() && col != 'finance';
     }
   }
 }
