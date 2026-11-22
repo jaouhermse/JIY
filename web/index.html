@@ -1092,7 +1092,7 @@ function av(id,cls=''){
   if(!m) return `<span class="av ghost ${cls}">?</span>`;
   return `<span class="av ${cls}" style="background:${esc(m.color||COLORS[0])}" title="${esc(m.name)}">${esc(m.short||initials(m.name))}</span>`;
 }
-function blobUrl(id){return /^(https?:|data:)/.test(String(id))?String(id):''}
+function blobUrl(id){const v=String(id||'');return /^(https:\/\/|data:(image|video)\/[a-z0-9.+-]+;base64,)/i.test(v)?v:''}
 let toastTimer;
 function toast(msg,action){
   const t=$('#toast');t.innerHTML='';const s=document.createElement('span');s.textContent=msg;t.append(s);
@@ -1422,8 +1422,8 @@ function renderChat(forceBottom){
     html+=`<div class="msg ${mine?'me':''}">${mine?'':av(m.by)}<div class="bubble">
       ${!mine?`<div class="who" style="color:${esc(mm?.color||'#7A7685')}">${esc(mm?.name||'Jemand')}</div>`:''}
       ${m.call?callCard(m,mine):''}
-      ${m.img?`<img src="${blobUrl(m.img)}" alt="Foto" loading="lazy">`:''}
-      ${m.vid?`<video src="${blobUrl(m.vid)}" controls playsinline preload="metadata"></video>`:''}
+      ${m.img?`<img src="${esc(blobUrl(m.img))}" alt="Foto" loading="lazy">`:''}
+      ${m.vid?`<video src="${esc(blobUrl(m.vid))}" controls playsinline preload="metadata"></video>`:''}
       ${m.text&&!m.call?`<div class="txt">${esc(m.text)}</div>`:''}
       <div class="time">${pad(d.getHours())}:${pad(d.getMinutes())}</div></div></div>`;
   }
@@ -1496,7 +1496,7 @@ async function pruneChat(){
 
 /* ---------- Einkauf ---------- */
 function lookup(name){return CAT_INDEX.get(norm(name))}
-function itemPic(i){return i.img?`<img src="${blobUrl(i.img)}" alt="">`:esc(i.emoji||'🛒')}
+function itemPic(i){return i.img?`<img src="${esc(blobUrl(i.img))}" alt="">`:esc(i.emoji||'🛒')}
 function renderShop(){
   const open=S.shop.filter(i=>i.open).sort((a,b)=>(a.checked?1:0)-(b.checked?1:0)||String(a.due||'9999').localeCompare(String(b.due||'9999'))||String(a.cat).localeCompare(String(b.cat))||(a.addedAt||0)-(b.addedAt||0));
   const nChecked=open.filter(i=>i.checked).length;const fb=$('#finishBtn');fb.hidden=!nChecked;fb.textContent=`✓ Einkauf fertig (${nChecked})`;
@@ -2547,7 +2547,7 @@ async function renderAzkar(){
   const done=items.filter((it,i)=>(cnt[i]||0)>=it.n).length;
   $('#azProg').innerHTML=`<div class="az-bar"><span style="width:${Math.round(done/items.length*100)}%"></span></div><small class="muted">${done} von ${items.length} erledigt${done===items.length?' – māshā’Allāh! ✨':''}</small>`;
   list.innerHTML=items.map((it,i)=>{const c=cnt[i]||0,fin=c>=it.n;return `<div class="az ${fin?'fin':''}" data-i="${i}">
-    <div class="az-ar" lang="ar" dir="rtl">${it.q?`<span class="az-q" data-q="${it.q}">…</span>`:esc(it.a)}</div>
+    <div class="az-ar" lang="ar" dir="rtl">${it.q?`<span class="az-q" data-q="${esc(it.q)}">…</span>`:esc(it.a)}</div>
     <div class="az-row"><small class="muted">${esc(it.q?AZ_Q[it.q].de:it.de)}</small><button class="az-cnt" data-i="${i}" aria-label="Zählen">${fin?'✓':c+' / '+it.n}</button></div></div>`}).join('');
   list.querySelectorAll('.az-cnt').forEach(b=>b.onclick=()=>{const i=+b.dataset.i,it=items[i],c=azCounts();if((c[i]||0)>=it.n) return;
     c[i]=(c[i]||0)+1;lsSet(azKey(),JSON.stringify(c));try{navigator.vibrate&&navigator.vibrate(c[i]>=it.n?[40,60,40]:15)}catch{}
